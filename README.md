@@ -1,6 +1,6 @@
 # PICO-SST39SF0x0 Programmer
 
-[![build](https://github.com/ifilot/pico-sst39sf0x0-programmer/actions/workflows/build.yml/badge.svg)](https://github.com/ifilot/pico-sst39sf040/actions/workflows/build.yml)
+[![build](https://github.com/ifilot/pico-sst39sf0x0-programmer/actions/workflows/build.yml/badge.svg)](https://github.com/ifilot/pico-sst39sf0x0-programmer/actions/workflows/build.yml)
 
 ## Purpose
 
