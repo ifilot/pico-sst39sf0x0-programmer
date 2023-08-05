@@ -24,11 +24,11 @@ SST39SF0x0 type of ROM chips. The flasher revolves around the cheap
 Download the latest version of the binaries via the links below.
 
 ### PICO firmmare 
-* [Latest version](https://github.com/ifilot/pico-sst39sf040/releases/latest/download/pico-sst39sf0x0-programmer-firmware.uf2)
+* [Latest version](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-firmware.uf2)
 
 ### GUI
-* [Latest version Windows](https://github.com/ifilot/pico-sst39sf040/releases/latest/download/pico-sst39sf0x0-programmer-installer-win64.exe)
-* [Latest version MacOSx](https://github.com/ifilot/pico-sst39sf040/releases/latest/download/pico-sst39sf0x0-programmer.dmg)
+* [Latest version Windows](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-installer-win64.exe)
+* [Latest version MacOSx](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer.dmg)
 
 ## License
 
