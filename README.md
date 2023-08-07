@@ -10,6 +10,10 @@ SST39SF0x0 type of ROM chips. The flasher revolves around the cheap
 
 ![Image of the PICO Flasher device](img/pico-flasher.jpg)
 
+PCB frontside | PCB backside
+------------- | ------------
+![PCB frontside](img/pico-flasher-pcb-front.jpg) | ![PCB backside](img/pico-flasher-pcb-back.jpg)
+
 ## Contents
 
 * [Case](case): Set of .stl files to print a handy case for your flash device.
