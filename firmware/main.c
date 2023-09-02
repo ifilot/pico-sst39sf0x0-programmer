@@ -91,6 +91,9 @@ void parse_instructions() {
     } else if(check_command(instruction, "RDBK", 0, 4)) {
         read_block(get_uint16(instruction, 4));
         return;
+    } else if(check_command(instruction, "RP2KCR", 0, 6)) {
+        read_p2k_cartridge_block(get_uint8(instruction, 6));
+        return;
     } else if(check_command(instruction, "TESTTEST", 0, 8)) {
         printbytes32();
         return;

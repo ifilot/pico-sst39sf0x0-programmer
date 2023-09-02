@@ -9,6 +9,7 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    src/cartridgereadthread.cpp \
     src/dialogslotselection.cpp \
     src/flashthread.cpp \
     src/ioworker.cpp \
@@ -20,6 +21,7 @@ SOURCES += \
 
 HEADERS += \
     src/config.h \
+    src/cartridgereadthread.h \
     src/dialogslotselection.h \
     src/flashthread.h \
     src/ioworker.h \

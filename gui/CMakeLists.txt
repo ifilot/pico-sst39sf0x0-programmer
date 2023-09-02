@@ -24,6 +24,7 @@ add_compile_definitions(GIT_HASH="${GIT_HASH}")
 find_package(Qt5 REQUIRED COMPONENTS Widgets SerialPort)
 
 add_executable(pico-sst39sf0x0-programmer
+    src/cartridgereadthread.cpp
     src/dialogslotselection.cpp
     src/flashthread.cpp
     src/ioworker.cpp

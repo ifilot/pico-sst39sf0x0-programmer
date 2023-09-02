@@ -195,20 +195,24 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     // add individual buttons here
     this->button_identify_chip = new QPushButton("Identify chip");
     this->button_read_rom = new QPushButton("Read ROM");
+    this->button_read_cartridge = new QPushButton("Read P2000T Cartridge");
     this->button_flash_rom = new QPushButton("Write ROM");
     this->button_flash_bank = new QPushButton("Write ROM to bank");
 
     layout->addWidget(this->button_identify_chip);
     layout->addWidget(this->button_read_rom);
+    layout->addWidget(this->button_read_cartridge);
     layout->addWidget(this->button_flash_rom);
     layout->addWidget(this->button_flash_bank);
 
     this->button_identify_chip->setEnabled(false);
+    this->button_read_cartridge->setEnabled(false);
     this->button_read_rom->setEnabled(false);
     this->button_flash_rom->setEnabled(false);
     this->button_flash_bank->setEnabled(false);
 
     connect(this->button_read_rom, SIGNAL(released()), this, SLOT(read_rom()));
+    connect(this->button_read_cartridge, SIGNAL(released()), this, SLOT(read_cartridge()));
     connect(this->button_flash_rom, SIGNAL(released()), this, SLOT(flash_rom()));
     connect(this->button_identify_chip, SIGNAL(released()), this, SLOT(read_chip_id()));
     connect(this->button_flash_bank, SIGNAL(released()), this, SLOT(flash_bank()));
@@ -360,7 +364,50 @@ void MainWindow::select_com_port() {
     this->serial_interface->close_port();
     this->label_serial->setText(tr("Port: ") + this->combobox_serial_ports->currentText());
     this->label_board_id->setText(tr("Board id: ") + tr(board_info.c_str()));
-    this->button_identify_chip->setEnabled(true);
+
+    if(QString(board_info.c_str()).startsWith("PICOSST39")) {
+        QString versionstr = QString(board_info.c_str()).split("-")[1].mid(1);
+        qDebug() << "Extracting version string: " << versionstr;
+        QStringList version = versionstr.split(".");
+        if(version.size() != 3) {
+            QMessageBox msg_box;
+            msg_box.setIcon(QMessageBox::Warning);
+            msg_box.setText(tr(
+                  "Something went wrong parsing the version string."
+            ));
+            msg_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+            msg_box.exec();
+        } else {
+            int major = version[0].toInt();
+            int minor = version[1].toInt();
+            int patch = version[2].toInt();
+
+            int versionint = (major * 1000000) + (minor * 1000) + patch;
+
+            if(versionint < (1 * 1000000) + (1 * 1000) + 0) {
+                QMessageBox msg_box;
+                msg_box.setIcon(QMessageBox::Warning);
+                msg_box.setText(tr(
+                      "Your board firmware is outdated. Please update your board "
+                      "to version 1.1.0 or higher. Visit: "
+                      "<a href=\"https://github.com/ifilot/pico-sst39sf0x0-programmer\">https://github.com/ifilot/pico-sst39sf0x0-programmer</a>."
+                ));
+                msg_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+                msg_box.exec();
+            } else {
+                this->button_identify_chip->setEnabled(true);
+                this->button_read_cartridge->setEnabled(true);
+            }
+        }
+    } else {
+        QMessageBox msg_box;
+        msg_box.setIcon(QMessageBox::Warning);
+        msg_box.setText(tr(
+              "Invalid board identifier token read. Most likely, this is not the correct board."
+        ));
+        msg_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+        msg_box.exec();
+    }
 }
 
 /**
@@ -522,6 +569,9 @@ void MainWindow::read_rom() {
     // ask where to store file
     statusBar()->showMessage("Reading from chip, please wait...");
 
+    // dispatch thread
+    this->timer1.start();
+
     // disable all buttons so that the user cannot interrupt this task
     //this->disable_all_buttons();
 
@@ -535,7 +585,34 @@ void MainWindow::read_rom() {
     this->readerthread->start();
 }
 
+/**
+ * @brief Read data from chip
+ */
+void MainWindow::read_cartridge() {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "P2000T Adapter board present?", "Please ensure you have attached the P2000T adapter board. Continue?", QMessageBox::Yes|QMessageBox::No);
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
 
+    // dispatch thread
+    this->timer1.start();
+
+    // ask where to store file
+    statusBar()->showMessage("Reading P2000T cartridge, please wait...");
+
+    // disable all buttons so that the user cannot interrupt this task
+    //this->disable_all_buttons();
+
+    // dispatch thread
+    //this->operation = "Reading"; // message for statusbar
+    this->cartridgereaderthread = std::make_unique<CartridgeReadThread>(this->serial_interface);
+    this->cartridgereaderthread->set_serial_port(this->combobox_serial_ports->currentText().toStdString());
+    connect(this->cartridgereaderthread.get(), SIGNAL(read_result_ready()), this, SLOT(read_result_ready()));
+    connect(this->cartridgereaderthread.get(), SIGNAL(read_block_start(uint,uint)), this, SLOT(read_block_start(uint,uint)));
+    connect(this->cartridgereaderthread.get(), SIGNAL(read_block_done(uint,uint)), this, SLOT(read_block_done(uint,uint)));
+    this->cartridgereaderthread->start();
+}
 
 /**
  * @brief Slot to accept when a block is ready
@@ -562,10 +639,20 @@ void MainWindow::read_block_done(unsigned int block_id, unsigned int nr_blocks) 
  */
 void MainWindow::read_result_ready() {
     this->progress_bar_load->setValue(this->progress_bar_load->maximum());
-    auto data = this->readerthread->get_data();
+
+    QByteArray data;
+    if(this->readerthread) {
+        data = this->readerthread->get_data();
+        this->readerthread.reset(); // delete object
+    } else if(this->cartridgereaderthread) {
+        data = this->cartridgereaderthread->get_data();
+        this->readerthread.reset(); // delete object
+    } else {
+        qDebug() << "This function should not have been called.";
+    }
+
     qDebug() << "Read " << data.size() << " bytes from chip.";
     this->hex_widget->setData(new QHexView::DataStorageArray(data));
-    this->readerthread.reset(); // delete object
     statusBar()->showMessage(QString("Done reading chip in %1 seconds.").arg(this->timer1.elapsed() / 1000.f));
 }
 

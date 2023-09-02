@@ -1,6 +1,6 @@
 /****************************************************************************
  *                                                                          *
- *   PICO-SST39SF0x0-FLASHER-FIRMWARE                                       *
+ *   PICO-SST39SF0x0-FLASHER                                                *
  *   Copyright (C) 2023 Ivo Filot <ivo@ivofilot.nl>                         *
  *                                                                          *
  *   This program is free software: you can redistribute it and/or modify   *
@@ -18,30 +18,53 @@
  *                                                                          *
  ****************************************************************************/
 
-#ifndef _CONSTANTS_H
-#define _CONSTANTS_H
+#ifndef CARTRIDGEREADTHREAD_H
+#define CARTRIDGEREADTHREAD_H
 
-/*
-There is one 8-bit bus that is used to set the address registers. This
-8-bit bus corresponds to GPIO8 - GPIO15.
+#include <iostream>
+#include <QDebug>
 
-GPIO16 - OE of all address registers
-GPIO17 - LOAD for A0-A7
-GPIO18 - LOAD for A8-A15
-GPIO19 - LOAD for A16-A19
-*/
+#include "ioworker.h"
+#include "romsizes.h"
 
-#define ROE 16
-#define ALS 17
-#define AHS 18
-#define AUS 19
-#define PGM 20
-#define CE  21
-#define OE  22
+/**
+ * @brief Worker Thread responsible for reading ROM from cartridge
+ */
+class CartridgeReadThread : public IOWorker {
 
-#define DELAY_READ 5
-#define DELAY_WRITE 5
-#define DELAY_ADDR 4
-#define BOARD_ID "PICOSST39-v1.1.0"
+    Q_OBJECT
 
-#endif
+public:
+    CartridgeReadThread() {}
+
+    CartridgeReadThread(const std::shared_ptr<SerialInterface>& _serial_interface) :
+        IOWorker(_serial_interface) {}
+
+    /**
+     * @brief read the ROM from a cartridge
+     *
+     * This routine will be called when a thread containing this
+     * class is runned
+     */
+    void run() override;
+
+signals:
+    /**
+     * @brief signal when rom has been read
+     */
+    void read_result_ready();
+
+    /**
+     * @brief signal when a new block is about to be read
+     * @param sector_id
+     */
+    void read_block_start(unsigned int block_id, unsigned int nr_blocks);
+
+    /**
+     * @brief signal when a new block is read
+     * @param sector_id
+     */
+    void read_block_done(unsigned int block_id, unsigned int nr_blocks);
+};
+
+#endif // CARTRIDGEREADTHREAD_H

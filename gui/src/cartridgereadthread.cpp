@@ -1,6 +1,6 @@
 /****************************************************************************
  *                                                                          *
- *   PICO-SST39SF0x0-FLASHER-FIRMWARE                                       *
+ *   PICO-SST39SF0x0-FLASHER                                                *
  *   Copyright (C) 2023 Ivo Filot <ivo@ivofilot.nl>                         *
  *                                                                          *
  *   This program is free software: you can redistribute it and/or modify   *
@@ -18,30 +18,27 @@
  *                                                                          *
  ****************************************************************************/
 
-#ifndef _CONSTANTS_H
-#define _CONSTANTS_H
+#include "cartridgereadthread.h"
 
-/*
-There is one 8-bit bus that is used to set the address registers. This
-8-bit bus corresponds to GPIO8 - GPIO15.
+/**
+ * @brief read the ROM from a cartridge
+ *
+ * This routine will be called when a thread containing this
+ * class is runned
+ */
+void CartridgeReadThread::run() {
+    this->serial_interface->open_port();
 
-GPIO16 - OE of all address registers
-GPIO17 - LOAD for A0-A7
-GPIO18 - LOAD for A8-A15
-GPIO19 - LOAD for A16-A19
-*/
+    int numsegments = 4;
 
-#define ROE 16
-#define ALS 17
-#define AHS 18
-#define AUS 19
-#define PGM 20
-#define CE  21
-#define OE  22
+    // read blocks
+    for(int i=0; i < 4; i++) {
+        emit(read_block_start(i, numsegments));
+        auto blockdata = this->serial_interface->read_segment_cartridge(i);
+        this->data.append(blockdata);
+        emit(read_block_done(i, numsegments));
+    }
 
-#define DELAY_READ 5
-#define DELAY_WRITE 5
-#define DELAY_ADDR 4
-#define BOARD_ID "PICOSST39-v1.1.0"
-
-#endif
+    this->serial_interface->close_port();
+    emit(read_result_ready());
+}

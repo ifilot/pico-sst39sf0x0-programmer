@@ -106,6 +106,23 @@ QByteArray SerialInterface::read_block(unsigned int block_addr) {
 }
 
 /**
+ * @brief Read a segment (0x1000 bytes) from a cartridge at segment location
+ * @param address location
+ * @return data at address
+ */
+QByteArray SerialInterface::read_segment_cartridge(unsigned int segment_addr) {
+    try {
+        std::string command = QString("RP2KCR%1").arg(segment_addr,2,16, QLatin1Char('0')).toUpper().toStdString();
+        QByteArray response_data = this->send_command_capture_response(command, 0x1000);
+
+        return response_data;
+    }  catch (std::exception& e) {
+        std::cerr << "Caught error: " << e.what() << std::endl;
+        throw e;
+    }
+}
+
+/**
  * @brief Erase sector (4096 bytes) on SST39SF0x0 chip
  * @param start address
  */

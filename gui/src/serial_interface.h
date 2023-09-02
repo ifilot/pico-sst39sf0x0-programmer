@@ -102,6 +102,13 @@ public:
     QByteArray read_block(unsigned int sector_addr);
 
     /**
+     * @brief Read a segment (0x1000 bytes) from a cartridge at segment location
+     * @param address location
+     * @return data at address
+     */
+    QByteArray read_segment_cartridge(unsigned int segment_addr);
+
+    /**
      * @brief Erase sector (0x1000 bytes) on SST39SF0x0 chip
      * @param upper bytes of sector address
      */

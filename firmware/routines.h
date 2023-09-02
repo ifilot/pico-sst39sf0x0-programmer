@@ -28,24 +28,27 @@
 
 /*
  * Read device ID and print it to console
- */
+ **/
 void read_chip_id();
 
 /*
  * Print data for first 32 bytes on chip
- */
+ **/
 void printbytes32();
 
 /*
  * @brief Read block of 256 bytes
- *
- * sector_addr: upper bytes
- */
+ **/
 void read_block(uint32_t block_id);
+
+/*
+ * @brief Read block of 0x1000 bytes
+ **/
+void read_p2k_cartridge_block(uint8_t block_id);
 
 /**
  * Poll a byte and count number of cycles wherein upper bit is not 1
- */
+ **/
 uint16_t pollbyte(uint32_t addr);
 
 void write_block(uint32_t block_id);

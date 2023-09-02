@@ -90,6 +90,40 @@ void read_block(uint32_t block_id) {
     gpio_put(CE, true);
 }
 
+/*
+ * @brief Read block of 0x1000 bytes
+ **/
+void read_p2k_cartridge_block(uint8_t block_id) {
+    // set pins 0-7 to input
+    gpio_set_dir_in_masked(0x000000FF);
+    
+    // set pins based on block_id
+    gpio_put(CE, block_id >= 2);  // CARSEL 1
+    gpio_put(OE, block_id < 2);   // CARSEL 2
+    unsigned int pin12 = (block_id & 1) ? 0 : (1 << 4);
+
+    // set address to read from
+    for(unsigned int j=0; j<16; j++) {
+        set_address_high((j + pin12) << 8);
+        for(unsigned int i=0; i<256; i++) {
+            // set lower address
+            set_address_low(i);
+        
+            // small delay to properly receive response
+            sleep_us(DELAY_READ);
+
+            // read from lower 8 pins, discard rest
+            uint8_t val = gpio_get_all();
+
+            // send to UART
+            putchar_raw(val);
+        }
+    }
+
+    gpio_put(CE, true);
+    gpio_put(OE, true);
+}
+
 uint16_t pollbyte(uint32_t addr) {
     // set pins 0-7 to input
     gpio_set_dir_in_masked(0x000000FF);
