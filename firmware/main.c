@@ -40,11 +40,11 @@ void parse_instructions();
 void init() {
     stdio_init_all();
 
-    // initialize GPIO0-GPIO19
-    gpio_init_mask(0x000FFFFFF);
+    // initialize GPIO0-GPIO19 + 26,27
+    gpio_init_mask(0x00CFFFFFF);
 
-    // set GPIO8-GPIO23 to output and GPIO0-7 to input
-    gpio_set_dir_out_masked(0x00FFFF00);
+    // set GPIO8-GPIO23 + 26,27 to output and GPIO0-7 to input
+    gpio_set_dir_out_masked(0x0CFFFF00);
     gpio_set_dir_in_masked(0x000000FF);
 
     // set output enable (~OE) line to high
@@ -55,6 +55,10 @@ void init() {
     gpio_put(ALS, false);
     gpio_put(AHS, false);
     gpio_put(AUS, false);
+
+    // set leds to output
+    gpio_put(LED_RD, false);
+    gpio_put(LED_WR, false);
 }
 
 /*
