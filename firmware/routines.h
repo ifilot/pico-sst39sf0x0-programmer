@@ -43,6 +43,11 @@ void printbytes32();
  */
 void read_block(uint32_t block_id);
 
+/*
+ * @brief Read block of 0x1000 bytes
+ **/
+void read_p2k_cartridge_block(uint8_t block_id);
+
 /**
  * Poll a byte and count number of cycles wherein upper bit is not 1
  */
