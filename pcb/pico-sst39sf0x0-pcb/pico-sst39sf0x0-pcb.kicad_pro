@@ -366,7 +366,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "specctra_dsn": "picoflasher.dsn",
+      "specctra_dsn": "pico-sst39sf0x0-pcb.dsn",
       "step": "picoflasher.step",
       "vrml": ""
     },

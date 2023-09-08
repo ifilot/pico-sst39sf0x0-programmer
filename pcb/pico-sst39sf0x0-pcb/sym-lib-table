@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name "MCU_RaspberryPi_and_Boards")(type "KiCad")(uri "${KIPRJMOD}/components/MCU_RaspberryPi_and_Boards.kicad_sym")(options "")(descr ""))
+  (lib (name "sst39sf040")(type "KiCad")(uri "${KIPRJMOD}/components/sst39sf040.kicad_sym")(options "")(descr ""))
 )
