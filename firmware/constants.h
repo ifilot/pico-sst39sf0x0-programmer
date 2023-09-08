@@ -38,10 +38,12 @@ GPIO19 - LOAD for A16-A19
 #define PGM 20
 #define CE  21
 #define OE  22
+#define LED_RD 26
+#define LED_WR 27
 
 #define DELAY_READ 5
 #define DELAY_WRITE 5
 #define DELAY_ADDR 4
-#define BOARD_ID "PICOSST39-v1.0.0"
+#define BOARD_ID "PICOSST39-v1.1.0"
 
 #endif
