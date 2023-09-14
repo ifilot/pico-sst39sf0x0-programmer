@@ -79,6 +79,24 @@ class TestBoard(unittest.TestCase):
         
         self.assertEqual(romdata, compdata[0:len(romdata)])
         
+    def test_read_bank(self):
+        """
+        Test reading board id
+        """
+        # load comparison data
+        f = open('F:/Dropbox/Projects/P2000T/bundle.bin', 'rb')
+        compdata = bytearray(f.read())
+        f.close()
+        
+        romdata = bytearray()
+        for i in range(0,2):
+            self.ser.write(b'RDBANK%02X' % i)
+            rsp = self.ser.read(8)
+            rsp = self.ser.read(0x4000)
+            romdata += rsp
+        
+        self.assertEqual(romdata, compdata[0:len(romdata)])
+        
     def test_read_block_secondary(self):
         """
         Test reading board id

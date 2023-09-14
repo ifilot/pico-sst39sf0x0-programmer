@@ -135,25 +135,24 @@ void read_p2k_cartridge_block(uint8_t block_id) {
 }
 
 /*
- * @brief Read block of 0x1000 bytes
+ * @brief Read bank of 0x4000 bytes
  **/
-void read_p2k_cartridge_block(uint8_t block_id) {
+void read_bank(uint8_t bank_id) {
+    gpio_put(LED_RD, true);
+
     // set pins 0-7 to input
     gpio_set_dir_in_masked(0x000000FF);
     
-    // set pins based on block_id
-    gpio_put(CE, block_id >= 2);  // CARSEL 1
-    gpio_put(OE, block_id < 2);   // CARSEL 2
-    unsigned int pin12 = (block_id & 1) ? 0 : (1 << 4);
+    // chip enable
+    gpio_put(CE, false);
+    gpio_put(OE, false);
 
     // set address to read from
-    for(unsigned int j=0; j<16; j++) {
-        set_address_high((j + pin12) << 8);
-        for(unsigned int i=0; i<256; i++) {
-            // set lower address
+    for(uint32_t j=0; j<0x40; j++) {
+        set_address_high((j + 0x40 * bank_id) << 8);
+        for(uint32_t i=0; i<0x100; i++) {
             set_address_low(i);
         
-            // small delay to properly receive response
             sleep_us(DELAY_READ);
 
             // read from lower 8 pins, discard rest
@@ -166,8 +165,12 @@ void read_p2k_cartridge_block(uint8_t block_id) {
 
     gpio_put(CE, true);
     gpio_put(OE, true);
+    gpio_put(LED_RD, false);
 }
 
+/*
+ * @brief Wait until MSB bit is one
+ **/
 uint16_t pollbyte(uint32_t addr) {
     // set pins 0-7 to input
     gpio_set_dir_in_masked(0x000000FF);

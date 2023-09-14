@@ -35,7 +35,7 @@ class ReadThread : public IOWorker {
     Q_OBJECT
 
 private:
-    uint8_t nr_rom_banks = 0;       // number of banks to read
+    uint8_t nr_banks = 0;       // number of banks to read
     uint8_t starting_bank = 0;      // bank to start reading from
 
 public:
@@ -43,9 +43,9 @@ public:
 
     ReadThread(const std::shared_ptr<SerialInterface>& _serial_interface,
                uint8_t _starting_bank = 0,
-               uint8_t _nr_rom_banks = 0) :
+               uint8_t _nr_banks = 0) :
         IOWorker(_serial_interface),
-        nr_rom_banks(_nr_rom_banks),
+        nr_banks(_nr_banks),
         starting_bank(_starting_bank) {}
 
     /**
@@ -60,8 +60,8 @@ public:
      * @brief set the number of roms banks
      * @param number of rom banks
      */
-    inline void set_number_rom_banks(unsigned int _nr_rom_banks) {
-        this->nr_rom_banks = _nr_rom_banks;
+    inline void set_number_rom_banks(unsigned int _nr_banks) {
+        this->nr_banks = _nr_banks;
     }
 
 signals:

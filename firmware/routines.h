@@ -42,9 +42,15 @@ void printbytes32();
 void read_block(uint32_t block_id);
 
 /*
- * @brief Read block of 0x1000 bytes
+ * @brief Read block of 0x1000 bytes, only use this function when
+ * reading P2000T cartridgess!!
  **/
 void read_p2k_cartridge_block(uint8_t block_id);
+
+/*
+ * @brief Read bank of 0x4000 bytes
+ **/
+void read_bank(uint8_t bank_id);
 
 /**
  * Poll a byte and count number of cycles wherein upper bit is not 1

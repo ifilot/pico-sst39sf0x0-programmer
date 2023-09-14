@@ -632,6 +632,7 @@ void MainWindow::read_block_done(unsigned int block_id, unsigned int nr_blocks) 
         statusBar()->showMessage(QString("%1 block %2 / %3 : %4 seconds remaining.").arg("Reading").arg(block_id+1).arg(nr_blocks).arg(seconds_remaining));
     }
     this->progress_bar_load->setValue(block_id+1);
+    this->progress_bar_load->setMaximum(nr_blocks);
 }
 
 /*
@@ -749,6 +750,7 @@ void MainWindow::flash_bank() {
  */
 void MainWindow::flash_block_start(unsigned int block_id, unsigned int nr_blocks) {
     this->progress_bar_load->setValue(block_id);
+    this->progress_bar_load->setMaximum(nr_blocks);
 }
 
 /**
@@ -852,4 +854,6 @@ void MainWindow::verify_result_ready() {
 
     // re-enable all buttons when data is read
     // this->enable_all_buttons();
+
+    this->progress_bar_load->reset();
 }

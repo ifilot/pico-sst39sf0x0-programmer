@@ -30,18 +30,18 @@ void ReadThread::run() {
     this->serial_interface->open_port();
 
     // get chip id
-    if(this->nr_rom_banks == 0) {
+    if(this->nr_banks == 0) {
         uint16_t chip_id = this->serial_interface->get_chip_id();
         if((chip_id >> 8 & 0xFF) == 0xBF) {
             switch(chip_id & 0xFF) {
                 case 0xB5:
-                    this->nr_rom_banks = 128 * 1024 / BANKSIZE;
+                    this->nr_banks = 128 / 16;
                 break;
                 case 0xB6:
-                    this->nr_rom_banks = 256 * 1024 / BANKSIZE;
+                    this->nr_banks = 256 / 16;
                 break;
                 case 0xB7:
-                    this->nr_rom_banks = 512 * 1024 / BANKSIZE;
+                    this->nr_banks = 512 / 16;
                 break;
                 default:
                     throw std::runtime_error("Unknown chip suffix: " + std::to_string(chip_id));
@@ -52,15 +52,12 @@ void ReadThread::run() {
         }
     }
 
-    int numblocks = this->nr_rom_banks * BLOCKSPERBANK;
-
     // read blocks
-    for(int i=0; i < numblocks; i++) {
-        unsigned int block_id = i + this->starting_bank * BLOCKSPERBANK;
-        emit(read_block_start(i, numblocks));
-        auto blockdata = this->serial_interface->read_block(block_id);
+    for(int i=0; i < this->nr_banks; i++) {
+        emit(read_block_start(i, this->nr_banks));
+        auto blockdata = this->serial_interface->read_bank(i + this->starting_bank);
         this->data.append(blockdata);
-        emit(read_block_done(i, numblocks));
+        emit(read_block_done(i, this->nr_banks));
     }
 
     this->serial_interface->close_port();

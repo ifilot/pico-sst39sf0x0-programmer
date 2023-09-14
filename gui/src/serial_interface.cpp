@@ -123,6 +123,23 @@ QByteArray SerialInterface::read_segment_cartridge(unsigned int segment_addr) {
 }
 
 /**
+ * @brief Read a bank (0x4000 bytes)
+ * @param bank_id
+ * @return data at address
+ */
+QByteArray SerialInterface::read_bank(unsigned int bank_id) {
+    try {
+        std::string command = QString("RDBANK%1").arg(bank_id,2,16, QLatin1Char('0')).toUpper().toStdString();
+        QByteArray response_data = this->send_command_capture_response(command, 0x4000);
+
+        return response_data;
+    }  catch (std::exception& e) {
+        std::cerr << "Caught error: " << e.what() << std::endl;
+        throw e;
+    }
+}
+
+/**
  * @brief Erase sector (4096 bytes) on SST39SF0x0 chip
  * @param start address
  */
