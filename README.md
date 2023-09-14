@@ -32,7 +32,6 @@ Download the latest version of the binaries via the links below.
 
 ### GUI
 * [Latest version Windows](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-installer-win64.exe)
-* [Latest version MacOSx](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer.dmg)
 
 ## License
 
