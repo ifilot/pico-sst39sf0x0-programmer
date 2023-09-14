@@ -46,7 +46,7 @@ of commands are given below.
 * `RDBKXXXX`: Reads a block of data (256 bytes) at hex position `XXXX00`. Returns
   256 bytes of data.
 * `RP2KCRXX`: Reads a block of data (0x1000 bytes) at hex position `XX000`. Returns
-  0x1000 bytes of data. This function is used to interface with the P2000T-FAT Reader.
+  0x1000 bytes of data. (This function is used to interface with the P2000T-FAT Reader.)
 * `DEVIDSST`: Attempts to read the device ID of the SST39SF0x0 chip. Returns
   2 bytes of data.
 * `WRBKXXXX`: Write a block of data at hex position `XXXX00`.
