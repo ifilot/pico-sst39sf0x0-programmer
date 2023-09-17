@@ -169,9 +169,45 @@ void read_bank(uint8_t bank_id) {
 }
 
 /*
+ * @brief Read sector of 0x1000 bytes
+ **/
+void read_sector(uint32_t sector_id) {
+    gpio_put(LED_RD, true);
+
+    // set pins 0-7 to input
+    gpio_set_dir_in_masked(0x000000FF);
+    
+    // chip enable
+    gpio_put(CE, false);
+    gpio_put(OE, false);
+
+    uint32_t base_addr = sector_id * 0x1000;
+
+    // set address to read from
+    for(uint32_t j=0; j<0x10; j++) {
+        set_address_high(base_addr | (j << 8));
+        for(uint32_t i=0; i<0x100; i++) {
+            set_address_low(i);
+        
+            sleep_us(DELAY_READ);
+
+            // read from lower 8 pins, discard rest
+            uint8_t val = gpio_get_all();
+
+            // send to UART
+            putchar_raw(val);
+        }
+    }
+
+    gpio_put(CE, true);
+    gpio_put(OE, true);
+    gpio_put(LED_RD, false);
+}
+
+/*
  * @brief Write bank of 0x1000 bytes
  **/
-void write_bank(uint32_t bank_id) {
+void write_sector(uint32_t sector_id) {
     // first collect all the data
     uint16_t bitsread = 0;
     uint8_t buffer[0x1000];
@@ -187,7 +223,7 @@ void write_bank(uint32_t bank_id) {
     // then write the data
     gpio_put(LED_WR, true);
 
-    uint32_t addr = bank_id * 0x1000;
+    uint32_t addr = sector_id * 0x1000;
     uint8_t checksum = 0;
     for(uint16_t i=0; i<0x1000; i++) {
         uint8_t c = buffer[i];

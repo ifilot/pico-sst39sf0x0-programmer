@@ -53,9 +53,14 @@ void read_p2k_cartridge_block(uint8_t block_id);
 void read_bank(uint8_t bank_id);
 
 /*
- * @brief Write a bank of 0x4000 bytes
+ * @brief Read bank of 0x4000 bytes
  **/
-void write_bank(uint32_t bank_id);
+void read_sector(uint32_t sector_id);
+
+/*
+ * @brief Write a sector of 0x1000 bytes
+ **/
+void write_sector(uint32_t sector_id);
 
 /**
  * Poll a byte and count number of cycles wherein upper bit is not 1

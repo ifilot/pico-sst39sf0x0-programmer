@@ -127,7 +127,7 @@ class TestBoard(unittest.TestCase):
                
         # generate random data
         randomdata = bytearray(np.random.randint(0, 256, 0x1000, dtype=np.uint8))
-        self.ser.write(b'WRBANK05')
+        self.ser.write(b'WRSECT05')
         rsp = self.ser.read(8)
         print(rsp)
         self.ser.write(randomdata)
@@ -138,14 +138,10 @@ class TestBoard(unittest.TestCase):
                          crc16(randomdata))
         
         # check writing
-        res = bytearray()
-        for i in range(0,0x1000//256):
-            self.ser.write(b'RDBK%04X' % (i + 0x50))
-            rsp = self.ser.read(8)
-            #print(rsp)
-            rsp = self.ser.read(0x100)
-            res += rsp
-        self.assertEqual(res, randomdata)
+        self.ser.write(b'RDSECT05')
+        rsp = self.ser.read(8)
+        rsp = self.ser.read(0x1000)
+        self.assertEqual(rsp, randomdata)
 
 def crc16(data):
     crc = int(0)

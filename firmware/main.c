@@ -108,16 +108,22 @@ void parse_instructions() {
         read_p2k_cartridge_block(get_uint8(instruction, 6));
         return;
     /*
-    * Read a bank (4kb)
+    * Read a bank (16kb)
     */
     } else if(check_command(instruction, "RDBANK", 0, 6)) {
         read_bank(get_uint8(instruction, 6));
         return;
     /*
-    * Write a bank (4kb)
+    * Read a sector (4kb)
     */
-    } else if(check_command(instruction, "WRBANK", 0, 6)) {
-        write_bank(get_uint8(instruction, 6));
+    } else if(check_command(instruction, "RDSECT", 0, 6)) {
+        read_sector(get_uint8(instruction, 6));
+        return;
+    /*
+    * Write a sector (4kb)
+    */
+    } else if(check_command(instruction, "WRSECT", 0, 6)) {
+        write_sector(get_uint8(instruction, 6));
         return;
     /*
     * Perform a simple test
@@ -132,7 +138,7 @@ void parse_instructions() {
         read_chip_id();
         return;
     /*
-    * Write a block
+    * Write a block (256 bytes)
     */
     } else if(check_command(instruction, "WRBK", 0, 4)) {
         write_block(get_uint16(instruction, 4));
