@@ -241,8 +241,8 @@ void write_sector(uint32_t sector_id) {
 
     // return crc16 checksum
     uint16_t crc16checksum = crc16_xmodem(buffer, 0x1000);
-    putchar_raw((crc16checksum >> 8) & 0xFF);
     putchar_raw(crc16checksum & 0xFF);
+    putchar_raw((crc16checksum >> 8) & 0xFF);
 }
 
 /*

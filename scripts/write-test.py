@@ -134,7 +134,7 @@ class TestBoard(unittest.TestCase):
         crc16checksum = self.ser.read(2)
         
         # assert checksum
-        self.assertEqual(int.from_bytes(crc16checksum, byteorder='big', signed=False), 
+        self.assertEqual(int.from_bytes(crc16checksum, byteorder='little', signed=False), 
                          crc16(randomdata))
         
         # check writing

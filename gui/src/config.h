@@ -21,7 +21,7 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-#define PROGRAM_NAME "Pico SST39sf0x0 Programmer"
+#define PROGRAM_NAME "PICO SST39sf0x0 Programmer"
 #define PROGRAM_VERSION "1.1.0"
 
 #define UNUSED(x) (void)(x)

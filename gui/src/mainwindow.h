@@ -226,12 +226,12 @@ private slots:
     /**
      * @brief Slot to indicate that a page is about to be written
      */
-    void flash_block_start(unsigned int block_id, unsigned int nr_blocks);
+    void flash_sector_start(unsigned int sector_id, unsigned int num_sectors);
 
     /**
      * @brief Slot to accept that a page is written
      */
-    void flash_block_done(unsigned int block_id, unsigned int nr_blocks);
+    void flash_sector_done(unsigned int sector_id, unsigned int num_sectors);
 
     /*
      * @brief Signal that a flash operation is finished

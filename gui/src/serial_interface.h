@@ -129,6 +129,13 @@ public:
     void burn_block(unsigned int sector_id, const QByteArray& data);
 
     /**
+     * @brief Burn block (0x1000 bytes) to SST39SF0x0 chip
+     * @param start address
+     * @param data (0x1000 bytes)
+     */
+    void burn_sector(unsigned int sector_id, const QByteArray& data);
+
+    /**
      * @brief get_chip_id check to verify this is a SST39SF0x0 chip
      * @return chip id
      */
@@ -179,6 +186,14 @@ private:
      * @return command string
      */
     std::string build_command(const QString& header, int vallength, uint16_t value);
+
+    /**
+     * @brief Calculate CRC16 xmodem checksum
+     * @param data
+     * @param length
+     * @return
+     */
+    uint16_t crc16_xmodem(const QByteArray& data, uint16_t length);
 };
 
 #endif // SerialInterface_H
