@@ -52,18 +52,31 @@ void read_p2k_cartridge_block(uint8_t block_id);
  **/
 void read_bank(uint8_t bank_id);
 
+/*
+ * @brief Write a bank of 0x4000 bytes
+ **/
+void write_bank(uint32_t bank_id);
+
 /**
  * Poll a byte and count number of cycles wherein upper bit is not 1
  **/
 uint16_t pollbyte(uint32_t addr);
 
+/**
+ * Write a block of data (256 bytes)
+*/
 void write_block(uint32_t block_id);
 
+/**
+ * Erase sector (4kb)
+*/
 void erase_sector(uint32_t block_id);
 
 /**
  * Return board identification string
  **/
 void write_board_id();
+
+uint16_t crc16_xmodem(uint8_t *data, uint16_t length);
 
 #endif // _ROUTINES_H

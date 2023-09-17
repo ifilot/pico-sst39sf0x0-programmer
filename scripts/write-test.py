@@ -101,9 +101,72 @@ class TestBoard(unittest.TestCase):
         rsp = self.ser.read(8)
         print(rsp)
         rsp = self.ser.read(256)
-        print(' '.join('0x%02X' % d for d in randomdata))
-        print(' '.join('0x%02X' % d for d in rsp))
+        #print(' '.join('0x%02X' % d for d in randomdata))
+        #print(' '.join('0x%02X' % d for d in rsp))
         self.assertEqual(rsp, randomdata)
         
+    def test_write_4k(self):
+        """
+        Test reading board id
+        """
+        self.ser.write(b'ESST0050')
+        rsp = self.ser.read(8)
+        print(rsp)
+        rsp = self.ser.read(2)
+        print(' '.join('0x%02X' % d for d in rsp))
+        
+        # check erasing
+        res = bytearray()
+        for i in range(0,0x1000//256):
+            self.ser.write(b'RDBK%04X' % (i + 0x50))
+            rsp = self.ser.read(8)
+            #print(rsp)
+            rsp = self.ser.read(0x100)
+            res += rsp
+        self.assertEqual(res, bytearray(np.ones(0x1000, dtype=np.uint8) * 0xFF))
+               
+        # generate random data
+        randomdata = bytearray(np.random.randint(0, 256, 0x1000, dtype=np.uint8))
+        self.ser.write(b'WRBANK05')
+        rsp = self.ser.read(8)
+        print(rsp)
+        self.ser.write(randomdata)
+        crc16checksum = self.ser.read(2)
+        
+        # assert checksum
+        self.assertEqual(int.from_bytes(crc16checksum, byteorder='big', signed=False), 
+                         crc16(randomdata))
+        
+        # check writing
+        res = bytearray()
+        for i in range(0,0x1000//256):
+            self.ser.write(b'RDBK%04X' % (i + 0x50))
+            rsp = self.ser.read(8)
+            #print(rsp)
+            rsp = self.ser.read(0x100)
+            res += rsp
+        self.assertEqual(res, randomdata)
+
+def crc16(data):
+    crc = int(0)
+    
+    poly = 0x1021
+    
+    for c in data: # fetch byte
+        crc ^= (c << 8) # xor into top byte
+        for i in range(8): # prepare to rotate 8 bits
+            crc = crc << 1 # rotate
+            if crc & 0x10000:
+                crc = (crc ^ poly) & 0xFFFF # xor with XMODEN polynomic
+    
+    return crc        
+
+def printhex(data):
+    for i in range(0, len(data)):
+        print('%02X ' % data[i], end='')
+        if (i+1) % 16 == 0:
+            print()
+    print()
+
 if __name__ == '__main__':
     unittest.main()

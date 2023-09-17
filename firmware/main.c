@@ -89,27 +89,57 @@ int main() {
 void parse_instructions() {
     echo_command(instruction, 8);
     
+    /*
+    * Read identifier string from board
+    */
     if(check_command(instruction, "READINFO", 0, 8)) {
         write_board_id();
         return;
+    /*
+    * Read a block
+    */
     } else if(check_command(instruction, "RDBK", 0, 4)) {
         read_block(get_uint16(instruction, 4));
         return;
+    /*
+    * Read data from P2000 SLOT1 cartridge, requiring adapter baord
+    */        
     } else if(check_command(instruction, "RP2KCR", 0, 6)) {
         read_p2k_cartridge_block(get_uint8(instruction, 6));
         return;
+    /*
+    * Read a bank (4kb)
+    */
     } else if(check_command(instruction, "RDBANK", 0, 6)) {
         read_bank(get_uint8(instruction, 6));
         return;
+    /*
+    * Write a bank (4kb)
+    */
+    } else if(check_command(instruction, "WRBANK", 0, 6)) {
+        write_bank(get_uint8(instruction, 6));
+        return;
+    /*
+    * Perform a simple test
+    */
     } else if(check_command(instruction, "TESTTEST", 0, 8)) {
         printbytes32();
         return;
+    /*
+    * Read the device id from the SSTSF390x0 chip
+    */
     } else if(check_command(instruction, "DEVIDSST", 0, 8)) {
         read_chip_id();
         return;
+    /*
+    * Write a block
+    */
     } else if(check_command(instruction, "WRBK", 0, 4)) {
         write_block(get_uint16(instruction, 4));
         return;
+    /*
+    * Erase a sector (4kb)
+    */
     } else if(check_command(instruction, "ESST", 0, 4)) {
         erase_sector(get_uint16(instruction, 4));
         return;
