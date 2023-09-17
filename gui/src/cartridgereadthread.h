@@ -18,8 +18,8 @@
  *                                                                          *
  ****************************************************************************/
 
-#ifndef READTHREAD_H
-#define READTHREAD_H
+#ifndef CARTRIDGEREADTHREAD_H
+#define CARTRIDGEREADTHREAD_H
 
 #include <iostream>
 #include <QDebug>
@@ -30,23 +30,15 @@
 /**
  * @brief Worker Thread responsible for reading ROM from cartridge
  */
-class ReadThread : public IOWorker {
+class CartridgeReadThread : public IOWorker {
 
     Q_OBJECT
 
-private:
-    uint8_t nr_banks = 0;       // number of banks to read
-    uint8_t starting_bank = 0;      // bank to start reading from
-
 public:
-    ReadThread() {}
+    CartridgeReadThread() {}
 
-    ReadThread(const std::shared_ptr<SerialInterface>& _serial_interface,
-               uint8_t _starting_bank = 0,
-               uint8_t _nr_banks = 0) :
-        IOWorker(_serial_interface),
-        nr_banks(_nr_banks),
-        starting_bank(_starting_bank) {}
+    CartridgeReadThread(const std::shared_ptr<SerialInterface>& _serial_interface) :
+        IOWorker(_serial_interface) {}
 
     /**
      * @brief read the ROM from a cartridge
@@ -55,14 +47,6 @@ public:
      * class is runned
      */
     void run() override;
-
-    /**
-     * @brief set the number of roms banks
-     * @param number of rom banks
-     */
-    inline void set_number_rom_banks(unsigned int _nr_banks) {
-        this->nr_banks = _nr_banks;
-    }
 
 signals:
     /**
@@ -83,4 +67,4 @@ signals:
     void read_block_done(unsigned int block_id, unsigned int nr_blocks);
 };
 
-#endif // READTHREAD_H
+#endif // CARTRIDGEREADTHREAD_H

@@ -157,6 +157,9 @@ void MainWindow::build_serial_interface_menu(QVBoxLayout* target_layout) {
  * @param layout position where to put this part of the GUI
  */
 void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
+    /**
+     * MULTICARTRIDGE IMAGES
+     */
     // create toplevel interface
     QGroupBox* container = new QGroupBox("Multicard images");
     container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
@@ -169,10 +172,58 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     layout->addWidget(btn1);
     connect(btn1, SIGNAL(released()), this, SLOT(load_default_image()));
 
-    QPushButton* btn3 = new QPushButton("C64 Multicart ROM");
-    btn3->setProperty("image_name", QVariant(QString("c64-megacart.bin")));
-    layout->addWidget(btn3);
-    connect(btn3, SIGNAL(released()), this, SLOT(load_default_image()));
+    QPushButton* btn2 = new QPushButton("C64 Multicart ROM");
+    btn2->setProperty("image_name", QVariant(QString("c64-megacart.bin")));
+    layout->addWidget(btn2);
+    connect(btn2, SIGNAL(released()), this, SLOT(load_default_image()));
+
+    target_layout->addWidget(container);
+
+    /**
+     * SINGLE ROM IMAGES
+     */
+
+    // create toplevel interface
+    container = new QGroupBox("Single cartridge images");
+    container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    layout = new QVBoxLayout();
+    container->setLayout(layout);
+
+    // add individual buttons here
+    btn1 = new QPushButton("P2000T BASICNL v1.1");
+    btn1->setProperty("image_name", QVariant(QString("BASIC.BIN")));
+    layout->addWidget(btn1);
+    connect(btn1, SIGNAL(released()), this, SLOT(load_default_image()));
+
+    // add individual buttons here
+    btn2 = new QPushButton("Select other ROM");
+    layout->addWidget(btn2);
+
+    // build menu for this rom
+    QStringList names = {
+        "Assembler v5.9",
+        "Familiegeheugen 4",
+        "Helloworld example",
+        "Maintenance",
+        "Zemon v1.4",
+    };
+    QStringList roms = {
+        "assembler 5.9.bin",
+        "familiegeheugen versie 4.bin",
+        "helloworld.bin",
+        "Maintenance 2.bin",
+        "Zemon 1.4.bin",
+    };
+
+    QMenu* rommenu = new QMenu();
+    for(unsigned int i=0; i<names.size(); i++) {
+        QAction* action = new QAction();
+        action->setText(names[i]);
+        action->setProperty("image_name", QVariant(roms[i]));
+        connect(action, &QAction::triggered, this, &MainWindow::load_default_image);
+        rommenu->addAction(action);
+    }
+    btn2->setMenu(rommenu);
 
     target_layout->addWidget(container);
 }
@@ -195,20 +246,24 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     // add individual buttons here
     this->button_identify_chip = new QPushButton("Identify chip");
     this->button_read_rom = new QPushButton("Read ROM");
+    this->button_read_cartridge = new QPushButton("Read P2000T Cartridge");
     this->button_flash_rom = new QPushButton("Write ROM");
     this->button_flash_bank = new QPushButton("Write ROM to bank");
 
     layout->addWidget(this->button_identify_chip);
     layout->addWidget(this->button_read_rom);
+    layout->addWidget(this->button_read_cartridge);
     layout->addWidget(this->button_flash_rom);
     layout->addWidget(this->button_flash_bank);
 
     this->button_identify_chip->setEnabled(false);
+    this->button_read_cartridge->setEnabled(false);
     this->button_read_rom->setEnabled(false);
     this->button_flash_rom->setEnabled(false);
     this->button_flash_bank->setEnabled(false);
 
     connect(this->button_read_rom, SIGNAL(released()), this, SLOT(read_rom()));
+    connect(this->button_read_cartridge, SIGNAL(released()), this, SLOT(read_cartridge()));
     connect(this->button_flash_rom, SIGNAL(released()), this, SLOT(flash_rom()));
     connect(this->button_identify_chip, SIGNAL(released()), this, SLOT(read_chip_id()));
     connect(this->button_flash_bank, SIGNAL(released()), this, SLOT(flash_bank()));
@@ -360,7 +415,50 @@ void MainWindow::select_com_port() {
     this->serial_interface->close_port();
     this->label_serial->setText(tr("Port: ") + this->combobox_serial_ports->currentText());
     this->label_board_id->setText(tr("Board id: ") + tr(board_info.c_str()));
-    this->button_identify_chip->setEnabled(true);
+
+    if(QString(board_info.c_str()).startsWith("PICOSST39")) {
+        QString versionstr = QString(board_info.c_str()).split("-")[1].mid(1);
+        qDebug() << "Extracting version string: " << versionstr;
+        QStringList version = versionstr.split(".");
+        if(version.size() != 3) {
+            QMessageBox msg_box;
+            msg_box.setIcon(QMessageBox::Warning);
+            msg_box.setText(tr(
+                  "Something went wrong parsing the version string."
+            ));
+            msg_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+            msg_box.exec();
+        } else {
+            int major = version[0].toInt();
+            int minor = version[1].toInt();
+            int patch = version[2].toInt();
+
+            int versionint = (major * 1000000) + (minor * 1000) + patch;
+
+            if(versionint < (1 * 1000000) + (1 * 1000) + 0) {
+                QMessageBox msg_box;
+                msg_box.setIcon(QMessageBox::Warning);
+                msg_box.setText(tr(
+                      "Your board firmware is outdated. Please update your board "
+                      "to version 1.1.0 or higher. Visit: "
+                      "<a href=\"https://github.com/ifilot/pico-sst39sf0x0-programmer\">https://github.com/ifilot/pico-sst39sf0x0-programmer</a>."
+                ));
+                msg_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+                msg_box.exec();
+            } else {
+                this->button_identify_chip->setEnabled(true);
+                this->button_read_cartridge->setEnabled(true);
+            }
+        }
+    } else {
+        QMessageBox msg_box;
+        msg_box.setIcon(QMessageBox::Warning);
+        msg_box.setText(tr(
+              "Invalid board identifier token read. Most likely, this is not the correct board."
+        ));
+        msg_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+        msg_box.exec();
+    }
 }
 
 /**
@@ -522,6 +620,9 @@ void MainWindow::read_rom() {
     // ask where to store file
     statusBar()->showMessage("Reading from chip, please wait...");
 
+    // dispatch thread
+    this->timer1.start();
+
     // disable all buttons so that the user cannot interrupt this task
     //this->disable_all_buttons();
 
@@ -535,7 +636,34 @@ void MainWindow::read_rom() {
     this->readerthread->start();
 }
 
+/**
+ * @brief Read data from chip
+ */
+void MainWindow::read_cartridge() {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "P2000T Adapter board present?", "Please ensure you have attached the P2000T adapter board. Continue?", QMessageBox::Yes|QMessageBox::No);
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
 
+    // dispatch thread
+    this->timer1.start();
+
+    // ask where to store file
+    statusBar()->showMessage("Reading P2000T cartridge, please wait...");
+
+    // disable all buttons so that the user cannot interrupt this task
+    //this->disable_all_buttons();
+
+    // dispatch thread
+    //this->operation = "Reading"; // message for statusbar
+    this->cartridgereaderthread = std::make_unique<CartridgeReadThread>(this->serial_interface);
+    this->cartridgereaderthread->set_serial_port(this->combobox_serial_ports->currentText().toStdString());
+    connect(this->cartridgereaderthread.get(), SIGNAL(read_result_ready()), this, SLOT(read_result_ready()));
+    connect(this->cartridgereaderthread.get(), SIGNAL(read_block_start(uint,uint)), this, SLOT(read_block_start(uint,uint)));
+    connect(this->cartridgereaderthread.get(), SIGNAL(read_block_done(uint,uint)), this, SLOT(read_block_done(uint,uint)));
+    this->cartridgereaderthread->start();
+}
 
 /**
  * @brief Slot to accept when a block is ready
@@ -555,6 +683,7 @@ void MainWindow::read_block_done(unsigned int block_id, unsigned int nr_blocks) 
         statusBar()->showMessage(QString("%1 block %2 / %3 : %4 seconds remaining.").arg("Reading").arg(block_id+1).arg(nr_blocks).arg(seconds_remaining));
     }
     this->progress_bar_load->setValue(block_id+1);
+    this->progress_bar_load->setMaximum(nr_blocks);
 }
 
 /*
@@ -562,10 +691,20 @@ void MainWindow::read_block_done(unsigned int block_id, unsigned int nr_blocks) 
  */
 void MainWindow::read_result_ready() {
     this->progress_bar_load->setValue(this->progress_bar_load->maximum());
-    auto data = this->readerthread->get_data();
+
+    QByteArray data;
+    if(this->readerthread) {
+        data = this->readerthread->get_data();
+        this->readerthread.reset(); // delete object
+    } else if(this->cartridgereaderthread) {
+        data = this->cartridgereaderthread->get_data();
+        this->readerthread.reset(); // delete object
+    } else {
+        qDebug() << "This function should not have been called.";
+    }
+
     qDebug() << "Read " << data.size() << " bytes from chip.";
     this->hex_widget->setData(new QHexView::DataStorageArray(data));
-    this->readerthread.reset(); // delete object
     statusBar()->showMessage(QString("Done reading chip in %1 seconds.").arg(this->timer1.elapsed() / 1000.f));
 }
 
@@ -591,14 +730,14 @@ void MainWindow::flash_rom() {
     // dispatch thread
     this->timer1.start();
 
-    this->progress_bar_load->setMaximum(this->num_blocks);
+    this->progress_bar_load->setMaximum(8 * SECTORSPERBANK);
     this->flashthread = std::make_unique<FlashThread>(this->serial_interface);
     this->flashthread->set_serial_port(this->combobox_serial_ports->currentText().toStdString());
     this->flashthread->set_data(this->flash_data);
 
     connect(this->flashthread.get(), SIGNAL(flash_result_ready()), this, SLOT(flash_result_ready()));
-    connect(this->flashthread.get(), SIGNAL(flash_block_start(uint,uint)), this, SLOT(flash_block_start(uint,uint)));
-    connect(this->flashthread.get(), SIGNAL(flash_block_done(uint,uint)), this, SLOT(flash_block_done(uint,uint)));
+    connect(this->flashthread.get(), SIGNAL(flash_sector_start(uint,uint)), this, SLOT(flash_sector_start(uint,uint)));
+    connect(this->flashthread.get(), SIGNAL(flash_sector_done(uint,uint)), this, SLOT(flash_sector_done(uint,uint)));
     connect(this->flashthread.get(), SIGNAL(flash_chip_id_error(uint)), this, SLOT(flash_chip_id_error(uint)));
     flashthread->start();
 
@@ -642,14 +781,14 @@ void MainWindow::flash_bank() {
     // dispatch thread
     this->timer1.start();
 
-    this->progress_bar_load->setMaximum(64); // 64 block for a 16 kb bank
+    this->progress_bar_load->setMaximum(SECTORSPERBANK); // 4 sectors for a 16 kb bank
     this->flashthread = std::make_unique<FlashThread>(this->serial_interface, starting_bank);
     this->flashthread->set_serial_port(this->combobox_serial_ports->currentText().toStdString());
     this->flashthread->set_data(this->flash_data);
 
     connect(this->flashthread.get(), SIGNAL(flash_result_ready()), this, SLOT(flash_result_ready()));
-    connect(this->flashthread.get(), SIGNAL(flash_block_start(uint,uint)), this, SLOT(flash_block_start(uint,uint)));
-    connect(this->flashthread.get(), SIGNAL(flash_block_done(uint,uint)), this, SLOT(flash_block_done(uint,uint)));
+    connect(this->flashthread.get(), SIGNAL(flash_sector_start(uint,uint)), this, SLOT(flash_sector_start(uint,uint)));
+    connect(this->flashthread.get(), SIGNAL(flash_sector_done(uint,uint)), this, SLOT(flash_sector_done(uint,uint)));
     connect(this->flashthread.get(), SIGNAL(flash_chip_id_error(uint)), this, SLOT(flash_chip_id_error(uint)));
     flashthread->start();
 
@@ -658,23 +797,24 @@ void MainWindow::flash_bank() {
 }
 
 /**
- * @brief Slot to indicate that a page is about to be written
+ * @brief Slot to indicate that a sector is about to be written
  */
-void MainWindow::flash_block_start(unsigned int block_id, unsigned int nr_blocks) {
-    this->progress_bar_load->setValue(block_id);
+void MainWindow::flash_sector_start(unsigned int sector_id, unsigned int num_sectors) {
+    this->progress_bar_load->setValue(sector_id);
+    this->progress_bar_load->setMaximum(num_sectors);
 }
 
 /**
- * @brief Slot to accept that a page is written
+ * @brief Slot to accept that a sector is written
  */
-void MainWindow::flash_block_done(unsigned int block_id, unsigned int nr_blocks) {
+void MainWindow::flash_sector_done(unsigned int sector_id, unsigned int num_sectors) {
     double seconds_passed = (double)this->timer1.elapsed() / 1000.0;
-    double seconds_per_page = seconds_passed / (double)(block_id+1);
-    double seconds_remaining = seconds_per_page * (nr_blocks - block_id - 1);
-    if(block_id < (this->num_blocks - 1)) {
-        statusBar()->showMessage(QString("%1 page %2 / %3 : %4 seconds remaining.").arg("Flashing").arg(block_id+1).arg(nr_blocks).arg(seconds_remaining));
+    double seconds_per_sector = seconds_passed / (double)(sector_id+1);
+    double seconds_remaining = seconds_per_sector * (num_sectors - sector_id - 1);
+    if(sector_id < (num_sectors - 1)) {
+        statusBar()->showMessage(QString("%1 sector %2 / %3 : %4 seconds remaining.").arg("Flashing").arg(sector_id+1).arg(num_sectors).arg(seconds_remaining));
     }
-    this->progress_bar_load->setValue(block_id+1);
+    this->progress_bar_load->setValue(sector_id+1);
 }
 
 /*
@@ -686,7 +826,7 @@ void MainWindow::flash_result_ready() {
 
     // dispatch thread
     this->timer1.restart();
-    unsigned int nr_banks = this->flashthread->get_num_blocks() / BLOCKSPERBANK;
+    unsigned int nr_banks = this->flashthread->get_num_sectors() / SECTORSPERBANK;
     qDebug() << tr("Requesting %1 banks to be read for verification.").arg(nr_banks);
     this->readerthread = std::make_unique<ReadThread>(this->serial_interface,
                                                       this->flashthread->get_starting_bank(),  // which bank to start reading at
@@ -695,7 +835,7 @@ void MainWindow::flash_result_ready() {
 
     // set progress bar
     this->progress_bar_load->reset();
-    this->progress_bar_load->setMaximum(this->flashthread->get_num_blocks());
+    this->progress_bar_load->setMaximum(this->flashthread->get_num_sectors() / SECTORSPERBANK);
 
     connect(this->readerthread.get(), SIGNAL(read_result_ready()), this, SLOT(verify_result_ready()));
     connect(this->readerthread.get(), SIGNAL(read_block_start(uint,uint)), this, SLOT(verify_block_start(uint,uint)));
@@ -765,4 +905,6 @@ void MainWindow::verify_result_ready() {
 
     // re-enable all buttons when data is read
     // this->enable_all_buttons();
+
+    this->progress_bar_load->reset();
 }

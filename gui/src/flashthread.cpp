@@ -32,7 +32,7 @@ void FlashThread::run() {
  */
 void FlashThread::flash_sst39sf0x0() {
     qDebug() << "Attempting to flash " << this->data.size() << " bytes.";
-    this->num_blocks = this->data.size() / BLOCKSIZE;  // each page is 256 bytes
+    this->num_sectors = this->data.size() / SECTORSIZE;
 
     this->serial_interface->open_port();
 
@@ -43,17 +43,16 @@ void FlashThread::flash_sst39sf0x0() {
         return;
     }
 
-    for(unsigned int i=0; i<this->num_blocks; i++) {
-        unsigned int block_id = i + this->starting_bank * BLOCKSPERBANK; // shift block id by the starting bank
+    for(unsigned int i=0; i<this->num_sectors; i++) {
+        unsigned int sector_id = i + this->starting_bank * SECTORSPERBANK; // shift block id by the starting bank
 
-        emit(flash_block_start(block_id, this->num_blocks));
+        emit(flash_sector_start(sector_id, this->num_sectors));
 
-        if(i % BLOCKSPERSECTOR == 0) {
-            this->serial_interface->erase_sector(block_id);
-        }
-        this->serial_interface->burn_block(block_id, this->data.mid(i * BLOCKSIZE, BLOCKSIZE));
+        // erase the sector and write new data to it
+        this->serial_interface->erase_sector(sector_id << 4);
+        this->serial_interface->burn_sector(sector_id, this->data.mid(i * SECTORSIZE, SECTORSIZE));
 
-        emit(flash_block_done(i, this->num_blocks));
+        emit(flash_sector_done(i, this->num_sectors));
     }
 
     this->serial_interface->close_port();

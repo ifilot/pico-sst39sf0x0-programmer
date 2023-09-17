@@ -42,6 +42,7 @@
 #include "config.h"
 #include "qhexview.h"
 #include "serial_interface.h"
+#include "cartridgereadthread.h"
 #include "readthread.h"
 #include "flashthread.h"
 #include "dialogslotselection.h"
@@ -68,11 +69,13 @@ private:
     QLabel* label_chip_type;
     QPushButton* button_identify_chip;
     QPushButton* button_read_rom;
+    QPushButton* button_read_cartridge;
     QPushButton* button_flash_rom;
     QPushButton* button_flash_bank;
 
     // file data
     QString current_filename;
+    std::unique_ptr<CartridgeReadThread> cartridgereaderthread;
     std::unique_ptr<ReadThread> readerthread;
     std::unique_ptr<FlashThread> flashthread;
     QElapsedTimer timer1;
@@ -187,6 +190,11 @@ private slots:
     void read_rom();
 
     /**
+     * @brief Read data from chip
+     */
+    void read_cartridge();
+
+    /**
      * @brief Slot to indicate that a block is about to be read / written
      */
     void read_block_start(unsigned int block_id, unsigned int nr_blocks);
@@ -218,12 +226,12 @@ private slots:
     /**
      * @brief Slot to indicate that a page is about to be written
      */
-    void flash_block_start(unsigned int block_id, unsigned int nr_blocks);
+    void flash_sector_start(unsigned int sector_id, unsigned int num_sectors);
 
     /**
      * @brief Slot to accept that a page is written
      */
-    void flash_block_done(unsigned int block_id, unsigned int nr_blocks);
+    void flash_sector_done(unsigned int sector_id, unsigned int num_sectors);
 
     /*
      * @brief Signal that a flash operation is finished

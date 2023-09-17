@@ -102,6 +102,20 @@ public:
     QByteArray read_block(unsigned int sector_addr);
 
     /**
+     * @brief Read a segment (0x1000 bytes) from a cartridge at segment location
+     * @param address location
+     * @return data at address
+     */
+    QByteArray read_segment_cartridge(unsigned int segment_addr);
+
+    /**
+     * @brief Read a bank (0x4000 bytes)
+     * @param bank_id
+     * @return data at address
+     */
+    QByteArray read_bank(unsigned int bank_id);
+
+    /**
      * @brief Erase sector (0x1000 bytes) on SST39SF0x0 chip
      * @param upper bytes of sector address
      */
@@ -113,6 +127,13 @@ public:
      * @param data (256 bytes)
      */
     void burn_block(unsigned int sector_id, const QByteArray& data);
+
+    /**
+     * @brief Burn block (0x1000 bytes) to SST39SF0x0 chip
+     * @param start address
+     * @param data (0x1000 bytes)
+     */
+    void burn_sector(unsigned int sector_id, const QByteArray& data);
 
     /**
      * @brief get_chip_id check to verify this is a SST39SF0x0 chip
@@ -165,6 +186,14 @@ private:
      * @return command string
      */
     std::string build_command(const QString& header, int vallength, uint16_t value);
+
+    /**
+     * @brief Calculate CRC16 xmodem checksum
+     * @param data
+     * @param length
+     * @return
+     */
+    uint16_t crc16_xmodem(const QByteArray& data, uint16_t length);
 };
 
 #endif // SerialInterface_H

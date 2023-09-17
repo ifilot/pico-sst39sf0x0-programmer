@@ -51,69 +51,26 @@ class TestBoard(unittest.TestCase):
         rsp = self.ser.read(16)
         print(rsp)
         self.assertEqual(rsp[0:4], b'PICO')
-        
-    def test_device_id(self):
-        """
-        Test reading board id
-        """
-        self.ser.write(b'DEVIDSST')
-        rsp = self.ser.read(8)
-        rsp = self.ser.read(2)
-        self.assertEqual(rsp, bytearray([0xBF,0xB7]))
-        
+               
     def test_read_block(self):
         """
         Test reading board id
         """
         # load comparison data
         f = open('F:/Dropbox/Projects/P2000T/bundle.bin', 'rb')
-        compdata = bytearray(f.read())
+        compdata = bytearray(f.read())[0x0000:0x4000]
         f.close()
         
         romdata = bytearray()
-        for i in range(0, 64):
-            self.ser.write(b'RDBK%04X' % i)
+        for i in range(0, 4):
+            self.ser.write(b'RP2KCR%02X' % i)
             rsp = self.ser.read(8)
-            rsp = self.ser.read(256)
+            print(rsp)
+            rsp = self.ser.read(0x1000)
+            print(['%02X ' % c for c in rsp[0:32]])
             romdata += rsp
         
         self.assertEqual(romdata, compdata[0:len(romdata)])
-        
-    def test_read_bank(self):
-        """
-        Test reading board id
-        """
-        # load comparison data
-        f = open('F:/Dropbox/Projects/P2000T/bundle.bin', 'rb')
-        compdata = bytearray(f.read())
-        f.close()
-        
-        romdata = bytearray()
-        for i in range(0,2):
-            self.ser.write(b'RDBANK%02X' % i)
-            rsp = self.ser.read(8)
-            rsp = self.ser.read(0x4000)
-            romdata += rsp
-        
-        self.assertEqual(romdata, compdata[0:len(romdata)])
-        
-    def test_read_block_secondary(self):
-        """
-        Test reading board id
-        """
-        # load comparison data
-        f = open('F:/Dropbox/Projects/P2000T/bundle.bin', 'rb')
-        compdata = bytearray(f.read())
-        f.close()
-        
-        romdata = bytearray()
-        for i in range(64, 128):
-            self.ser.write(b'RDBK%04X' % i)
-            rsp = self.ser.read(8)
-            rsp = self.ser.read(256)
-            romdata += rsp
-        
-        self.assertEqual(romdata, compdata[64*256:64*256+len(romdata)])
         
 if __name__ == '__main__':
     unittest.main()

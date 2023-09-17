@@ -134,6 +134,120 @@ void read_p2k_cartridge_block(uint8_t block_id) {
     gpio_put(LED_RD, false);
 }
 
+/*
+ * @brief Read bank of 0x4000 bytes
+ **/
+void read_bank(uint8_t bank_id) {
+    gpio_put(LED_RD, true);
+
+    // set pins 0-7 to input
+    gpio_set_dir_in_masked(0x000000FF);
+    
+    // chip enable
+    gpio_put(CE, false);
+    gpio_put(OE, false);
+
+    // set address to read from
+    for(uint32_t j=0; j<0x40; j++) {
+        set_address_high((j + 0x40 * bank_id) << 8);
+        for(uint32_t i=0; i<0x100; i++) {
+            set_address_low(i);
+        
+            sleep_us(DELAY_READ);
+
+            // read from lower 8 pins, discard rest
+            uint8_t val = gpio_get_all();
+
+            // send to UART
+            putchar_raw(val);
+        }
+    }
+
+    gpio_put(CE, true);
+    gpio_put(OE, true);
+    gpio_put(LED_RD, false);
+}
+
+/*
+ * @brief Read sector of 0x1000 bytes
+ **/
+void read_sector(uint32_t sector_id) {
+    gpio_put(LED_RD, true);
+
+    // set pins 0-7 to input
+    gpio_set_dir_in_masked(0x000000FF);
+    
+    // chip enable
+    gpio_put(CE, false);
+    gpio_put(OE, false);
+
+    uint32_t base_addr = sector_id * 0x1000;
+
+    // set address to read from
+    for(uint32_t j=0; j<0x10; j++) {
+        set_address_high(base_addr | (j << 8));
+        for(uint32_t i=0; i<0x100; i++) {
+            set_address_low(i);
+        
+            sleep_us(DELAY_READ);
+
+            // read from lower 8 pins, discard rest
+            uint8_t val = gpio_get_all();
+
+            // send to UART
+            putchar_raw(val);
+        }
+    }
+
+    gpio_put(CE, true);
+    gpio_put(OE, true);
+    gpio_put(LED_RD, false);
+}
+
+/*
+ * @brief Write bank of 0x1000 bytes
+ **/
+void write_sector(uint32_t sector_id) {
+    // first collect all the data
+    uint16_t bitsread = 0;
+    uint8_t buffer[0x1000];
+    while(bitsread < 0x1000) {
+        int uartc = getchar_timeout_us(DELAY_WRITE);
+        if(uartc != PICO_ERROR_TIMEOUT ) {
+            uint8_t c = uartc & 0xFF;
+            buffer[bitsread] = c;
+            bitsread++;
+        }
+    }
+
+    // then write the data
+    gpio_put(LED_WR, true);
+
+    uint32_t addr = sector_id * 0x1000;
+    uint8_t checksum = 0;
+    for(uint16_t i=0; i<0x1000; i++) {
+        uint8_t c = buffer[i];
+        write_byte(0x5555, 0xAA);
+        write_byte(0x2AAA, 0x55);
+        write_byte(0x5555, 0xA0);
+        write_byte(addr, c);
+        checksum += c;
+        addr++;
+
+        sleep_us(DELAY_ADDR);
+    }
+    
+    gpio_put(LED_WR, false);
+
+    // return crc16 checksum
+    uint16_t crc16checksum = crc16_xmodem(buffer, 0x1000);
+    putchar_raw(crc16checksum & 0xFF);
+    putchar_raw((crc16checksum >> 8) & 0xFF);
+}
+
+/*
+ * @brief Wait until MSB bit is one
+ **/
 uint16_t pollbyte(uint32_t addr) {
     // set pins 0-7 to input
     gpio_set_dir_in_masked(0x000000FF);
@@ -191,7 +305,7 @@ void write_block(uint32_t block_id) {
 }
 
 /*
- * @brief Erase sector
+ * @brief Erase sector (4kb)
  */
 void erase_sector(uint32_t block_id) {
     gpio_put(LED_WR, true);
@@ -223,4 +337,24 @@ void write_board_id() {
         putchar_raw(board_id[i]);
     }
     stdio_flush();
+}
+
+/**
+ * Generates CRC16 XMODEM checksum for data
+*/
+uint16_t crc16_xmodem(uint8_t *data, uint16_t length) {
+    uint32_t crc = 0;
+    static const uint16_t poly = 0x1021;
+
+    for(uint16_t i=0; i<length; i++) {
+      crc = crc ^ (data[i] << 8);
+      for (uint8_t j=0; j<8; j++) {
+        crc = crc << 1;
+        if (crc & 0x10000) {
+            crc = (crc ^ poly) & 0xFFFF;
+        }
+      }
+    }
+
+    return (uint16_t)crc;
 }

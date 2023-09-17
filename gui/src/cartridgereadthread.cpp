@@ -18,15 +18,27 @@
  *                                                                          *
  ****************************************************************************/
 
-#ifndef ROMSIZES_H
-#define ROMSIZES_H
+#include "cartridgereadthread.h"
 
-#define BANKSIZE 0x4000     // 16 kb bank sizes (corresponding to a SST39SF040 image)
-#define SECTORSIZE 0x1000   // 4 kb sector sizes
-#define BLOCKSIZE 0x100     // 256 byte block sizes
+/**
+ * @brief read the ROM from a cartridge
+ *
+ * This routine will be called when a thread containing this
+ * class is runned
+ */
+void CartridgeReadThread::run() {
+    this->serial_interface->open_port();
 
-#define BLOCKSPERBANK (BANKSIZE/BLOCKSIZE)
-#define BLOCKSPERSECTOR (SECTORSIZE/BLOCKSIZE)
-#define SECTORSPERBANK (BANKSIZE/SECTORSIZE)
+    int numsegments = 4;
 
-#endif // ROMSIZES_H
+    // read blocks
+    for(int i=0; i < 4; i++) {
+        emit(read_block_start(i, numsegments));
+        auto blockdata = this->serial_interface->read_segment_cartridge(i);
+        this->data.append(blockdata);
+        emit(read_block_done(i, numsegments));
+    }
+
+    this->serial_interface->close_port();
+    emit(read_result_ready());
+}

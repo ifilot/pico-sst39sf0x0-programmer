@@ -38,18 +38,9 @@ class FlashThread : public IOWorker {
 
 private:
     /**
-     * @brief flash card id
-     *
-     * 0: unknown
-     * 1: AT28C256
-     * 2: SST39SF0x0
-     */
-    uint8_t flash_card_id = 0;
-
-    /**
      * @brief number of blocks to flash
      */
-    uint16_t num_blocks = 0;
+    uint16_t num_sectors = 0;
 
     /**
      * @brief Which bank to start writing at
@@ -77,27 +68,11 @@ public:
     void run() override;
 
     /**
-     * @brief set_flash_card_id
-     * @param _flash_card_id
-     */
-    inline void set_flash_card_id(uint8_t _flash_card_id) {
-        this->flash_card_id = _flash_card_id;
-    }
-
-    /**
-     * @brief get_flash_id
-     * @return
-     */
-    inline unsigned int get_flash_id() const {
-        return this->flash_card_id;
-    }
-
-    /**
      * @brief get_num_pages
      * @return number of pages / blocks
      */
-    inline uint16_t get_num_blocks() const {
-        return this->num_blocks;
+    inline uint16_t get_num_sectors() const {
+        return this->num_sectors;
     }
 
     /**
@@ -124,13 +99,13 @@ signals:
      * @brief signal when new block is about to be written
      * @param block_id
      */
-    void flash_block_start(unsigned int block_id, unsigned int nr_blocks);
+    void flash_sector_start(unsigned int sector_id, unsigned int nr_sectors);
 
     /**
      * @brief signal when new page is written
      * @param block_id
      */
-    void flash_block_done(unsigned int block_id, unsigned int nr_blocks);
+    void flash_sector_done(unsigned int sector_id, unsigned int nr_sectors);
 
     /**
      * @brief signal when flash chip id is incorrect

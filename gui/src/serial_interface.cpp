@@ -106,6 +106,40 @@ QByteArray SerialInterface::read_block(unsigned int block_addr) {
 }
 
 /**
+ * @brief Read a segment (0x1000 bytes) from a cartridge at segment location
+ * @param address location
+ * @return data at address
+ */
+QByteArray SerialInterface::read_segment_cartridge(unsigned int segment_addr) {
+    try {
+        std::string command = QString("RP2KCR%1").arg(segment_addr,2,16, QLatin1Char('0')).toUpper().toStdString();
+        QByteArray response_data = this->send_command_capture_response(command, 0x1000);
+
+        return response_data;
+    }  catch (std::exception& e) {
+        std::cerr << "Caught error: " << e.what() << std::endl;
+        throw e;
+    }
+}
+
+/**
+ * @brief Read a bank (0x4000 bytes)
+ * @param bank_id
+ * @return data at address
+ */
+QByteArray SerialInterface::read_bank(unsigned int bank_id) {
+    try {
+        std::string command = QString("RDBANK%1").arg(bank_id,2,16, QLatin1Char('0')).toUpper().toStdString();
+        QByteArray response_data = this->send_command_capture_response(command, 0x4000);
+
+        return response_data;
+    }  catch (std::exception& e) {
+        std::cerr << "Caught error: " << e.what() << std::endl;
+        throw e;
+    }
+}
+
+/**
  * @brief Erase sector (4096 bytes) on SST39SF0x0 chip
  * @param start address
  */
@@ -115,7 +149,7 @@ void SerialInterface::erase_sector(unsigned int sector_id) {
         auto response = this->send_command_capture_response(command, 2);
         uint16_t nrcycles = 0;
         memcpy((void*)&nrcycles, (void*)&response.data()[0], 2);
-        qDebug() << "Succesfully erased sector #" << sector_id << " in " << nrcycles << " cyles.";
+        qDebug() << QString("Succesfully erased sector 0x%1 in %2 cycles").arg(sector_id >> 4, 4, 16, QLatin1Char('0')).arg(nrcycles);
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
         throw e;
@@ -157,6 +191,53 @@ void SerialInterface::burn_block(unsigned int sector_addr, const QByteArray& dat
             throw std::runtime_error("Invalid checksum received");
         } else {
             qDebug() << QString("Valid checksum received: 0x%1").arg(checksum, 2, 16, QLatin1Char('0')).toUpper().toStdString().c_str();
+        }
+
+        // discard any contents still left in read buffer
+        this->flush_buffer();
+    }  catch (std::exception& e) {
+        std::cerr << "Caught error: " << e.what() << std::endl;
+        throw e;
+    }
+}
+
+/**
+ * @brief Burn block (256 bytes) to SST39SF0x0 chip
+ * @param start address
+ * @param data (256 bytes)
+ */
+void SerialInterface::burn_sector(unsigned int sector_id, const QByteArray& data) {
+    try {
+        qDebug() << "Burning sector.";
+
+        // calculate checksum
+        uint16_t crc16checksum = this->crc16_xmodem(data, 0x1000);
+
+        // display which checksum to expect
+        qDebug() << QString("Expecting checksum: 0x%1").arg(crc16checksum, 4, 16, QLatin1Char('0'));
+
+        // construct command
+        std::string command = QString("WRSECT%1").arg(sector_id,2,16,QLatin1Char('0')).toUpper().toStdString();
+
+        // send command to serial interface
+        this->send_command(command);
+
+        this->port->write(data, 0x1000);
+        while(this->port->waitForBytesWritten(SERIAL_TIMEOUT_BLOCK)){}
+
+        this->wait_for_response(2); // wait for CRC16 checksum
+        auto response = this->port->readAll();
+
+        uint16_t checksum_response = 0x0000;
+        memcpy((void*)&checksum_response, (void*)&response.data()[0], 2);
+
+        if(checksum_response != crc16checksum) {
+            qCritical() << QString("Invalid checksum received: 0x%1").arg(checksum_response, 4, 16, QLatin1Char('0'));
+            throw std::runtime_error(QString("Invalid checksum received. Response: 0x%1. Expected: %2")
+                                     .arg(checksum_response, 4, 16, QLatin1Char('0'))
+                                     .arg(crc16checksum, 4, 16, QLatin1Char('0')).toStdString());
+        } else {
+            qDebug() << QString("Valid checksum received: 0x%1").arg(checksum_response, 2, 16, QLatin1Char('0')).toUpper().toStdString().c_str();
         }
 
         // discard any contents still left in read buffer
@@ -327,4 +408,27 @@ bool SerialInterface::firmware_version_greater_than(int major, int minor, int pa
  */
 std::string SerialInterface::build_command(const QString& header, int vallength, uint16_t value) {
     return QString(header + QString("%1").arg(value,vallength,16, QLatin1Char('0'))).toUpper().toStdString();
+}
+
+/**
+ * @brief Calculate CRC16 xmodem checksum
+ * @param data
+ * @param length
+ * @return
+ */
+uint16_t SerialInterface::crc16_xmodem(const QByteArray& data, uint16_t length) {
+    uint32_t crc = 0;
+    static const uint16_t poly = 0x1021;
+
+    for(uint16_t i=0; i<length; i++) {
+      crc = crc ^ (data[i] << 8);
+      for (uint8_t j=0; j<8; j++) {
+        crc = crc << 1;
+        if (crc & 0x10000) {
+            crc = (crc ^ poly) & 0xFFFF;
+        }
+      }
+    }
+
+    return (uint16_t)crc;
 }

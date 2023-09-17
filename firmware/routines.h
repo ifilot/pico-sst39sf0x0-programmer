@@ -28,38 +28,63 @@
 
 /*
  * Read device ID and print it to console
- */
+ **/
 void read_chip_id();
 
 /*
  * Print data for first 32 bytes on chip
- */
+ **/
 void printbytes32();
 
 /*
  * @brief Read block of 256 bytes
- *
- * sector_addr: upper bytes
- */
+ **/
 void read_block(uint32_t block_id);
 
 /*
- * @brief Read block of 0x1000 bytes
+ * @brief Read block of 0x1000 bytes, only use this function when
+ * reading P2000T cartridgess!!
  **/
 void read_p2k_cartridge_block(uint8_t block_id);
 
+/*
+ * @brief Read bank of 0x4000 bytes
+ **/
+void read_bank(uint8_t bank_id);
+
+/*
+ * @brief Read bank of 0x4000 bytes
+ **/
+void read_sector(uint32_t sector_id);
+
+/*
+ * @brief Write a sector of 0x1000 bytes
+ **/
+void write_sector(uint32_t sector_id);
+
 /**
  * Poll a byte and count number of cycles wherein upper bit is not 1
- */
+ **/
 uint16_t pollbyte(uint32_t addr);
 
+/**
+ * Write a block of data (256 bytes)
+*/
 void write_block(uint32_t block_id);
 
+/**
+ * Erase sector (4kb)
+*/
 void erase_sector(uint32_t block_id);
 
 /**
  * Return board identification string
  **/
 void write_board_id();
+
+/**
+ * Generates CRC16 XMODEM checksum for data
+*/
+uint16_t crc16_xmodem(uint8_t *data, uint16_t length);
 
 #endif // _ROUTINES_H
