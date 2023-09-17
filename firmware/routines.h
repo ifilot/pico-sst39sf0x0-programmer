@@ -82,6 +82,9 @@ void erase_sector(uint32_t block_id);
  **/
 void write_board_id();
 
+/**
+ * Generates CRC16 XMODEM checksum for data
+*/
 uint16_t crc16_xmodem(uint8_t *data, uint16_t length);
 
 #endif // _ROUTINES_H

@@ -339,6 +339,9 @@ void write_board_id() {
     stdio_flush();
 }
 
+/**
+ * Generates CRC16 XMODEM checksum for data
+*/
 uint16_t crc16_xmodem(uint8_t *data, uint16_t length) {
     uint32_t crc = 0;
     static const uint16_t poly = 0x1021;
