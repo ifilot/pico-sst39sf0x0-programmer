@@ -203,12 +203,14 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     QStringList names = {
         "Assembler v5.9",
         "Familiegeheugen 4",
+        "Helloworld example",
         "Maintenance",
         "Zemon v1.4",
     };
     QStringList roms = {
         "assembler 5.9.bin",
         "familiegeheugen versie 4.bin",
+        "helloworld.bin",
         "Maintenance 2.bin",
         "Zemon 1.4.bin",
     };
