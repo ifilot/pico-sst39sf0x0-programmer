@@ -38,6 +38,7 @@
 #include <QElapsedTimer>
 #include <QFrame>
 #include <QFileDialog>
+#include <QCryptographicHash>
 
 #include "config.h"
 #include "qhexview.h"
@@ -54,6 +55,7 @@ class MainWindow : public QMainWindow
 
 private:
     // widgets
+    QLabel* label_data_descriptor;
     QHexView* hex_widget;
 
     // Serial port selection
