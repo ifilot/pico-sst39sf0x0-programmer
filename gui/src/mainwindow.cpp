@@ -33,10 +33,16 @@ MainWindow::MainWindow(QWidget *parent)
     container->setLayout(layout);
 
     // add hex editor widget
+    QWidget* container_widget = new QWidget();
+    QVBoxLayout* container_layout = new QVBoxLayout();
+    container_widget->setLayout(container_layout);
+    layout->addWidget(container_widget);
+    this->label_data_descriptor = new QLabel();
+    container_layout->addWidget(this->label_data_descriptor);
     this->hex_widget = new QHexView();
     this->hex_widget->setMinimumWidth(680);
     this->hex_widget->setMaximumWidth(680);
-    layout->addWidget(this->hex_widget);
+    container_layout->addWidget(this->hex_widget);
 
     // create central widget for writing data
     QWidget* right_container = new QWidget();
@@ -202,16 +208,20 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     // build menu for this rom
     QStringList names = {
         "Assembler v5.9",
-        "Familiegeheugen 4",
+        "Familiegeheugen v4",
+        "Forth compiler",
         "Helloworld example",
-        "Maintenance",
-        "Zemon v1.4",
+        "Maintenance cartridge",
+        "Word Processor v2",
+        "Zemon assembler v1.4",
     };
     QStringList roms = {
         "assembler 5.9.bin",
-        "familiegeheugen versie 4.bin",
+        "familiegeheugen 4.bin",
+        "Forth.bin",
         "helloworld.bin",
         "Maintenance 2.bin",
+        "WordProcessor 2.bin",
         "Zemon 1.4.bin",
     };
 
@@ -487,7 +497,38 @@ void MainWindow::slot_open() {
     file.open(QIODevice::ReadOnly);
     if(file.exists()) {
         QByteArray data = file.readAll();
+        int filesize = data.size();
+
+        // ask the user whether they want to expand the image
+        if(data.size() < 0x4000) {
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(this, "Expand this file to cartridge size?",
+                                                "This file is less than 16kb. If this file is intended to "
+                                                "be used as a cartridge, would you like to to expand it "
+                                                "to 16kb by padding the data with 0x00?", QMessageBox::Yes|QMessageBox::No);
+            if (reply == QMessageBox::Yes) {
+                data.resize(0x4000);
+            }
+        }
+
         this->hex_widget->setData(new QHexView::DataStorageArray(data));
+
+        QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+        QFileInfo finfo(file);
+
+        QString usage;
+        if(data.size() == 0x4000) {
+            usage = QString(" | %1 kb / %2 kb (%3 %)")
+                    .arg(QString::number((float)filesize/(float)1024, 'f', 1))
+                    .arg(QString::number(16, 'f', 1))
+                    .arg((float)filesize/(float)(16 * 1024) * 100, 0, 'f', 1);
+        }
+
+        this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3" + usage)
+              .arg(finfo.fileName())
+              .arg(data.size() / 1024)
+              .arg(QString(hash.toHex()))
+        );
     }
 }
 
@@ -520,17 +561,17 @@ void MainWindow::slot_save() {
  */
 void MainWindow::slot_about() {
     QMessageBox message_box;
-        //message_box.setStyleSheet("QLabel{min-width: 250px; font-weight: normal;}");
-        message_box.setText(PROGRAM_NAME
-                            " version "
-                            PROGRAM_VERSION
-                            ".\n\nAuthor:\nIvo Filot <ivo@ivofilot.nl>\n\n"
-                            PROGRAM_NAME " is licensed under the GPLv3 license.\n\n"
-                            PROGRAM_NAME " is dynamically linked to Qt, which is licensed under LGPLv3.\n");
-        message_box.setIcon(QMessageBox::Information);
-        message_box.setWindowTitle("About " + tr(PROGRAM_NAME));
-        message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
-        message_box.exec();
+    //message_box.setStyleSheet("QLabel{min-width: 250px; font-weight: normal;}");
+    message_box.setText(PROGRAM_NAME
+                        " version "
+                        PROGRAM_VERSION
+                        ".\n\nAuthor:\nIvo Filot <ivo@ivofilot.nl>\n\n"
+                        PROGRAM_NAME " is licensed under the GPLv3 license.\n\n"
+                        PROGRAM_NAME " is dynamically linked to Qt, which is licensed under LGPLv3.\n");
+    message_box.setIcon(QMessageBox::Information);
+    message_box.setWindowTitle("About " + tr(PROGRAM_NAME));
+    message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+    message_box.exec();
 }
 
 /**
@@ -550,6 +591,20 @@ void MainWindow::load_default_image() {
     if(file.exists()) {
         QByteArray data = file.readAll();
         this->hex_widget->setData(new QHexView::DataStorageArray(data));
+
+        QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+        this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
+              .arg(image)
+              .arg(data.size() / 1024)
+              .arg(QString(hash.toHex()))
+        );
+    } else {
+        QMessageBox message_box;
+        message_box.setText("Unknown image. This error should not happen. Please contact the developer.");
+        message_box.setIcon(QMessageBox::Critical);
+        message_box.setWindowTitle("Could not find rom image");
+        message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+        message_box.exec();
     }
 }
 
@@ -619,6 +674,7 @@ void MainWindow::read_chip_id() {
 void MainWindow::read_rom() {
     // ask where to store file
     statusBar()->showMessage("Reading from chip, please wait...");
+    this->label_data_descriptor->clear();
 
     // dispatch thread
     this->timer1.start();
@@ -705,6 +761,14 @@ void MainWindow::read_result_ready() {
 
     qDebug() << "Read " << data.size() << " bytes from chip.";
     this->hex_widget->setData(new QHexView::DataStorageArray(data));
+
+    QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+    this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
+          .arg("ROM data")
+          .arg(data.size() / 1024)
+          .arg(QString(hash.toHex()))
+    );
+
     statusBar()->showMessage(QString("Done reading chip in %1 seconds.").arg(this->timer1.elapsed() / 1000.f));
 }
 
@@ -905,6 +969,5 @@ void MainWindow::verify_result_ready() {
 
     // re-enable all buttons when data is read
     // this->enable_all_buttons();
-
     this->progress_bar_load->reset();
 }
