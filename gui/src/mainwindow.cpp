@@ -61,7 +61,10 @@ MainWindow::MainWindow(QWidget *parent)
     padding_frame->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding));
 
     // add compile information
-    this->label_compile_data = new QLabel(tr("<b>Build:</b><br>Compile time: %1<br>Git id: %2").arg(__DATE__).arg(GIT_HASH));
+    this->label_compile_data = new QLabel(tr("<b>Build:</b><br>Compile time: %1<br>Git id: %2<br>Version: %3")
+                                          .arg(__DATE__)
+                                          .arg(GIT_HASH)
+                                          .arg(PROGRAM_VERSION));
     right_layout->addWidget(this->label_compile_data);
 
     this->setMinimumWidth(800);
@@ -786,9 +789,20 @@ void MainWindow::flash_rom() {
     // verify whether the chip is correct
     this->verify_chip();
 
-    if((this->num_blocks * 256) != this->flash_data.size()) {
-        this->flash_data.resize(this->num_blocks * 256);
-        qWarning() << "Reducing flash data to fit chip size: " << this->flash_data.size();
+    if((this->num_blocks * 256) < this->flash_data.size()) {
+
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Truncate file?",
+                                            QString("The capacity of the chip (%1 bytes) is less than the amount "
+                                                    "of data (%2 bytes) to be flashed. The data will be truncated. Continue?")
+                                            .arg(this->num_blocks * 256)
+                                            .arg(this->flash_data.size()),
+                                       QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+            this->flash_data.resize(this->num_blocks * 256);
+        } else {
+            return;
+        }
     }
 
     // dispatch thread
@@ -814,7 +828,7 @@ void MainWindow::flash_rom() {
  */
 void MainWindow::flash_bank() {
     // select to which bank to flash
-    DialogSlotSelection dialog;
+    DialogSlotSelection dialog(this->num_blocks / BLOCKSPERBANK);
     int res = dialog.exec();
     if(res != QDialog::Accepted) {
         qDebug() << "Cancelled operation.";
@@ -832,7 +846,10 @@ void MainWindow::flash_bank() {
     this->verify_chip();
 
     if(this->flash_data.size() > 16 * 1024) {
-        this->raise_error_window(QMessageBox::Critical, "Image size does not match 16kb. Will not flash.");
+        this->raise_error_window(QMessageBox::Critical,
+                                 "Image size does not match 16kb. Cannot flash this image to a bank."
+                                 " Most likely, you have selected a multicartridge image. "
+                                 "Please select a single-cartridge image and try again.");
         return;
     } else {    // expand size to 16 kb, pad with zeros if size is smaller than 16kb
         unsigned int oldsize = this->flash_data.size();

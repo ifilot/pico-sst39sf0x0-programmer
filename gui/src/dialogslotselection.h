@@ -34,9 +34,10 @@ class DialogSlotSelection : public QDialog
     Q_OBJECT
 private:
     int slot_id = -1;
+    unsigned int nr_banks = 0;
 
 public:
-    DialogSlotSelection();
+    DialogSlotSelection(unsigned _nr_banks);
 
     int get_slot_id() const {
         return this->slot_id;
