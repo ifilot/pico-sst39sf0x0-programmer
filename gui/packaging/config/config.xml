@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Installer>
     <Name>PICO SST39SF0x0 Programmer</Name>
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
     <Title>PICO SST39SF0x0 Programmer Installer</Title>
     <Publisher>philips-p2000t.nl</Publisher>
     <StartMenuDir>philips-p2000t.nl</StartMenuDir>

@@ -20,7 +20,8 @@
 
 #include "dialogslotselection.h"
 
-DialogSlotSelection::DialogSlotSelection()
+DialogSlotSelection::DialogSlotSelection(unsigned int _nr_banks) :
+    nr_banks(_nr_banks)
 {
     // build layout
     QVBoxLayout* layout = new QVBoxLayout();
@@ -34,7 +35,7 @@ DialogSlotSelection::DialogSlotSelection()
     groupbox->setLayout(grid);
 
     // add buttons
-    for(unsigned int i=0; i<4; i++) {
+    for(unsigned int i=0; i<(this->nr_banks/8); i++) {
         for(unsigned int j=0; j<8; j++) {
             QPushButton* btn = new QPushButton(tr("%1").arg(i*8+j+1));
             grid->addWidget(btn, i, j);
