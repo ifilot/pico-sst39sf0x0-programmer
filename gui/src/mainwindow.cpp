@@ -341,6 +341,24 @@ void MainWindow::raise_error_window(QMessageBox::Icon icon, const QString errorm
     msg_box.exec();
 }
 
+/**
+ * @brief Resize a QByteArray and append with zeros
+ * @param pointer to QByteArray
+ * @param size
+ */
+void MainWindow::resize_qbytearray(QByteArray* qb, unsigned int size) {
+    unsigned int oldsize = qb->size();
+    qb->resize(size);
+
+    if(size < oldsize) {
+        return;
+    }
+
+    for(unsigned int i=oldsize; i<size; i++) {
+        (*qb)[i] = 0x00;
+    }
+}
+
 /****************************************************************************
  *  SIGNALS :: COMMUNICATION INTERFACE ROUTINES
  ****************************************************************************/
@@ -510,7 +528,7 @@ void MainWindow::slot_open() {
                                                 "be used as a cartridge, would you like to to expand it "
                                                 "to 16kb by padding the data with 0x00?", QMessageBox::Yes|QMessageBox::No);
             if (reply == QMessageBox::Yes) {
-                data.resize(0x4000);
+                resize_qbytearray(&data, 0x4000);
             }
         }
 
@@ -799,7 +817,7 @@ void MainWindow::flash_rom() {
                                             .arg(this->flash_data.size()),
                                        QMessageBox::Yes|QMessageBox::No);
         if (reply == QMessageBox::Yes) {
-            this->flash_data.resize(this->num_blocks * 256);
+            this->resize_qbytearray(&this->flash_data, this->num_blocks * 256);
         } else {
             return;
         }
@@ -852,11 +870,7 @@ void MainWindow::flash_bank() {
                                  "Please select a single-cartridge image and try again.");
         return;
     } else {    // expand size to 16 kb, pad with zeros if size is smaller than 16kb
-        unsigned int oldsize = this->flash_data.size();
-        this->flash_data.resize(16 * 1024); // fix to 16 kb
-        for(unsigned int i = oldsize; i<16*1024; i++) {
-            this->flash_data[i] = '\0';
-        }
+        this->resize_qbytearray(&this->flash_data, 16*1024);
     }
 
     // dispatch thread
