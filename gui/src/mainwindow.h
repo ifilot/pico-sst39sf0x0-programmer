@@ -137,6 +137,13 @@ private:
      */
     void raise_error_window(QMessageBox::Icon icon, const QString errormsg);
 
+    /**
+     * @brief Resize a QByteArray and append with zeros
+     * @param pointer to QByteArray
+     * @param size
+     */
+    void resize_qbytearray(QByteArray* qb, unsigned int size);
+
 private slots:
     /**
      * @brief      Close the application
