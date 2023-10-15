@@ -13,8 +13,10 @@ SOURCES += \
     src/dialogslotselection.cpp \
     src/flashthread.cpp \
     src/ioworker.cpp \
+    src/logwindow.cpp \
     src/main.cpp \
     src/mainwindow.cpp \
+    src/picoflasherapplication.cpp \
     src/qhexview.cpp \
     src/readthread.cpp \
     src/serial_interface.cpp
@@ -25,7 +27,9 @@ HEADERS += \
     src/dialogslotselection.h \
     src/flashthread.h \
     src/ioworker.h \
+    src/logwindow.h \
     src/mainwindow.h \
+    src/picoflasherapplication.h \
     src/qhexview.h \
     src/readthread.h \
     src/romsizes.h \

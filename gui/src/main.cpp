@@ -19,13 +19,78 @@
  ****************************************************************************/
 
 #include "mainwindow.h"
+#include "picoflasherapplication.h"
 
 #include <QApplication>
+#include <QStringList>
+
+std::shared_ptr<QStringList> log_messages;
+
+/**
+ * @brief custom function for storing and display messages
+ * @param type
+ * @param context
+ * @param msg
+ */
+void message_output(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+    QString local_msg = QString(msg.toLocal8Bit());
+
+    QDateTime date = QDateTime::currentDateTime();
+    QString fmtime = date.toString("dd.MM.yyyy hh:mm:ss.zzz");
+
+    switch (type) {
+    case QtDebugMsg:
+        log_messages->append(fmtime + " [DEBUG] " + local_msg);
+        std::cout << "[DEBUG] " << msg.toStdString() << std::endl;
+        break;
+    case QtInfoMsg:
+        log_messages->append(fmtime + " [INFO] " + local_msg);
+        std::cout << "[INFO] " << msg.toStdString() << std::endl;
+        break;
+    case QtWarningMsg:
+        log_messages->append(fmtime + " [WARNING] " + local_msg);
+        std::cout << "[WARNING] " << msg.toStdString() << std::endl;
+        break;
+    case QtCriticalMsg:
+        log_messages->append(fmtime + " [CRITICAL] " + local_msg);
+        std::cerr << "[CRITICAL] " << msg.toStdString() << std::endl;
+        break;
+    case QtFatalMsg:
+        log_messages->append(fmtime + " [FATAL] " + local_msg);
+        std::cerr << "[FATAL] " << msg.toStdString() << std::endl;
+        break;
+    }
+}
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
-    MainWindow window;
-    window.show();
-    return app.exec();
+    PicoFlasherApplication app(argc, argv);
+    qRegisterMetaType<std::vector<uint8_t>>("stdvector_uint8_t");
+
+    std::unique_ptr<MainWindow> mainWindow;
+    log_messages = std::make_shared<QStringList>();
+
+    try {
+        // build main window
+        qInstallMessageHandler(message_output);
+        mainWindow = std::make_unique<MainWindow>(log_messages);
+        mainWindow->setWindowTitle(QString(PROGRAM_NAME) + " " + QString(PROGRAM_VERSION));
+    } catch(const std::exception& e) {
+        std::cerr << "Error detected!" << std::endl;
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Abnormal closing of program." << std::endl;
+    }
+
+    mainWindow->show();
+
+    int res = -1;
+    try {
+        res = app.exec();
+    }  catch (const std::exception& e) {
+        std::cerr << "Error detected!" << std::endl;
+        std::cerr << e.what() << std::endl;
+        std::cerr << "Abnormal closing of program." << std::endl;
+    }
+
+    return -1;
 }

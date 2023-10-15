@@ -48,6 +48,7 @@
 #include "flashthread.h"
 #include "dialogslotselection.h"
 #include "romsizes.h"
+#include "logwindow.h"
 
 class MainWindow : public QMainWindow
 {
@@ -57,6 +58,12 @@ private:
     // widgets
     QLabel* label_data_descriptor;
     QHexView* hex_widget;
+
+    // window for log messages
+    std::unique_ptr<LogWindow> log_window;
+
+    // storage for log messages
+    std::shared_ptr<QStringList> log_messages;
 
     // Serial port selection
     QPushButton* button_select_serial;
@@ -95,7 +102,8 @@ public:
      * @brief MainWindow
      * @param parent
      */
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(const std::shared_ptr<QStringList> _log_messages,
+               QWidget *parent = nullptr);
 
     /**
      * @brief Default destructor method
@@ -164,6 +172,11 @@ private slots:
      * @brief Show an about window
      */
     void slot_about();
+
+    /**
+     * @brief Show an about window
+     */
+    void slot_debug_log();
 
     /****************************************************************************
      *  SIGNALS :: COMMUNICATION INTERFACE ROUTINES
