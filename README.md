@@ -1,12 +1,29 @@
 # PICO-SST39SF0x0 Programmer
 
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/ifilot/pico-sst39sf0x0-programmer?label=version)
 [![build](https://github.com/ifilot/pico-sst39sf0x0-programmer/actions/workflows/build.yml/badge.svg)](https://github.com/ifilot/pico-sst39sf0x0-programmer/actions/workflows/build.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## Purpose
 
 This open hardware project aims users to produce a low-cost flasher for the
-SST39SF0x0 type of ROM chips. The flasher revolves around the cheap
+[SST39SF0x0 type](https://ww1.microchip.com/downloads/en/DeviceDoc/20005022C.pdf) 
+of ROM chips. The flasher revolves around the cheap
 [Raspberry PICO](https://www.raspberrypi.com/products/raspberry-pi-pico/) device.
+
+Besides general read/write/erase functionality for the SST39SF0x0 type of ROM chips,
+the software and tools delivered with the PICO-SST39SF0x0 Programmer tend to cater
+to a number of projects involving the venerable P2000T and P2000M, both early Philips 
+home computers of the 1980s. See the list below for the projects that use the
+PICO-SST39SF0x0 Programmer flasher.
+
+* [P2000T Cartridges](https://github.com/ifilot/p2000t-cartridges): A set of homebrewn
+  cartridges designed for the P2000T. These cartridges all use SST39SF0x0 type of
+  ROM chips.
+* [P2000T Tape Monitor](https://github.com/ifilot/p2000t-tape-monitor): A SLOT2
+  datacartridge for loading programs into the P2000T.
+
+## Images
 
 ![Image of the PICO Flasher device](img/pico-flasher.jpg)
 

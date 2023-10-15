@@ -115,6 +115,20 @@ jobs:
         asset_content_type: application/vnd.microsoft.portable-executable
 
   #
+  # Ubuntu
+  #
+  build-gui-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install packages
+      run: sudo apt update && sudo apt install -y qtbase5-dev qt5-qmake libqt5serialport5-dev cmake
+    - name: Configure CMake
+      run: mkdir ${{github.workspace}}/build && cd ${{github.workspace}}/build && qmake ../gui
+    - name: Build
+      run: cd ${{github.workspace}}/build && make -j
+
+  #
   # PICO firmware
   #
   build-firmware:
