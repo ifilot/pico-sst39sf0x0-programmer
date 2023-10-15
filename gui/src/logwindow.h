@@ -18,12 +18,34 @@
  *                                                                          *
  ****************************************************************************/
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#ifndef LOGWINDOW_H
+#define LOGWINDOW_H
 
-#define PROGRAM_NAME "PICO SST39sf0x0 Programmer"
-#define PROGRAM_VERSION "1.2.0"
+#include <QObject>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QScrollArea>
+#include <QPlainTextEdit>
+#include <QDebug>
+#include <QTimer>
+#include <QIcon>
 
-#define UNUSED(x) (void)(x)
+class LogWindow : public QWidget {
 
-#endif // _CONFIG_H
+Q_OBJECT
+
+private:
+    std::shared_ptr<QStringList> log_messages;
+    QPlainTextEdit* text_box;
+    int linesread = 0;
+
+public:
+    LogWindow(){}
+
+    LogWindow(const std::shared_ptr<QStringList>& _log_messages);
+
+private slots:
+    void update_log();
+};
+
+#endif // LOGWINDOW_H

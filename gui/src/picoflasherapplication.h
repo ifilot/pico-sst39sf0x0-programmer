@@ -18,12 +18,35 @@
  *                                                                          *
  ****************************************************************************/
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#ifndef PICOFLASHERAPPLICATION_H
+#define PICOFLASHERAPPLICATION_H
 
-#define PROGRAM_NAME "PICO SST39sf0x0 Programmer"
-#define PROGRAM_VERSION "1.2.0"
+#include <QApplication>
+#include <QMessageBox>
+#include <QIcon>
 
-#define UNUSED(x) (void)(x)
+#include "config.h"
 
-#endif // _CONFIG_H
+class PicoFlasherApplication : public QApplication
+{
+public:
+    /**
+     * @brief Default constructor
+     * @param argc number of command line argument
+     * @param argv command line arguments
+     */
+    PicoFlasherApplication(int& argc, char** argv);
+
+    /**
+     * @brief notify
+     * @param receiver
+     * @param event
+     * @return
+     */
+    bool notify(QObject* receiver, QEvent* event);
+
+private:
+    void throw_message_window(const QString& title, const QString& message);
+};
+
+#endif // PICOFLASHERAPPLICATION_H

@@ -24,8 +24,12 @@
  * @brief MainWindow
  * @param parent
  */
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent) {
+MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget *parent)
+    : QMainWindow(parent),
+      log_messages(_log_messages) {
+
+    // log window
+    this->log_window = std::make_unique<LogWindow>(this->log_messages);
 
     QWidget* container = new QWidget();
     this->setCentralWidget(container);
@@ -115,6 +119,13 @@ void MainWindow::create_dropdown_menu() {
     QAction *action_about = new QAction(menu_help);
     action_about->setText(tr("About"));
     menu_help->addAction(action_about);
+
+    // debug log
+    QAction *action_debug_log = new QAction(menu_help);
+    action_debug_log->setText(tr("Debug Log"));
+    action_debug_log ->setShortcut(Qt::Key_F2);
+    menu_help->addAction(action_debug_log);
+    connect(action_debug_log, &QAction::triggered, this, &MainWindow::slot_debug_log);
 
     // connect actions file menu
     connect(action_open, &QAction::triggered, this, &MainWindow::slot_open);
@@ -593,6 +604,13 @@ void MainWindow::slot_about() {
     message_box.setWindowTitle("About " + tr(PROGRAM_NAME));
     message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
     message_box.exec();
+}
+
+/**
+ * @brief Show an about window
+ */
+void MainWindow::slot_debug_log() {
+    this->log_window->show();
 }
 
 /**
