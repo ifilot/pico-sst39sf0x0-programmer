@@ -28,8 +28,10 @@ add_executable(pico-sst39sf0x0-programmer
     src/dialogslotselection.cpp
     src/flashthread.cpp
     src/ioworker.cpp
+    src/logwindow.cpp
     src/main.cpp
     src/mainwindow.cpp
+    src/picoflasherapplication.cpp
     src/qhexview.cpp
     src/readthread.cpp
     src/serial_interface.cpp

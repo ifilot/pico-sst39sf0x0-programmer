@@ -23,6 +23,8 @@
 
 #include <QApplication>
 #include <QStringList>
+#include <QDateTime>
+#include <QString>
 
 std::shared_ptr<QStringList> log_messages;
 
