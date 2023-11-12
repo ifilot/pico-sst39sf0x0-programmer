@@ -108,6 +108,12 @@ void parse_instructions() {
         read_chip_id();
         return;
     /*
+    * Completely erase the chip
+    */
+    } else if(check_command(instruction, "ERASEALL", 0, 8)) {
+        erase_chip();
+        return;
+    /*
     * Read data from P2000 SLOT1 cartridge, requiring adapter board
     */        
     } else if(check_command(instruction, "RP2KCR", 0, 6)) {

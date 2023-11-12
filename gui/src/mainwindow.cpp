@@ -269,6 +269,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
 
     // add individual buttons here
     this->button_identify_chip = new QPushButton("Identify chip");
+    this->button_erase_chip = new QPushButton("Erase chip");
     this->button_read_rom = new QPushButton("Read ROM");
     this->button_read_cartridge = new QPushButton("Read P2000T Cartridge");
     this->button_flash_rom = new QPushButton("Write ROM");
@@ -279,8 +280,10 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     layout->addWidget(this->button_read_cartridge);
     layout->addWidget(this->button_flash_rom);
     layout->addWidget(this->button_flash_bank);
+    layout->addWidget(this->button_erase_chip);
 
     this->button_identify_chip->setEnabled(false);
+    this->button_erase_chip->setEnabled(false);
     this->button_read_cartridge->setEnabled(false);
     this->button_read_rom->setEnabled(false);
     this->button_flash_rom->setEnabled(false);
@@ -291,6 +294,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     connect(this->button_flash_rom, SIGNAL(released()), this, SLOT(flash_rom()));
     connect(this->button_identify_chip, SIGNAL(released()), this, SLOT(read_chip_id()));
     connect(this->button_flash_bank, SIGNAL(released()), this, SLOT(flash_bank()));
+    connect(this->button_erase_chip, SIGNAL(released()), this, SLOT(erase_chip()));
 
     target_layout->addWidget(container);
     this->progress_bar_load = new QProgressBar();
@@ -697,6 +701,7 @@ void MainWindow::read_chip_id() {
         this->button_read_rom->setEnabled(true);
         this->button_flash_rom->setEnabled(true);
         this->button_flash_bank->setEnabled(true);
+        this->button_erase_chip->setEnabled(true);
     } catch (const std::exception& e) {
         QMessageBox msg_box;
         msg_box.setIcon(QMessageBox::Warning);
@@ -907,6 +912,23 @@ void MainWindow::flash_bank() {
 
     // disable all buttons
     //this->disable_all_buttons();
+}
+
+/**
+ * @brief Put rom on flash cartridge
+ */
+void MainWindow::erase_chip() {
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Wipe chip?", "Are you sure you want to completely wipe the chip?", QMessageBox::Yes|QMessageBox::No);
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
+
+    this->serial_interface->open_port();
+    this->serial_interface->erase_chip();
+    this->serial_interface->close_port();
+
+    QMessageBox::information(this, "Chip erased.", "Done erasing the chip. All bytes are set of 0xFF.");
 }
 
 /**

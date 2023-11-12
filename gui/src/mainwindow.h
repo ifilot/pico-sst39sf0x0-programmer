@@ -77,6 +77,7 @@ private:
     // buttons
     QLabel* label_chip_type;
     QPushButton* button_identify_chip;
+    QPushButton* button_erase_chip;
     QPushButton* button_read_rom;
     QPushButton* button_read_cartridge;
     QPushButton* button_flash_rom;
@@ -244,6 +245,11 @@ private slots:
      * @brief Put rom on flash cartridge
      */
     void flash_bank();
+
+    /**
+     * @brief Erase the chip
+     */
+    void erase_chip();
 
     /**
      * @brief Slot to indicate that a page is about to be written
