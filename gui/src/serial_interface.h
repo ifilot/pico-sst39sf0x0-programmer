@@ -141,6 +141,11 @@ public:
      */
     uint16_t get_chip_id();
 
+    /**
+     * @brief Completely erase the chip
+     */
+    void erase_chip();
+
 private:
 
     /**

@@ -304,6 +304,30 @@ void write_block(uint32_t block_id) {
     putchar_raw(checksum);
 }
 
+/**
+ * @brief      Erase the complete chip
+ */
+void erase_chip() {
+    gpio_put(LED_WR, true);
+    
+    // chip-erase sequence
+    write_byte(0x5555, 0xAA);
+    write_byte(0x2AAA, 0x55);
+    write_byte(0x5555, 0x80);
+    write_byte(0x5555, 0xAA);
+    write_byte(0x2AAA, 0x55);
+    write_byte(0x5555, 0x10);
+
+    // get number of iterations in pollbyte routine
+    uint16_t cnts = pollbyte(0x0000);
+    
+    gpio_put(LED_WR, false);
+
+    // return result
+    putchar_raw(cnts >> 8);
+    putchar_raw(cnts & 0xFF);
+}
+
 /*
  * @brief Erase sector (4kb)
  */

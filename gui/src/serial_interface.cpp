@@ -265,6 +265,19 @@ uint16_t SerialInterface::get_chip_id() {
 
 }
 
+/**
+ * @brief Completely erase the chip
+ */
+void SerialInterface::erase_chip() {
+    try {
+        std::string command = "ERASEALL";
+        auto response = this->send_command_capture_response(command, 2);
+    }  catch (std::exception& e) {
+        std::cerr << "Caught error: " << e.what() << std::endl;
+        throw e;
+    }
+}
+
 /********************************************************
  *  PRIVATE ROUTINES
  ********************************************************/

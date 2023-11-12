@@ -73,6 +73,11 @@ uint16_t pollbyte(uint32_t addr);
 void write_block(uint32_t block_id);
 
 /**
+ * @brief      Erase the complete chip
+ */
+void erase_chip();
+
+/**
  * Erase sector (4kb)
 */
 void erase_sector(uint32_t block_id);

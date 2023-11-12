@@ -60,5 +60,6 @@ of commands are given below.
   a CRC16 XMODEM checksum (2 bytes).
 * `ESSTXXXX`: Erases a block of data (writing `0xFF`) at hex position `XXXX000`.
   Returns number of wait cycles as 16 bit signed integer.
+* `ERASEALL`: Completely wipes the chip, writing `0xFF` to all bytes.
 * `TESTTEST`: Simple test routine. Reads the first 32 bytes on the chip. Returns
   32 bytes of data.
