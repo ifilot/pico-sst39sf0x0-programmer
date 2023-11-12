@@ -481,12 +481,12 @@ void MainWindow::select_com_port() {
 
             int versionint = (major * 1000000) + (minor * 1000) + patch;
 
-            if(versionint < (1 * 1000000) + (1 * 1000) + 0) {
+            if(versionint < (1 * 1000000) + (3 * 1000) + 0) {
                 QMessageBox msg_box;
                 msg_box.setIcon(QMessageBox::Warning);
                 msg_box.setText(tr(
                       "Your board firmware is outdated. Please update your board "
-                      "to version 1.1.0 or higher. Visit: "
+                      "to version 1.3.0 or higher. Visit: "
                       "<a href=\"https://github.com/ifilot/pico-sst39sf0x0-programmer\">https://github.com/ifilot/pico-sst39sf0x0-programmer</a>."
                 ));
                 msg_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
