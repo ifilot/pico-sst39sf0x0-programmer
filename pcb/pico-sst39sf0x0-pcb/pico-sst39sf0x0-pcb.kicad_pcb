@@ -5,6 +5,12 @@
   )
 
   (paper "A4")
+  (title_block
+    (title "PICO SST39SF0x0 Programmer")
+    (date "2024-03-08")
+    (rev "2")
+  )
+
   (layers
     (0 "F.Cu" signal)
     (31 "B.Cu" signal)
