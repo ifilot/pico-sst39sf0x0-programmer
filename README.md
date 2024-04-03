@@ -3,6 +3,7 @@
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/ifilot/pico-sst39sf0x0-programmer?label=version)
 [![build](https://github.com/ifilot/pico-sst39sf0x0-programmer/actions/workflows/build.yml/badge.svg)](https://github.com/ifilot/pico-sst39sf0x0-programmer/actions/workflows/build.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/license-CC--BY--SA--4.0-blue)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ## Purpose
 
