@@ -23,6 +23,8 @@ PICO-SST39SF0x0 Programmer flasher.
 * [P2000T Tape Monitor](https://github.com/ifilot/p2000t-tape-monitor): A SLOT2
   datacartridge for loading programs into the P2000T.
 
+Nevertheless, this is a general purpose product and you are able to flash and kind of data onto the ROM chips.
+
 ## Images
 
 ![Image of the PICO Flasher device](img/pico-flasher.jpg)
@@ -53,4 +55,4 @@ Download the latest version of the binaries via the links below.
 ## License
 
 * All software is shared under the [GPL v3 license](https://www.gnu.org/licenses/gpl-3.0).
-* All hardware (e.g. KiCAD files and .stl files) are shared under the [CC-BY-NC-SA 4.0 license](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+* All hardware (e.g. KiCAD files and .stl files) are shared under the [CC-BY-SA 4.0 license](https://creativecommons.org/licenses/by-sa/4.0/).
