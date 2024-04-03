@@ -1,0 +1,8 @@
+Comment,Designator,Footprint,LCSC Part #
+.1uF Unpolarized capacitor,"C1,C2,C3,C4",C_0805_2012Metric,C1790
+"M7 Diode, small symbol",D1,D_SMA,C95872
+"BSS138 50V Vds, 0.22A Id, N-Channel MOSFET, SOT-23","Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20,Q21,Q22,Q23,Q24",SOT-23,C78284
+10K Resistor,R1,R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,C17414
+560 Resistor,"R2,R3",R_0805_2012Metric_Pad1.20x1.40mm_HandSolder,C28636
+"10k 4 resistor network, parallel topology, split","RN1,RN2,RN3,RN4,RN5,RN6,RN7,RN8,RN9,RN10,RN11,RN12",R_Array_Convex_4x0603,C110924
+74HC573 8-bit Latch 3-state outputs,"U1,U3,U4",SOIC-20W_7.5x12.8mm_P1.27mm,C5608
