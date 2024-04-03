@@ -3,6 +3,7 @@
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/ifilot/pico-sst39sf0x0-programmer?label=version)
 [![build](https://github.com/ifilot/pico-sst39sf0x0-programmer/actions/workflows/build.yml/badge.svg)](https://github.com/ifilot/pico-sst39sf0x0-programmer/actions/workflows/build.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-blue.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ## Purpose
 
@@ -22,6 +23,8 @@ PICO-SST39SF0x0 Programmer flasher.
   ROM chips.
 * [P2000T Tape Monitor](https://github.com/ifilot/p2000t-tape-monitor): A SLOT2
   datacartridge for loading programs into the P2000T.
+
+Nevertheless, this is a general purpose product and you are able to flash and kind of data onto the ROM chips.
 
 ## Images
 
@@ -44,13 +47,10 @@ PCB frontside | PCB backside
 
 Download the latest version of the binaries via the links below.
 
-### PICO firmmare 
-* [Latest version](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-firmware.uf2)
-
-### GUI
-* [Latest version Windows](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-installer-win64.exe)
+* [Firmware (.uf2 file)](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-firmware.uf2)
+* [GUI Installer](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-installer-win64.exe)
 
 ## License
 
 * All software is shared under the [GPL v3 license](https://www.gnu.org/licenses/gpl-3.0).
-* All hardware (e.g. KiCAD files and .stl files) are shared under the [CC-BY-NC-SA 4.0 license](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+* All hardware (e.g. KiCAD files and .stl files) are shared under the [CC-BY-SA 4.0 license](https://creativecommons.org/licenses/by-sa/4.0/).
