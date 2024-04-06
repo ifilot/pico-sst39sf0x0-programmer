@@ -5,13 +5,13 @@
       "Application": "Pcbnew",
       "Version": "7.0.10"
     },
-    "CreationDate": "2024-03-08T14:18:15+01:00"
+    "CreationDate": "2024-04-06T15:07:32+02:00"
   },
   "GeneralSpecs": {
     "ProjectId": {
       "Name": "pico-sst39sf0x0-pcb",
       "GUID": "7069636f-2d73-4737-9433-397366307830",
-      "Revision": "rev?"
+      "Revision": "2"
     },
     "Size": {
       "X": 101.7,
