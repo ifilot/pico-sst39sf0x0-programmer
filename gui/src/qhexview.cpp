@@ -191,7 +191,7 @@ void QHexView::paintEvent(QPaintEvent *event)
         QString address = QString("%1").arg(lineIdx * m_bytesPerLine, 10, 16, QChar('0'));
         painter.drawText(m_posAddr, yPos, address);
 
-        for(int xPos = m_posHex, i=0; i< m_bytesPerLine && ((lineIdx - firstLineIdx) * m_bytesPerLine + i) < data.size(); i++, xPos += 3 * m_charWidth)
+        for(std::size_t xPos = m_posHex, i=0; i< m_bytesPerLine && ((lineIdx - firstLineIdx) * m_bytesPerLine + i) < data.size(); i++, xPos += 3 * m_charWidth)
         {
             std::size_t pos = (lineIdx * m_bytesPerLine + i) * 2;
             if(pos >= m_selectBegin && pos < m_selectEnd)
@@ -589,7 +589,7 @@ QByteArray QHexView::DataStorageArray::getData(std::size_t position, std::size_t
 
 std::size_t QHexView::DataStorageArray::size()
 {
-    return m_data.count();
+    return m_data.size();
 }
 
 

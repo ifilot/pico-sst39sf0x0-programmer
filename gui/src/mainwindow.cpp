@@ -674,19 +674,16 @@ void MainWindow::read_chip_id() {
             switch(chip_id & 0xFF) {
                 case 0xB5:
                     this->num_blocks = 128*1024/256;
-                    this->progress_bar_load->setMaximum(this->num_blocks);
                     statusBar()->showMessage("Identified a SST39SF010 chip");
                     this->label_chip_type->setText("ROM chip: SST39SF010");
                 break;
                 case 0xB6:
                 this->num_blocks = 256*1024/256;
-                    this->progress_bar_load->setMaximum(this->num_blocks);
                     statusBar()->showMessage("Identified a SST39SF020 chip");
                     this->label_chip_type->setText("ROM chip: SST39SF020");
                 break;
                 case 0xB7:
                     this->num_blocks = 512*1024/256;
-                    this->progress_bar_load->setMaximum(this->num_blocks);
                     statusBar()->showMessage("Identified a SST39SF040 chip");
                     this->label_chip_type->setText("ROM chip: SST39SF040");
                 break;
@@ -698,6 +695,11 @@ void MainWindow::read_chip_id() {
             throw std::runtime_error("Unknown chip id: " + chip_id_str);
         }
 
+        // set progress bar
+        this->progress_bar_load->reset();
+        this->progress_bar_load->setMaximum(this->num_blocks);
+
+        // enable buttons
         this->button_read_rom->setEnabled(true);
         this->button_flash_rom->setEnabled(true);
         this->button_flash_bank->setEnabled(true);
@@ -825,9 +827,11 @@ void MainWindow::read_result_ready() {
  */
 void MainWindow::flash_rom() {
     // store flash data
+    qDebug() << "Loading flash data";
     this->flash_data = this->hex_widget->get_data();
 
     // verify whether the chip is correct
+    qDebug() << "Verifying chip";
     this->verify_chip();
 
     if((this->num_blocks * 256) < this->flash_data.size()) {

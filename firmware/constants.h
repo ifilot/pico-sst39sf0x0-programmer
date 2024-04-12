@@ -41,9 +41,14 @@ GPIO19 - LOAD for A16-A19
 #define LED_RD 26
 #define LED_WR 27
 
-#define DELAY_READ 5
-#define DELAY_WRITE 5
-#define DELAY_ADDR 4
+#define DELAY_READ 3
+#define DELAY_READ_VERIFY 1
+#define DELAY_WRITE 2
+#define DELAY_ADDR 1
 #define BOARD_ID "PICOSST39-v1.4.0"
+
+#define BLOCK_SIZE  0x100
+#define SECTOR_SIZE 0x1000
+#define BANK_SIZE   0x4000
 
 #endif

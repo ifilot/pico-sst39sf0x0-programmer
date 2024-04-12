@@ -60,16 +60,6 @@ class TestBoard(unittest.TestCase):
         rsp = self.ser.read(8)
         rsp = self.ser.read(2)
         print(" ".join("%02x" % b for b in rsp))
-    
-    # def test_read(self):
-    #     """
-    #     Test reading board id
-    #     """
-    #     self.ser.write(b'TESTTEST')
-    #     rsp = self.ser.read(8)
-    #     print(rsp)
-    #     rsp = self.ser.read(32)
-    #     print(" ".join("%02x" % b for b in rsp))
         
     def test_read_block(self):
         """

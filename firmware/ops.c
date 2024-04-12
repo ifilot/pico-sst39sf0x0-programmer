@@ -97,13 +97,13 @@ void write_byte(uint32_t addr, uint8_t val) {
     // set pins 0-7 to output
     gpio_set_dir_out_masked(0x000000FF);
 
+    // set address on pins
     set_address(addr);
 
+    gpio_put_masked(0xFF, val);
     gpio_put(CE, false);
     gpio_put(PGM, false);
 
-    // sleep_us(DELAY_TIME);
-    gpio_put_masked(0xFF, val);
     sleep_us(DELAY_WRITE);
 
     gpio_put(PGM, true);
