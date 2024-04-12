@@ -24,6 +24,8 @@
 #include <pico/stdlib.h>
 #include <pico/stdio.h>
 #include "constants.h"
+#include "tusb.h"
+
 #include "ops.h"
 
 /*

@@ -44,6 +44,6 @@ GPIO19 - LOAD for A16-A19
 #define DELAY_READ 5
 #define DELAY_WRITE 5
 #define DELAY_ADDR 4
-#define BOARD_ID "PICOSST39-v1.3.0"
+#define BOARD_ID "PICOSST39-v1.4.0"
 
 #endif

@@ -26,6 +26,7 @@
 #include <string.h>
 #include <pico/stdlib.h>
 #include <pico/stdio.h>
+#include <tusb.h>
 
 uint8_t get_uint8(const char* instruction, uint8_t offset);
 uint16_t get_uint16(const char* instruction, uint8_t offset);

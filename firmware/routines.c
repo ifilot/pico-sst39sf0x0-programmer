@@ -39,8 +39,9 @@ void read_chip_id() {
 
     gpio_put(LED_RD, false);
 
-    putchar_raw(id1);
-    putchar_raw(id2);
+    tud_cdc_write_char(id1);
+    tud_cdc_write_char(id2);
+    tud_cdc_write_flush();
 }
 
 /*
@@ -75,6 +76,8 @@ void read_block(uint32_t block_id) {
     
     gpio_put(CE, false);
 
+    uint8_t data[256];
+
     // set address to read from
     for(unsigned int i=0; i<256; i++) {
         set_address_low(sector_addr);
@@ -83,10 +86,7 @@ void read_block(uint32_t block_id) {
         sleep_us(DELAY_READ);
 
         // read from lower 8 pins, discard rest
-        uint8_t val = gpio_get_all();
-
-        // send to UART
-        putchar_raw(val);
+        data[i] = gpio_get_all();
 
         gpio_put(OE, true);
 
@@ -94,6 +94,10 @@ void read_block(uint32_t block_id) {
     }
 
     gpio_put(CE, true);
+
+    tud_cdc_write(data, 256);
+    tud_cdc_write_flush();
+
     gpio_put(LED_RD, false);
 }
 
@@ -111,10 +115,12 @@ void read_p2k_cartridge_block(uint8_t block_id) {
     gpio_put(OE, block_id < 2);   // CARSEL 2
     unsigned int pin12 = (block_id & 1) ? 0 : (1 << 4);
 
+    uint8_t data[0x100];
+
     // set address to read from
     for(unsigned int j=0; j<16; j++) {
         set_address_high((j + pin12) << 8);
-        for(unsigned int i=0; i<256; i++) {
+        for(unsigned int i=0; i<0x100; i++) {
             // set lower address
             set_address_low(i);
         
@@ -122,15 +128,19 @@ void read_p2k_cartridge_block(uint8_t block_id) {
             sleep_us(DELAY_READ);
 
             // read from lower 8 pins, discard rest
-            uint8_t val = gpio_get_all();
-
-            // send to UART
-            putchar_raw(val);
+            data[i] = gpio_get_all();
         }
+
+        tud_cdc_write(data, 0x100);
+        tud_cdc_write_flush();
     }
 
     gpio_put(CE, true);
     gpio_put(OE, true);
+
+    tud_cdc_write(data, 0x1000);
+    tud_cdc_write_flush();
+
     gpio_put(LED_RD, false);
 }
 
@@ -147,6 +157,8 @@ void read_bank(uint8_t bank_id) {
     gpio_put(CE, false);
     gpio_put(OE, false);
 
+    uint8_t data[0x100];
+
     // set address to read from
     for(uint32_t j=0; j<0x40; j++) {
         set_address_high((j + 0x40 * bank_id) << 8);
@@ -156,11 +168,11 @@ void read_bank(uint8_t bank_id) {
             sleep_us(DELAY_READ);
 
             // read from lower 8 pins, discard rest
-            uint8_t val = gpio_get_all();
-
-            // send to UART
-            putchar_raw(val);
+            data[i] = gpio_get_all();
         }
+
+        tud_cdc_write(data, 0x100);
+        tud_cdc_write_flush();
     }
 
     gpio_put(CE, true);
