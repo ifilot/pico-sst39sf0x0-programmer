@@ -9,12 +9,15 @@
 #include <QRect>
 #include <QDebug>
 #include <QMutexLocker>
+#include <QSettings>
 
 class HexViewWidget : public QAbstractScrollArea
 {
     Q_OBJECT
 
 private:
+    QSettings settings;
+
     QByteArray data;
     unsigned int charheight;
     unsigned int charwidth;

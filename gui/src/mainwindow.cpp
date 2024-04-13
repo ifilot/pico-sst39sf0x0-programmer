@@ -654,6 +654,7 @@ void MainWindow::slot_update_settings() {
     this->multirom_container->setVisible(show_retroroms);
     this->singlerom_container->setVisible(show_retroroms);
     dynamic_cast<QWidget*>(this->singlerom_container->parent())->layout()->invalidate();
+    this->hex_widget->viewport()->repaint();
 }
 
 /**

@@ -32,8 +32,16 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
     // complete background
     painter.fillRect(event->rect(), this->palette().color(QPalette::Base));
 
-    // background rectangle for addressses
-    QColor address_area_color = QColor(0x7a613d);
+    // grab colors
+    settings.sync();
+    QColor column_color = QColor(settings.value("column_color", (unsigned int)0x888888).toUInt());
+    QColor text_color = QColor(settings.value("text_color", (unsigned int)0x000000).toUInt());
+    QColor header_color = QColor(settings.value("header_color", (unsigned int)0x7a613d).toUInt());
+
+//    qDebug() << "Loading " << column_color.name() << " for column color";
+//    qDebug() << "Loading " << text_color.name() << " for text color";
+//    qDebug() << "Loading " << header_color.name() << " for header color";
+
 //    painter.fillRect(QRect(this->pos_addr,
 //                           event->rect().top() + this->charheight,
 //                           this->pos_hex - GAP_ADR_HEX + 2,
@@ -49,7 +57,7 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
     unsigned int end_idx = start_idx + area_size.height() / this->charheight - 1;
 
     // print header
-    painter.setPen(address_area_color);
+    painter.setPen(header_color);
     painter.drawText(this->pos_addr, this->charheight, "Offset (h)");
 
     for(unsigned int i=0; i<CHARACTERS_LINE; i++) {
@@ -62,16 +70,16 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
     for(unsigned int line_idx = start_idx, ypos = this->charheight * 2;  line_idx < end_idx; line_idx++, ypos += this->charheight) {
 
         // print address
-        painter.setPen(address_area_color);
+        painter.setPen(header_color);
         QString address = QString("%1").arg(line_idx * this->bytes_per_line, 10, 16, QChar('0'));
         painter.drawText(this->pos_addr, ypos, address);
 
         // print hex characters
         for(unsigned int i=0; i<CHARACTERS_LINE; i++) {
             if(i % 2 == 0) {
-                painter.setPen(QColor((unsigned int)0xFF000000));
+                painter.setPen(text_color);
             } else {
-                painter.setPen(QColor((unsigned int)0x00888888));
+                painter.setPen(column_color);
             }
             const uint8_t ch = this->data[line_idx * bytes_per_line + i];
             const QString hex_string  = QString("%1").arg(ch, 2, 16, QChar('0')).toUpper();
