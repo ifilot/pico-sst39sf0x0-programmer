@@ -90,14 +90,6 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
     }
 }
 
-void HexViewWidget::mouseMoveEvent(QMouseEvent *event) {
-    this->viewport()->update();
-}
-
-void HexViewWidget::mousePressEvent(QMouseEvent *event) {
-    this->viewport()->update();
-}
-
 QSize HexViewWidget::get_widget_size() const {
     if(this->data.size() == 0) {
         return QSize(0, 0);
