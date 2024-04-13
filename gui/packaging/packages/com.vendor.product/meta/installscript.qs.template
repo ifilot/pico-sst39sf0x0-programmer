@@ -8,7 +8,7 @@ Component.prototype.createOperations = function()
     component.createOperations();
 
     if (systemInfo.productType === "windows") {
-        component.addOperation("CreateShortcut", "@TargetDir@/gbcr", 
+        component.addOperation("CreateShortcut", "@TargetDir@/{{ executable }}.exe", 
                                "@StartMenuDir@/{{ executable }}.lnk",
                                "workingDirectory=@TargetDir@", 
                                "iconPath=@TargetDir@/{{ iconfilename }}",

@@ -2,7 +2,7 @@
 <Installer>
     <Name>{{ progname }}</Name>
     <Version>{{ version }}</Version>
-    <Title>Gameboy Cartridge Reader Installer</Title>
+    <Title>{{ progname }} Installer</Title>
     <Publisher>{{ publisher }}</Publisher>
     <StartMenuDir>{{ publisher }}</StartMenuDir>
     <TargetDir>@HomeDir@/{{ publisher }}/{{ progfolder }}</TargetDir>

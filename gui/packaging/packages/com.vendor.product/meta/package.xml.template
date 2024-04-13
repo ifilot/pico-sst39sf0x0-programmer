@@ -2,7 +2,7 @@
 <Package>
     <DisplayName>Core</DisplayName>
     <Description>Install {{ progname }}.</Description>
-    <Version>1.0.0</Version>
+    <Version>{{ version }}</Version>
     <ReleaseDate>{{ releasedate }}</ReleaseDate>
     <Default>true</Default>
     <Script>installscript.qs</Script>
