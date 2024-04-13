@@ -56,7 +56,10 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
 
     // build interfaces
     this->build_serial_interface_menu(right_layout);
+
+    #ifdef P2K_EDITION
     this->build_rom_selection_menu(right_layout);
+    #endif
     this->build_operations_menu(right_layout);
 
     // add padding frame on RHS
