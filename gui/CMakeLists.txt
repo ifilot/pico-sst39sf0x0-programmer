@@ -32,7 +32,7 @@ add_executable(pico-sst39sf0x0-programmer
     src/main.cpp
     src/mainwindow.cpp
     src/picoflasherapplication.cpp
-    src/qhexview.cpp
+    src/hexviewwidget.cpp
     src/readthread.cpp
     src/serial_interface.cpp
     src/settingswidget.cpp

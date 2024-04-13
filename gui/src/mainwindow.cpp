@@ -35,38 +35,40 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     this->settings_widget = std::make_unique<SettingsWidget>();
     connect(this->settings_widget.get(), SIGNAL(signal_settings_update()), this, SLOT(slot_update_settings()));
 
+    // complete Window
     QWidget* container = new QWidget();
     this->setCentralWidget(container);
     QHBoxLayout* layout = new QHBoxLayout();
     container->setLayout(layout);
 
-    // add hex editor widget
+    // add hex editor widget (left side)
     QWidget* container_widget = new QWidget();
     QVBoxLayout* container_layout = new QVBoxLayout();
     container_widget->setLayout(container_layout);
     layout->addWidget(container_widget);
     this->label_data_descriptor = new QLabel();
     container_layout->addWidget(this->label_data_descriptor);
-    this->hex_widget = new QHexView();
+    this->hex_widget = new HexViewWidget();
     this->hex_widget->setMinimumWidth(680);
-    this->hex_widget->setMaximumWidth(680);
+    this->hex_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     container_layout->addWidget(this->hex_widget);
 
     // create central widget for writing data
-    QWidget* right_container = new QWidget();
+    QScrollArea *scroll_area = new QScrollArea();
+    layout->addWidget(scroll_area);
+    scroll_area->setMinimumWidth(360);
+    scroll_area->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    QWidget* right_container = new QWidget(scroll_area);
     QVBoxLayout* right_layout = new QVBoxLayout();
+    right_layout->setSizeConstraint(QLayout::SetMinimumSize);
     right_container->setLayout(right_layout);
-    layout->addWidget(right_container);
+    scroll_area->setWidget(right_container);
 
     // build interfaces
     this->build_serial_interface_menu(right_layout);
     this->build_rom_selection_menu(right_layout);
     this->build_operations_menu(right_layout);
-
-    // add padding frame on RHS
-    QFrame* padding_frame = new QFrame();
-    right_layout->addWidget(padding_frame);
-    padding_frame->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding));
 
     // add compile information
     this->label_compile_data = new QLabel(tr("<b>Build:</b><br>Compile time: %1<br>Git id: %2<br>Version: %3")
@@ -74,6 +76,10 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
                                           .arg(GIT_HASH)
                                           .arg(PROGRAM_VERSION));
     right_layout->addWidget(this->label_compile_data);
+
+    // add padding frame on RHS
+    QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
+    right_layout->addSpacerItem(spacer);
 
     this->setMinimumWidth(800);
     this->setMinimumHeight(600);
@@ -87,6 +93,9 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     // set icon and window title
     this->setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
     this->setWindowTitle(PROGRAM_NAME);
+
+    // re-apply settings
+    this->slot_update_settings();
 }
 
 /**
@@ -558,7 +567,7 @@ void MainWindow::slot_open() {
             }
         }
 
-        this->hex_widget->setData(new QHexView::DataStorageArray(data));
+        this->hex_widget->set_data(data);
 
         QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
         QFileInfo finfo(file);
@@ -644,6 +653,7 @@ void MainWindow::slot_update_settings() {
     bool show_retroroms = this->settings.value("SHOW_RETROROMS", QVariant(true)).toBool();
     this->multirom_container->setVisible(show_retroroms);
     this->singlerom_container->setVisible(show_retroroms);
+    dynamic_cast<QWidget*>(this->singlerom_container->parent())->layout()->invalidate();
 }
 
 /**
@@ -662,7 +672,7 @@ void MainWindow::load_default_image() {
     file.open(QIODevice::ReadOnly);
     if(file.exists()) {
         QByteArray data = file.readAll();
-        this->hex_widget->setData(new QHexView::DataStorageArray(data));
+        this->hex_widget->set_data(data);
 
         QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
         this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
@@ -835,7 +845,7 @@ void MainWindow::read_result_ready() {
     }
 
     qDebug() << "Read " << data.size() << " bytes from chip.";
-    this->hex_widget->setData(new QHexView::DataStorageArray(data));
+    this->hex_widget->set_data(data);
 
     QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
     this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")

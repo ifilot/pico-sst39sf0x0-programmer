@@ -42,7 +42,7 @@
 #include <QSettings>
 
 #include "config.h"
-#include "qhexview.h"
+#include "hexviewwidget.h"
 #include "serial_interface.h"
 #include "cartridgereadthread.h"
 #include "readthread.h"
@@ -59,7 +59,7 @@ class MainWindow : public QMainWindow
 private:
     // widgets
     QLabel* label_data_descriptor;
-    QHexView* hex_widget;
+    HexViewWidget* hex_widget;
 
     // window for log messages
     std::unique_ptr<LogWindow> log_window;

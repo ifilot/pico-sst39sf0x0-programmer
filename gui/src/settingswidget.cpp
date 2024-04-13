@@ -13,7 +13,7 @@ SettingsWidget::SettingsWidget(QWidget *parent)
 
     layout->addWidget(new QLabel("<b>Settings</b>"));
 
-    this->checkbox_retroroms = new QCheckBox("Show retroroms");
+    this->checkbox_retroroms = new QCheckBox("Show retroroms (Philips P2000T, Commodore C64)");
     this->checkbox_retroroms->setChecked(this->settings.value("SHOW_RETROROMS", QVariant(true)).toBool());
     layout->addWidget(this->checkbox_retroroms);
     connect(this->checkbox_retroroms, SIGNAL(stateChanged(int)), this, SLOT(signal_settings_update(int)));
