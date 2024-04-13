@@ -1,0 +1,17 @@
+function Component()
+{
+    // default constructor
+}
+
+Component.prototype.createOperations = function()
+{
+    component.createOperations();
+
+    if (systemInfo.productType === "windows") {
+        component.addOperation("CreateShortcut", "@TargetDir@/gbcr", 
+                               "@StartMenuDir@/{{ executable }}.lnk",
+                               "workingDirectory=@TargetDir@", 
+                               "iconPath=@TargetDir@/{{ iconfilename }}",
+                               "description=Open {{ progname }}");
+    }
+}
