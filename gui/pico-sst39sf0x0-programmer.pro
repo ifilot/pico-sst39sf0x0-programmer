@@ -23,6 +23,7 @@ SOURCES += \
     src/settingswidget.cpp
 
 HEADERS += \
+    src/colors.h \
     src/config.h \
     src/cartridgereadthread.h \
     src/dialogslotselection.h \

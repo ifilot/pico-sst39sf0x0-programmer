@@ -260,7 +260,7 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     };
 
     QMenu* rommenu = new QMenu();
-    for(unsigned int i=0; i<names.size(); i++) {
+    for(int i=0; i<names.size(); i++) {
         QAction* action = new QAction();
         action->setText(names[i]);
         action->setProperty("image_name", QVariant(roms[i]));

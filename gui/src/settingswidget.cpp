@@ -29,52 +29,62 @@ void SettingsWidget::signal_settings_update(int state) {
 }
 
 void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
-    layout->addWidget(new QLabel("<b>Hexviewer</b>"));
+    layout->addWidget(new QLabel("<b>Hexviewer theme</b>"));
+
+    this->theme_combobox = new QComboBox();
+    this->theme_combobox->setPlaceholderText("Select color scheme");
+    this->theme_combobox->addItem("Default scheme", QVariant(
+        {ADDRESS_COLOR_DEFAULT,
+         HEADER_COLOR_DEFAULT,
+         COLUMN_COLOR_DEFAULT,
+         ALT_COLUMN_COLOR_DEFAULT,
+         ASCII_COLOR_DEFAULT}));
+    this->theme_combobox->addItem("Autum scheme", QVariant(
+        {0xFFFF0000,
+         0xFFFF0000,
+         0xFF2c2c2c,
+         0xFFFF5500,
+         0xFF686868}));
+    this->theme_combobox->addItem("Solarized Grey", QVariant(
+        {0xFF002b36,
+         0xFF002b36,
+         0xFF586375,
+         0xFF839496,
+         0xFF93a1a1}));
+    this->theme_combobox->addItem("Solarized Colorful", QVariant(
+        {0xFFcb4b16,
+         0xFFcb4b16,
+         0xFFd33682,
+         0xFF6c71c4,
+         0xFF2aa198}));
+
+    layout->addWidget(this->theme_combobox);
+    connect(this->theme_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_theme_change(int)));
 
     QWidget* container = new QWidget();
     QGridLayout* gridlayout = new QGridLayout();
     container->setLayout(gridlayout);
 
-    QString sheet = R"(
-        QPushButton {
-           background-color: %1;
-        }
-    )";
-
     QColor color;
 
-    gridlayout->addWidget(new QLabel("Text color"), 0, 1);
-    this->text_color = new QPushButton();
-    this->text_color->setMinimumSize(QSize(15, 15));
-    this->text_color->setMaximumSize(QSize(15, 15));
-    color = QColor(settings.value("text_color", (unsigned int)0x000000).toUInt());
-    this->text_color->setStyleSheet(sheet.arg(color.name()));
-    gridlayout->addWidget(this->text_color, 0, 0);
-
-    gridlayout->addWidget(new QLabel("Header color"), 1, 1);
-    this->header_color = new QPushButton();
-    this->header_color->setMinimumSize(QSize(15, 15));
-    this->header_color->setMaximumSize(QSize(15, 15));
-    color = QColor(settings.value("header_color", (unsigned int)0x7a613d).toUInt());
-    this->header_color->setStyleSheet(sheet.arg(color.name()));
-    gridlayout->addWidget(this->header_color, 1, 0);
-
-    gridlayout->addWidget(new QLabel("Alternate column color"), 2, 1);
-    this->column_color = new QPushButton();
-    this->column_color->setMinimumSize(QSize(15, 15));
-    this->column_color->setMaximumSize(QSize(15, 15));
-    color = QColor(settings.value("column_color", (unsigned int)0x888888).toUInt());
-    this->column_color->setStyleSheet(sheet.arg(color.name()));
-    gridlayout->addWidget(this->column_color, 2, 0);
+    for(unsigned int i=0; i<this->label_names.size(); i++) {
+        QString keyword = this->label_names[i].toLower().replace(" ", "_");
+        this->buttonpointers[i] = new QPushButton();
+        this->buttonpointers[i]->setMinimumSize(QSize(55, 25));
+        this->buttonpointers[i]->setMaximumSize(QSize(55, 25));
+        color = QColor(settings.value(keyword, (uint32_t)this->default_colors[i]).toUInt());
+        this->buttonpointers[i]->setStyleSheet(this->sheet.arg(color.name()));
+        this->buttonpointers[i]->setText(color.name());
+        gridlayout->addWidget(this->buttonpointers[i], i, 0);
+        gridlayout->addWidget(new QLabel(this->label_names[i]), i, 1);
+    }
 
     QSignalMapper* signal_mapper = new QSignalMapper (this);
-    connect(this->text_color, SIGNAL(released()), signal_mapper, SLOT(map()));
-    connect(this->header_color, SIGNAL(released()), signal_mapper, SLOT(map()));
-    connect(this->column_color, SIGNAL(released()), signal_mapper, SLOT(map()));
-
-    signal_mapper->setMapping(this->text_color, "text_color");
-    signal_mapper->setMapping(this->header_color, "header_color");
-    signal_mapper->setMapping(this->column_color, "column_header");
+    for(unsigned int i=0; i<this->label_names.size(); i++) {
+        QString keyword = this->label_names[i].toLower().replace(" ", "_");
+        connect(this->buttonpointers[i], SIGNAL(released()), signal_mapper, SLOT(map()));
+        signal_mapper->setMapping(this->buttonpointers[i], keyword);
+    }
 
     connect(signal_mapper, SIGNAL(mapped(QString)), this, SLOT(slot_change_color(QString))) ;
 
@@ -82,33 +92,42 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
 }
 
 void SettingsWidget::slot_change_color(const QString& name) {
-    auto color = QColorDialog::getColor();
+    QPushButton *btn = nullptr;
 
-    QString sheet = R"(
-        QPushButton {
-           background-color: %1;
+    for(unsigned int i=0; i<this->label_names.size(); i++) {
+        QString keyword = this->label_names[i].toLower().replace(" ", "_");
+        if(keyword == name) {
+            btn = this->buttonpointers[i];
+            QColor defcol = QColor(btn->text());
+            qDebug() << defcol.name();
+            QColor color = QColorDialog::getColor(defcol);
+
+            uint32_t value = (0xFF << 24) | (color.red() << 16) | (color.green() << 8) | (color.blue());
+            qDebug() << "Changing color for " << name << " to " << color.name();
+
+            btn->setStyleSheet(this->sheet.arg(color.name()));
+            btn->setText(color.name());
+
+            settings.setValue(name, value);
+            settings.sync();
+
+            emit signal_settings_update();
+            return;
         }
-    )";
+    }
+}
 
-    QPushButton *btn;
+void SettingsWidget::slot_theme_change(int idx) {
+    auto colors = this->theme_combobox->itemData(idx).toList();
 
-    if(name == "text_color") {
-        btn = this->text_color;
-    } else if(name == "header_color") {
-        btn = this->header_color;
-    } else if(name == "column_header") {
-        btn = this->column_color;
-    } else {
-        throw std::runtime_error("Invalid keyword received for color change.");
+    for(unsigned int i=0; i<this->label_names.size(); i++) {
+        QString keyword = this->label_names[i].toLower().replace(" ", "_");
+        uint32_t value = colors[i].toUInt();
+        QColor color(value);
+        this->buttonpointers[i]->setStyleSheet(this->sheet.arg(color.name()));
+        settings.setValue(keyword, value);
     }
 
-    uint32_t value = (0xFF << 24) | (color.red() << 16) | (color.green() << 8) | (color.blue());
-    qDebug() << "Changing color for " << name << " to " << color.name();
-
-    settings.setValue(name, value);
     settings.sync();
-
-    btn->setStyleSheet(sheet.arg(color.name()));
-
     emit signal_settings_update();
 }

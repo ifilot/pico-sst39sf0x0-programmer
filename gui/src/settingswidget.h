@@ -10,9 +10,13 @@
 #include <QColorDialog>
 #include <QPushButton>
 #include <QSignalMapper>
-#include <qDebug>
+#include <QDebug>
+#include <QComboBox>
+#include <QList>
+#include <array>
 
 #include "config.h"
+#include "colors.h"
 
 class SettingsWidget : public QWidget
 {
@@ -21,9 +25,32 @@ class SettingsWidget : public QWidget
 private:
     QSettings settings;
     QCheckBox *checkbox_retroroms;
-    QPushButton *text_color;
-    QPushButton *header_color;
-    QPushButton *column_color;
+    QComboBox *theme_combobox;
+
+    const QStringList label_names = {
+        "Address color",
+        "Header color",
+        "Column color",
+        "Alt Column color",
+        "Ascii color"
+    };
+
+    const std::vector<uint32_t> default_colors = {
+        ADDRESS_COLOR_DEFAULT,
+        HEADER_COLOR_DEFAULT,
+        COLUMN_COLOR_DEFAULT,
+        ALT_COLUMN_COLOR_DEFAULT,
+        ASCII_COLOR_DEFAULT,
+    };
+
+    const QString sheet = R"(
+        QPushButton {
+            background-color: %1;
+            color: #FFFFFF;
+        }
+    )";
+
+    std::array<QPushButton*, 3> buttonpointers;
 
 public:
     explicit SettingsWidget(QWidget *parent = nullptr);
@@ -38,6 +65,8 @@ private slots:
     void signal_settings_update(int state);
 
     void slot_change_color(const QString& name);
+
+    void slot_theme_change(int);
 };
 
 #endif // SETTINGSWIDGET_H

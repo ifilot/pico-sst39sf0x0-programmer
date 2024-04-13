@@ -34,9 +34,11 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
 
     // grab colors
     settings.sync();
-    QColor column_color = QColor(settings.value("column_color", (unsigned int)0x888888).toUInt());
-    QColor text_color = QColor(settings.value("text_color", (unsigned int)0x000000).toUInt());
-    QColor header_color = QColor(settings.value("header_color", (unsigned int)0x7a613d).toUInt());
+    QColor address_color = QColor(settings.value("address_color", ADDRESS_COLOR_DEFAULT).toUInt());
+    QColor header_color = QColor(settings.value("header_color", HEADER_COLOR_DEFAULT).toUInt());
+    QColor column_color = QColor(settings.value("column_color", COLUMN_COLOR_DEFAULT).toUInt());
+    QColor alt_column_color = QColor(settings.value("alt_column_color", ALT_COLUMN_COLOR_DEFAULT).toUInt());
+    QColor ascii_color = QColor(settings.value("ascii_color", ASCII_COLOR_DEFAULT).toUInt());
 
 //    qDebug() << "Loading " << column_color.name() << " for column color";
 //    qDebug() << "Loading " << text_color.name() << " for text color";
@@ -70,16 +72,16 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
     for(unsigned int line_idx = start_idx, ypos = this->charheight * 2;  line_idx < end_idx; line_idx++, ypos += this->charheight) {
 
         // print address
-        painter.setPen(header_color);
+        painter.setPen(address_color);
         QString address = QString("%1").arg(line_idx * this->bytes_per_line, 10, 16, QChar('0'));
         painter.drawText(this->pos_addr, ypos, address);
 
         // print hex characters
         for(unsigned int i=0; i<CHARACTERS_LINE; i++) {
             if(i % 2 == 0) {
-                painter.setPen(text_color);
-            } else {
                 painter.setPen(column_color);
+            } else {
+                painter.setPen(alt_column_color);
             }
             const uint8_t ch = this->data[line_idx * bytes_per_line + i];
             const QString hex_string  = QString("%1").arg(ch, 2, 16, QChar('0')).toUpper();
@@ -87,7 +89,7 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
         }
 
         // print ascii characters
-        painter.setPen(QColor((unsigned int)0x000000));
+        painter.setPen(ascii_color);
         for(unsigned int i=0; i<CHARACTERS_LINE; i++) {
             uint8_t ch = this->data[line_idx * bytes_per_line + i];
             if ((ch < 0x20) || (ch > 0x7e)) {

@@ -23,7 +23,6 @@
 
 #define PROGRAM_NAME "PICO SST39sf0x0 Programmer"
 #define PROGRAM_VERSION "1.4.0"
-
 #define UNUSED(x) (void)(x)
 
 #endif // _CONFIG_H

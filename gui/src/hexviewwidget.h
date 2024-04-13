@@ -11,6 +11,8 @@
 #include <QMutexLocker>
 #include <QSettings>
 
+#include "colors.h"
+
 class HexViewWidget : public QAbstractScrollArea
 {
     Q_OBJECT
