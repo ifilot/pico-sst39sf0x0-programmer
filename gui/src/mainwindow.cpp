@@ -33,6 +33,7 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
 
     // settings widget
     this->settings_widget = std::make_unique<SettingsWidget>();
+    connect(this->settings_widget.get(), SIGNAL(signal_settings_update()), this, SLOT(slot_update_settings()));
 
     QWidget* container = new QWidget();
     this->setCentralWidget(container);
@@ -191,10 +192,10 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
      * MULTICARTRIDGE IMAGES
      */
     // create toplevel interface
-    QGroupBox* container = new QGroupBox("Multicard images");
-    container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    this->multirom_container = new QGroupBox("Multicard images");
+    this->multirom_container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     QVBoxLayout *layout = new QVBoxLayout();
-    container->setLayout(layout);
+    this->multirom_container->setLayout(layout);
 
     // add individual buttons here
     QPushButton* btn1 = new QPushButton("P2000T Multicart ROM");
@@ -207,17 +208,17 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     layout->addWidget(btn2);
     connect(btn2, SIGNAL(released()), this, SLOT(load_default_image()));
 
-    target_layout->addWidget(container);
+    target_layout->addWidget(this->multirom_container);
 
     /**
      * SINGLE ROM IMAGES
      */
 
     // create toplevel interface
-    container = new QGroupBox("Single cartridge images");
-    container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    this->singlerom_container = new QGroupBox("Single cartridge images");
+    this->singlerom_container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     layout = new QVBoxLayout();
-    container->setLayout(layout);
+    this->singlerom_container->setLayout(layout);
 
     // add individual buttons here
     btn1 = new QPushButton("P2000T BASICNL v1.1");
@@ -259,7 +260,7 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     }
     btn2->setMenu(rommenu);
 
-    target_layout->addWidget(container);
+    target_layout->addWidget(this->singlerom_container);
 }
 
 /**
@@ -632,6 +633,17 @@ void MainWindow::slot_debug_log() {
  */
 void MainWindow::slot_settings_widget() {
     this->settings_widget->show();
+}
+
+/**
+ * @brief Update the main window after a settings update / change
+ */
+void MainWindow::slot_update_settings() {
+    qDebug() << "Settings update triggered";
+
+    bool show_retroroms = this->settings.value("SHOW_RETROROMS", QVariant(true)).toBool();
+    this->multirom_container->setVisible(show_retroroms);
+    this->singlerom_container->setVisible(show_retroroms);
 }
 
 /**

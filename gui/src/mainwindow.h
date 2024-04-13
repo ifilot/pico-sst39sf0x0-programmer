@@ -104,6 +104,9 @@ private:
     QLabel* label_compile_data;
     QSettings settings;
 
+    QGroupBox *multirom_container;
+    QGroupBox *singlerom_container;
+
 public:
     /**
      * @brief MainWindow
@@ -189,6 +192,11 @@ private slots:
      * @brief Show the settings widget
      */
     void slot_settings_widget();
+
+    /**
+     * @brief Update the main window after a settings update / change
+     */
+    void slot_update_settings();
 
     /****************************************************************************
      *  SIGNALS :: COMMUNICATION INTERFACE ROUTINES
