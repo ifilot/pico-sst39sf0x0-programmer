@@ -5,6 +5,9 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-blue.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
+
+[![OSHW](img/certification-mark-NL000020-wide.svg)](https://certification.oshwa.org/nl000020.html)
+
 ## Purpose
 
 This open hardware project aims users to produce a low-cost flasher for the
