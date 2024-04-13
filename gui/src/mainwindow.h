@@ -39,6 +39,7 @@
 #include <QFrame>
 #include <QFileDialog>
 #include <QCryptographicHash>
+#include <QSettings>
 
 #include "config.h"
 #include "qhexview.h"
@@ -49,6 +50,7 @@
 #include "dialogslotselection.h"
 #include "romsizes.h"
 #include "logwindow.h"
+#include "settingswidget.h"
 
 class MainWindow : public QMainWindow
 {
@@ -61,6 +63,9 @@ private:
 
     // window for log messages
     std::unique_ptr<LogWindow> log_window;
+
+    // settings widget
+    std::unique_ptr<SettingsWidget> settings_widget;
 
     // storage for log messages
     std::shared_ptr<QStringList> log_messages;
@@ -97,6 +102,7 @@ private:
     QByteArray save_data;
 
     QLabel* label_compile_data;
+    QSettings settings;
 
 public:
     /**
@@ -175,9 +181,14 @@ private slots:
     void slot_about();
 
     /**
-     * @brief Show an about window
+     * @brief Show the debug log
      */
     void slot_debug_log();
+
+    /**
+     * @brief Show the settings widget
+     */
+    void slot_settings_widget();
 
     /****************************************************************************
      *  SIGNALS :: COMMUNICATION INTERFACE ROUTINES

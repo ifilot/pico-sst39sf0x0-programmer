@@ -35,6 +35,7 @@ add_executable(pico-sst39sf0x0-programmer
     src/qhexview.cpp
     src/readthread.cpp
     src/serial_interface.cpp
+    src/settingswidget.cpp
     resources.qrc
 )
 

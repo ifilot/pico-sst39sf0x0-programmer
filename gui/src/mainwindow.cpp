@@ -31,6 +31,9 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     // log window
     this->log_window = std::make_unique<LogWindow>(this->log_messages);
 
+    // settings widget
+    this->settings_widget = std::make_unique<SettingsWidget>();
+
     QWidget* container = new QWidget();
     this->setCentralWidget(container);
     QHBoxLayout* layout = new QHBoxLayout();
@@ -56,10 +59,7 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
 
     // build interfaces
     this->build_serial_interface_menu(right_layout);
-
-    #ifdef P2K_EDITION
     this->build_rom_selection_menu(right_layout);
-    #endif
     this->build_operations_menu(right_layout);
 
     // add padding frame on RHS
@@ -102,6 +102,7 @@ void MainWindow::create_dropdown_menu() {
 
     // add drop-down menus
     QMenu *menu_file = menubar->addMenu(tr("&File"));
+    QMenu *menu_edit = menubar->addMenu(tr("&Edit"));
     QMenu *menu_help = menubar->addMenu(tr("&Help"));
 
     // actions for file menu
@@ -117,6 +118,12 @@ void MainWindow::create_dropdown_menu() {
     menu_file->addAction(action_open);
     menu_file->addAction(action_save);
     menu_file->addAction(action_quit);
+
+    // actions for edit menu
+    QAction *action_settings = new QAction(menu_edit);
+    action_settings->setText(tr("Settings"));
+    menu_edit->addAction(action_settings);
+    connect(action_settings, &QAction::triggered, this, &MainWindow::slot_settings_widget);
 
     // actions for help menu
     QAction *action_about = new QAction(menu_help);
@@ -618,6 +625,13 @@ void MainWindow::slot_about() {
  */
 void MainWindow::slot_debug_log() {
     this->log_window->show();
+}
+
+/**
+ * @brief Show an about window
+ */
+void MainWindow::slot_settings_widget() {
+    this->settings_widget->show();
 }
 
 /**
