@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QMutexLocker>
 #include <QSettings>
+#include <QFontDatabase>
 
 #include "colors.h"
 

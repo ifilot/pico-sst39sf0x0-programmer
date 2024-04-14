@@ -23,7 +23,7 @@ SettingsWidget::SettingsWidget(QWidget *parent)
     this->checkbox_retroroms = new QCheckBox("Show retroroms (Philips P2000T, Commodore C64)");
     this->checkbox_retroroms->setChecked(this->settings.value("SHOW_RETROROMS", QVariant(true)).toBool());
     layout->addWidget(this->checkbox_retroroms);
-    connect(this->checkbox_retroroms, SIGNAL(stateChanged(int)), this, SLOT(signal_settings_update(int)));
+    connect(this->checkbox_retroroms, SIGNAL(stateChanged(int)), this, SLOT(slot_settings_update(int)));
 
     this->build_hexviewer_settings(layout);
 }
@@ -83,7 +83,7 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
          0xFFFFFFFF,
          0xFFffaa7f,
          0xFFFFFF7f}));
-    this->theme_combobox->addItem("P2000T-style", QVariant(
+    this->theme_combobox->addItem("SAA5050", QVariant(
         {0xFF323232,
          0xFF00FFFF,
          0xFFFF00FF,

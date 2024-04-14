@@ -94,6 +94,12 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     this->setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
     this->setWindowTitle(PROGRAM_NAME);
 
+    // set font
+    int id = QFontDatabase::addApplicationFont(":/assets/fonts/Consolas.ttf");
+    QString family = QFontDatabase::applicationFontFamilies(id).at(0);
+    QFont font(family, 11, QFont::Normal);
+    this->hex_widget->setFont(font);
+
     // re-apply settings
     this->slot_update_settings();
 }

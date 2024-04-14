@@ -2,10 +2,6 @@
 
 HexViewWidget::HexViewWidget(QWidget *parent)
     : QAbstractScrollArea{parent} {
-
-    this->setFont(QFont("Courier", 10));
-    this->charwidth = fontMetrics().horizontalAdvance(QLatin1Char('9'));
-    this->charheight = fontMetrics().height();
 }
 
 void HexViewWidget::paintEvent(QPaintEvent *event) {

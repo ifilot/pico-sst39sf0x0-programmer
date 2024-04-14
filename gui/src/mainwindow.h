@@ -41,6 +41,7 @@
 #include <QCryptographicHash>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QFontDatabase>
 
 #include "config.h"
 #include "hexviewwidget.h"
