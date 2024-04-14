@@ -3,6 +3,9 @@
 SettingsWidget::SettingsWidget(QWidget *parent)
     : QWidget{parent} {
 
+    // set button points
+    this->buttonpointers = std::vector<QPushButton*>(this->label_names.size(), nullptr);
+
     // set icon and window title
     this->setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
     this->setWindowTitle(tr(PROGRAM_NAME) + ": Settings");

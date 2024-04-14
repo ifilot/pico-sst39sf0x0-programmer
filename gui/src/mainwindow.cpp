@@ -531,13 +531,24 @@ void MainWindow::select_com_port() {
  * @brief Open a binary file
  */
 void MainWindow::slot_open() {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open File"));
+    // load last open path from settings
+    QDir dir = QDir(settings.value("last_open_dir", QString(QDir::homePath())).toString());
+    if(!dir.exists()) {
+        dir.setPath(QDir::homePath());
+    }
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open File"), dir.absolutePath());
 
     // do nothing if user has cancelled
     if(filename.isEmpty()) {
         return;
     }
 
+    // store entry of last opened folder
+    QDir storepath = QFileInfo(filename).dir();
+    qDebug() << storepath;
+    settings.setValue("last_open_dir", storepath.path());
+
+    // load file
     QFile file(filename);
 
     // provide a warning to the user if the file is larger than half a megabyte
@@ -598,12 +609,22 @@ void MainWindow::slot_save() {
         return;
     }
 
-    QString filename = QFileDialog::getSaveFileName(this, tr("Save File"), tr("roms (*.bin *.rom)"));
+    // load last save path from settings
+    QDir dir = QDir(settings.value("last_save_dir", QString(QDir::homePath())).toString());
+    if(!dir.exists()) {
+        dir.setPath(QDir::homePath());
+    }
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save File"), dir.absolutePath(), tr("roms (*.bin *.rom)"));
 
     // do nothing if user has cancelled
     if(filename.isEmpty()) {
         return;
     }
+
+    // store entry of last opened folder
+    QDir storepath = QFileInfo(filename).dir();
+    qDebug() << storepath;
+    settings.setValue("last_save_dir", storepath.path());
 
     QFile file(filename);
 

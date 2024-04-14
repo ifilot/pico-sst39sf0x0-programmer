@@ -50,7 +50,7 @@ private:
         }
     )";
 
-    std::array<QPushButton*, 3> buttonpointers;
+    std::vector<QPushButton*> buttonpointers;
 
 public:
     explicit SettingsWidget(QWidget *parent = nullptr);

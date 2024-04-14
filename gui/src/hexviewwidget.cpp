@@ -4,13 +4,7 @@ HexViewWidget::HexViewWidget(QWidget *parent)
     : QAbstractScrollArea{parent} {
 
     this->setFont(QFont("Courier", 10));
-
-    #if QT_VERSION >= 0x051100
-        this->charwidth = fontMetrics().horizontalAdvance(QLatin1Char('9'));
-    #else
-        this->charwidth = fontMetrics().width(QLatin1Char('9'));
-    #endif
-
+    this->charwidth = fontMetrics().horizontalAdvance(QLatin1Char('9'));
     this->charheight = fontMetrics().height();
 }
 
@@ -117,11 +111,7 @@ QSize HexViewWidget::get_widget_size() const {
 }
 
 void HexViewWidget::update_positions() {
-    #if QT_VERSION >= 0x051100
-        this->charwidth = fontMetrics().horizontalAdvance(QLatin1Char('9'));
-    #else
-        this->charwidth = fontMetrics().width(QLatin1Char('9'));
-    #endif
+    this->charwidth = fontMetrics().horizontalAdvance(QLatin1Char('9'));
     this->charheight = fontMetrics().height();
 
     int service_symbol_width = ADR_LENGTH * this->charwidth + GAP_ADR_HEX + GAP_HEX_ASCII;

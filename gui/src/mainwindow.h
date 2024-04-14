@@ -40,6 +40,7 @@
 #include <QFileDialog>
 #include <QCryptographicHash>
 #include <QSettings>
+#include <QStandardPaths>
 
 #include "config.h"
 #include "hexviewwidget.h"
