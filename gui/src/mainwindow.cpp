@@ -97,8 +97,10 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     // set font
     int id = QFontDatabase::addApplicationFont(":/assets/fonts/Consolas.ttf");
     QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-    QFont font(family, 11, QFont::Normal);
-    this->hex_widget->setFont(font);
+    QFont font11(family, 11, QFont::Normal);
+    this->hex_widget->setFont(font11);
+    QFont font10(family, 10, QFont::Normal);
+    this->label_data_descriptor->setFont(font10);
 
     // re-apply settings
     this->slot_update_settings();
@@ -600,7 +602,7 @@ void MainWindow::slot_open() {
         this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3" + usage)
               .arg(finfo.fileName())
               .arg(data.size() / 1024)
-              .arg(QString(hash.toHex()))
+              .arg(QString(hash.toHex()).toUpper())
         );
     }
 }
@@ -706,7 +708,7 @@ void MainWindow::load_default_image() {
         this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
               .arg(image)
               .arg(data.size() / 1024)
-              .arg(QString(hash.toHex()))
+              .arg(QString(hash.toHex()).toUpper())
         );
     } else {
         QMessageBox message_box;
@@ -879,7 +881,7 @@ void MainWindow::read_result_ready() {
     this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
           .arg("ROM data")
           .arg(data.size() / 1024)
-          .arg(QString(hash.toHex()))
+          .arg(QString(hash.toHex()).toUpper())
     );
 
     statusBar()->showMessage(QString("Done reading chip in %1 seconds.").arg(this->timer1.elapsed() / 1000.f));
