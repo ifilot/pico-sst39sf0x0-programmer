@@ -46,6 +46,6 @@ DialogSlotSelection::DialogSlotSelection(unsigned int _nr_banks) :
 
 void DialogSlotSelection::slot_select_romslot() {
     QPushButton* btn = qobject_cast<QPushButton *>(sender());
-    this->slot_id = btn->text().toInt() - 1;
+    this->slot_id = btn->text().toInt();
     this->accept();
 }
