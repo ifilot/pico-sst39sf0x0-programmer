@@ -11,10 +11,6 @@ HexViewWidget::HexViewWidget(QWidget *parent)
 void HexViewWidget::paintEvent(QPaintEvent *event) {
     QMutexLocker(&this->lock);
 
-    if(this->data.size() == 0) {
-        return;
-    }
-
     this->update_positions();
 
     QPainter painter(viewport());
@@ -23,16 +19,17 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
     this->verticalScrollBar()->setPageStep(area_size.height() / charheight);
     this->verticalScrollBar()->setRange(0, (widget_size.height() - area_size.height()) / charheight + 1);
 
-    // complete background
-    painter.fillRect(event->rect(), this->palette().color(QPalette::Base));
-
     // grab colors
     settings.sync();
+    QColor background_color = QColor(settings.value("background_color", BACKGROUND_COLOR_DEFAULT).toUInt());
     QColor address_color = QColor(settings.value("address_color", ADDRESS_COLOR_DEFAULT).toUInt());
     QColor header_color = QColor(settings.value("header_color", HEADER_COLOR_DEFAULT).toUInt());
     QColor column_color = QColor(settings.value("column_color", COLUMN_COLOR_DEFAULT).toUInt());
     QColor alt_column_color = QColor(settings.value("alt_column_color", ALT_COLUMN_COLOR_DEFAULT).toUInt());
     QColor ascii_color = QColor(settings.value("ascii_color", ASCII_COLOR_DEFAULT).toUInt());
+
+    // set background color
+    painter.fillRect(event->rect(), background_color);
 
 //    qDebug() << "Loading " << column_color.name() << " for column color";
 //    qDebug() << "Loading " << text_color.name() << " for text color";
@@ -62,6 +59,10 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
     }
 
     painter.drawText(this->pos_ascii, this->charheight, "Decoded text");
+
+    if(this->data.size() == 0) {
+        return;
+    }
 
     for(unsigned int line_idx = start_idx, ypos = this->charheight * 2;  line_idx < end_idx; line_idx++, ypos += this->charheight) {
 

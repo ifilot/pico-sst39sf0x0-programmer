@@ -28,6 +28,7 @@ private:
     QComboBox *theme_combobox;
 
     const QStringList label_names = {
+        "Background color",
         "Address color",
         "Header color",
         "Column color",
@@ -36,6 +37,7 @@ private:
     };
 
     const std::vector<uint32_t> default_colors = {
+        BACKGROUND_COLOR_DEFAULT,
         ADDRESS_COLOR_DEFAULT,
         HEADER_COLOR_DEFAULT,
         COLUMN_COLOR_DEFAULT,
@@ -53,20 +55,40 @@ private:
     std::vector<QPushButton*> buttonpointers;
 
 public:
+    /**
+     * @brief SettingsWidget
+     * @param parent widget
+     */
     explicit SettingsWidget(QWidget *parent = nullptr);
 
 signals:
     void signal_settings_update();
 
 private:
+    /**
+     * @brief build layout for the hexviewer widget
+     * @param layout
+     */
     void build_hexviewer_settings(QVBoxLayout* layout);
 
 private slots:
-    void signal_settings_update(int state);
-
+    /**
+     * @brief slot for single color change
+     * @param color name
+     */
     void slot_change_color(const QString& name);
 
+    /**
+     * @brief slot after changing color theme
+     * @param state
+     */
     void slot_theme_change(int);
+
+    /**
+     * @brief slot to trigger settings update
+     * @param state
+     */
+    void slot_settings_update(int);
 };
 
 #endif // SETTINGSWIDGET_H

@@ -669,7 +669,7 @@ void MainWindow::slot_settings_widget() {
  * @brief Update the main window after a settings update / change
  */
 void MainWindow::slot_update_settings() {
-    qDebug() << "Settings update triggered";
+    //qDebug() << "Settings update triggered";
 
     bool show_retroroms = this->settings.value("SHOW_RETROROMS", QVariant(true)).toBool();
     this->multirom_container->setVisible(show_retroroms);

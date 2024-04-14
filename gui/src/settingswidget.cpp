@@ -1,5 +1,9 @@
 #include "settingswidget.h"
 
+/**
+ * @brief SettingsWidget
+ * @param parent widget
+ */
 SettingsWidget::SettingsWidget(QWidget *parent)
     : QWidget{parent} {
 
@@ -24,42 +28,68 @@ SettingsWidget::SettingsWidget(QWidget *parent)
     this->build_hexviewer_settings(layout);
 }
 
-void SettingsWidget::signal_settings_update(int state) {
+/**
+ * @brief slot to trigger settings update
+ * @param state
+ */
+void SettingsWidget::slot_settings_update(int state) {
     this->settings.setValue("SHOW_RETROROMS", QVariant(this->checkbox_retroroms->checkState()));
     this->settings.sync();
 
     emit signal_settings_update();
 }
 
+/**
+ * @brief build layout for the hexviewer widget
+ * @param layout
+ */
 void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
     layout->addWidget(new QLabel("<b>Hexviewer theme</b>"));
 
     this->theme_combobox = new QComboBox();
     this->theme_combobox->setPlaceholderText("Select color scheme");
     this->theme_combobox->addItem("Default scheme", QVariant(
-        {ADDRESS_COLOR_DEFAULT,
+        {BACKGROUND_COLOR_DEFAULT,
+         ADDRESS_COLOR_DEFAULT,
          HEADER_COLOR_DEFAULT,
          COLUMN_COLOR_DEFAULT,
          ALT_COLUMN_COLOR_DEFAULT,
          ASCII_COLOR_DEFAULT}));
     this->theme_combobox->addItem("Autum scheme", QVariant(
-        {0xFFFF0000,
+        {0xFFFFFFFF,
+         0xFFFF0000,
          0xFFFF0000,
          0xFF2c2c2c,
          0xFFFF5500,
          0xFF686868}));
     this->theme_combobox->addItem("Solarized Grey", QVariant(
-        {0xFF002b36,
+        {0xFFFFFFFF,
+         0xFF002b36,
          0xFF002b36,
          0xFF586375,
          0xFF839496,
          0xFF93a1a1}));
     this->theme_combobox->addItem("Solarized Colorful", QVariant(
-        {0xFFcb4b16,
+        {0xFFFFFFFF,
+         0xFFcb4b16,
          0xFFcb4b16,
          0xFFd33682,
          0xFF6c71c4,
          0xFF2aa198}));
+    this->theme_combobox->addItem("Bluey", QVariant(
+        {0xFF5181a1,
+         0xFFFFFFFF,
+         0xFFFFFFFF,
+         0xFFFFFFFF,
+         0xFFffaa7f,
+         0xFFFFFF7f}));
+    this->theme_combobox->addItem("P2000T-style", QVariant(
+        {0xFF323232,
+         0xFF00FFFF,
+         0xFFFF00FF,
+         0xFFFFFFFF,
+         0xFF00FF00,
+         0xFF00FFFF}));
 
     layout->addWidget(this->theme_combobox);
     connect(this->theme_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_theme_change(int)));
@@ -94,6 +124,10 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
     layout->addWidget(container);
 }
 
+/**
+ * @brief slot for single color change
+ * @param color name
+ */
 void SettingsWidget::slot_change_color(const QString& name) {
     QPushButton *btn = nullptr;
 
@@ -120,6 +154,10 @@ void SettingsWidget::slot_change_color(const QString& name) {
     }
 }
 
+/**
+ * @brief slot after changing color theme
+ * @param state
+ */
 void SettingsWidget::slot_theme_change(int idx) {
     auto colors = this->theme_combobox->itemData(idx).toList();
 
