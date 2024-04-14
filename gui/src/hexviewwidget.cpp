@@ -86,7 +86,7 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
             if ((ch < 0x20) || (ch > 0x7e)) {
                 ch = '.';
             }
-            painter.drawText(this->pos_ascii + i * this->charwidth, ypos, QString(ch));
+            painter.drawText(this->pos_ascii + i * this->charwidth, ypos, QChar(ch));
         }
     }
 }

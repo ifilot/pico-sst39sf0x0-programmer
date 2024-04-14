@@ -82,7 +82,7 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     right_layout->addSpacerItem(spacer);
 
     this->setMinimumWidth(800);
-    this->setMinimumHeight(600);
+    this->setMinimumHeight(800);
 
     this->create_dropdown_menu();
 

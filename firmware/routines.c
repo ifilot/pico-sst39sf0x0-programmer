@@ -72,16 +72,17 @@ void read_block(uint32_t block_id) {
     
     // bitshift to get full address
     uint32_t sector_addr = block_id << 8;
-    set_address_high(sector_addr);
-    
-    gpio_put(CE, false);
+    set_address(sector_addr);
 
     // data buffer
     uint8_t data[0x100];
 
+    // enable chip
+    gpio_put(CE, false);
+
     // set address to read from
-    for(unsigned int i=0; i<256; i++) {
-        set_address_low(sector_addr);
+    for(uint32_t i=0; i<256; i++) {
+        set_address_low(i);
     
         gpio_put(OE, false);
         sleep_us(DELAY_READ);
@@ -90,10 +91,9 @@ void read_block(uint32_t block_id) {
         data[i] = gpio_get_all();
 
         gpio_put(OE, true);
-
-        sector_addr++;
     }
 
+    // disable chip
     gpio_put(CE, true);
 
     tud_cdc_write(data, 0x100);
@@ -121,7 +121,7 @@ void read_p2k_cartridge_block(uint8_t block_id) {
 
     // set address to read from
     for(unsigned int j=0; j<16; j++) {
-        set_address_high((j + pin12) << 8);
+        set_address((j + pin12) << 8);
         for(unsigned int i=0; i<0x100; i++) {
             // set lower address
             set_address_low(i);
@@ -160,7 +160,7 @@ void read_bank(uint8_t bank_id) {
 
     // set address to read from
     for(uint32_t j=0; j<0x40; j++) {
-        set_address_high((j + 0x40 * bank_id) << 8);
+        set_address((j + 0x40 * bank_id) << 8);
         for(uint32_t i=0; i<0x100; i++) {
             set_address_low(i);
         
@@ -273,12 +273,22 @@ void write_sector(uint8_t sector_id) {
 void write_data(uint32_t addr, uint8_t *data, uint32_t nrbytes) {
     // turn on data LED
     gpio_put(LED_WR, true);
+    
+    // set upper bytes to low
+    set_address_upper(0x00);
 
     uint8_t checkbyte = 0;
     for(uint32_t i=0; i<nrbytes; i++) {
-        write_byte(0x5555, 0xAA);
-        write_byte(0x2AAA, 0x55);
-        write_byte(0x5555, 0xA0);
+        // chip is enabled and data pins are set to output
+        gpio_put(CE, false);
+        gpio_set_dir_out_masked(0x000000FF);
+
+        write_byte_ignore_upper_fast(0x5555, 0xAA);
+        write_byte_ignore_upper_fast(0x2AAA, 0x55);
+        write_byte_ignore_upper_fast(0x5555, 0xA0);
+
+        // write a byte to address; at the end of this function, CE is set
+        // HIGH (disabled) and the pins are in input mode
         write_byte(addr, data[i]);
 
         checkbyte = ~data[i];
