@@ -76,10 +76,17 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
          0xFFd33682,
          0xFF6c71c4,
          0xFF2aa198}));
+    this->theme_combobox->addItem("Solarized Light", QVariant(
+        {0xFFfdf6e3,
+         0xFF268bd2,
+         0xFFd33682,
+         0xFF073642,
+         0xFF93a1a1,
+         0xFF2aa198}));
     this->theme_combobox->addItem("Bluey", QVariant(
         {0xFF5181a1,
-         0xFFFFFFFF,
-         0xFFFFFFFF,
+         0xFFfdf6e3,
+         0xFFfdf6e3,
          0xFFFFFFFF,
          0xFFffaa7f,
          0xFFFFFF7f}));
