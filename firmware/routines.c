@@ -197,7 +197,7 @@ void read_sector(uint8_t sector_id) {
 
     // set address to read from
     for(uint8_t j=0; j<0x10; j++) {
-        set_address_high((j + 0x10 * sector_id) << 8);
+        set_address((j + 0x10 * sector_id) << 8);
         for(uint32_t i=0; i<0x100; i++) {
             set_address_low(i);
         
