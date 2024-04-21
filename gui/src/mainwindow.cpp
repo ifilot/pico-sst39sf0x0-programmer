@@ -99,7 +99,8 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     QString family = QFontDatabase::applicationFontFamilies(id).at(0);
     QFont font10(family, 10, QFont::Normal);
     this->hex_widget->setFont(font10);
-    //this->label_data_descriptor->setFont(font10);
+    QFont font8(family, 8, QFont::Normal);
+    this->label_data_descriptor->setFont(font8);
 
     // re-apply settings
     this->slot_update_settings();
