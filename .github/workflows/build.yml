@@ -95,6 +95,7 @@ jobs:
         version: '6.7.0'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
+        modules: 'qtserialport'
         tools: 'tools_ifw'
         cache: true
     - name: Download artifact
