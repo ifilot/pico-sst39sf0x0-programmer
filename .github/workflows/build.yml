@@ -96,7 +96,7 @@ jobs:
         target: 'desktop'
         arch: 'win64_msvc2019_64'
         modules: 'qtserialport'
-        tools: 'tools_ifw'
+        tools: 'tools_ifw tools_opensslv3_x64'
         cache: true
     - name: Download artifact
       uses: actions/download-artifact@v3
