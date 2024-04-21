@@ -20,6 +20,7 @@
 
 #include "mainwindow.h"
 #include "picoflasherapplication.h"
+#include "config.h"
 
 #include <QApplication>
 #include <QStringList>
@@ -66,6 +67,10 @@ void message_output(QtMsgType type, const QMessageLogContext &context, const QSt
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication::setOrganizationName("Retrohacks.nl");
+    QCoreApplication::setOrganizationDomain("retrohacks.nl");
+    QCoreApplication::setApplicationName(PROGRAM_NAME);
+
     PicoFlasherApplication app(argc, argv);
     qRegisterMetaType<std::vector<uint8_t>>("stdvector_uint8_t");
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>{{ progname }}</Name>
+    <Version>{{ version }}</Version>
+    <Title>{{ progname }} Installer</Title>
+    <Publisher>{{ publisher }}</Publisher>
+    <StartMenuDir>{{ publisher }}</StartMenuDir>
+    <TargetDir>@HomeDir@/{{ publisher }}/{{ progfolder }}</TargetDir>
+    <RunProgram>@TargetDir@/{{ executable }}/</RunProgram>
+    <RunProgramDescription>{{ progdescription }}</RunProgramDescription>
+</Installer>

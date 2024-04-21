@@ -30,48 +30,19 @@ void set_address(uint32_t addr) {
     uint32_t addrh = (addr >> 8) & 0xFF;
     uint32_t addru = (addr >> 16) & 0xFF;
 
-    gpio_put_masked(0xFF00, addrl << 8);
-    gpio_put(ALS, true);
-    sleep_us(DELAY_ADDR);
-    gpio_put(ALS, false);
-
-    gpio_put_masked(0xFF00, addrh << 8);
-    gpio_put(AHS, true);
-    sleep_us(DELAY_ADDR);
-    gpio_put(AHS, false);
-
-    gpio_put_masked(0x0700, addru << 8);
-    gpio_put(AUS, true);
-    sleep_us(DELAY_ADDR);
-    gpio_put(AUS, false);
+    set_address_upper(addru);
+    set_address_high(addrh);
+    set_address_low(addrl);
 
     gpio_put(ROE, false); // enable address output
 }
 
 /**
- * Set upper bits in address register
- **/
-void set_address_high(uint32_t addr) {
-    set_address(addr & 0xFFFFFF00);
-}
-
-/**
- * Set lower 8 bits in address register
- **/
-void set_address_low(uint32_t addr) {
-    uint32_t addrl = addr & 0xFF;
-
-    gpio_put_masked(0xFF00, addrl << 8);
-    gpio_put(ALS, true);
-    sleep_us(DELAY_ADDR);
-    gpio_put(ALS, false);
-
-    gpio_put(ROE, false); // enable address output
-}
-
-/**
- * Read single byte from address
- **/
+ * @brief Read a single byte from address
+ * 
+ * @param addr full 19-bit address
+ * @return uint8_t value at address
+ */
 uint8_t read_byte(uint32_t addr) {
     // set pins 0-7 to input
     gpio_set_dir_in_masked(0x000000FF);
@@ -91,19 +62,22 @@ uint8_t read_byte(uint32_t addr) {
 }
 
 /**
- * Write byte at address
- **/
+ * @brief Write a byte at address
+ * 
+ * @param addr full 19-bit address
+ * @param val  8-bit value to write
+ */
 void write_byte(uint32_t addr, uint8_t val) {
     // set pins 0-7 to output
     gpio_set_dir_out_masked(0x000000FF);
 
+    // set address on pins
     set_address(addr);
 
+    gpio_put_masked(0xFF, val);
     gpio_put(CE, false);
     gpio_put(PGM, false);
 
-    // sleep_us(DELAY_TIME);
-    gpio_put_masked(0xFF, val);
     sleep_us(DELAY_WRITE);
 
     gpio_put(PGM, true);
@@ -111,4 +85,29 @@ void write_byte(uint32_t addr, uint8_t val) {
 
     // set pins 0-7 to input
     gpio_set_dir_in_masked(0x000000FF);
+}
+
+/**
+ * @brief Write byte at address while ignoring any upper bytes
+ * 
+ * @param addr 16-bit combination of lower and higher address bits
+ * @param val  8-bit value to write
+ * 
+ * Assumes that:
+ *  - Pins are already set for output
+ *  - Chip is already active (CE)
+ **/
+void write_byte_ignore_upper_fast(uint16_t addr, uint8_t val) {
+    // set address on pins
+    uint32_t addrl = addr & 0xFF;
+    uint32_t addrh = (addr >> 8) & 0xFF;
+
+    set_address_high(addrh);
+    set_address_low(addrl);
+    gpio_put_masked(0xFF, val);
+
+    // toggle write
+    gpio_put(PGM, false);
+    sleep_us(DELAY_WRITE);
+    gpio_put(PGM, true);
 }

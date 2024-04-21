@@ -39,9 +39,12 @@
 #include <QFrame>
 #include <QFileDialog>
 #include <QCryptographicHash>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QFontDatabase>
 
 #include "config.h"
-#include "qhexview.h"
+#include "hexviewwidget.h"
 #include "serial_interface.h"
 #include "cartridgereadthread.h"
 #include "readthread.h"
@@ -49,6 +52,8 @@
 #include "dialogslotselection.h"
 #include "romsizes.h"
 #include "logwindow.h"
+#include "settingswidget.h"
+#include "filedownloader.h"
 
 class MainWindow : public QMainWindow
 {
@@ -57,10 +62,13 @@ class MainWindow : public QMainWindow
 private:
     // widgets
     QLabel* label_data_descriptor;
-    QHexView* hex_widget;
+    HexViewWidget* hex_widget;
 
     // window for log messages
     std::unique_ptr<LogWindow> log_window;
+
+    // settings widget
+    std::unique_ptr<SettingsWidget> settings_widget;
 
     // storage for log messages
     std::shared_ptr<QStringList> log_messages;
@@ -97,6 +105,10 @@ private:
     QByteArray save_data;
 
     QLabel* label_compile_data;
+    QSettings settings;
+
+    QGroupBox *multirom_container;
+    QGroupBox *singlerom_container;
 
 public:
     /**
@@ -175,9 +187,19 @@ private slots:
     void slot_about();
 
     /**
-     * @brief Show an about window
+     * @brief Show the debug log
      */
     void slot_debug_log();
+
+    /**
+     * @brief Show the settings widget
+     */
+    void slot_settings_widget();
+
+    /**
+     * @brief Update the main window after a settings update / change
+     */
+    void slot_update_settings();
 
     /****************************************************************************
      *  SIGNALS :: COMMUNICATION INTERFACE ROUTINES

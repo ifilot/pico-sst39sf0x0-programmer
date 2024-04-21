@@ -37,7 +37,7 @@ DialogSlotSelection::DialogSlotSelection(unsigned int _nr_banks) :
     // add buttons
     for(unsigned int i=0; i<(this->nr_banks/8); i++) {
         for(unsigned int j=0; j<8; j++) {
-            QPushButton* btn = new QPushButton(tr("%1").arg(i*8+j+1));
+            QPushButton* btn = new QPushButton(tr("%1").arg(i*8+j));
             grid->addWidget(btn, i, j);
             connect(btn, SIGNAL(released()), this, SLOT(slot_select_romslot()));
         }
@@ -46,6 +46,6 @@ DialogSlotSelection::DialogSlotSelection(unsigned int _nr_banks) :
 
 void DialogSlotSelection::slot_select_romslot() {
     QPushButton* btn = qobject_cast<QPushButton *>(sender());
-    this->slot_id = btn->text().toInt() - 1;
+    this->slot_id = btn->text().toInt();
     this->accept();
 }

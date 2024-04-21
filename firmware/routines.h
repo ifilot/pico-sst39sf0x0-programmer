@@ -24,6 +24,8 @@
 #include <pico/stdlib.h>
 #include <pico/stdio.h>
 #include "constants.h"
+#include "tusb.h"
+
 #include "ops.h"
 
 /*
@@ -53,14 +55,19 @@ void read_p2k_cartridge_block(uint8_t block_id);
 void read_bank(uint8_t bank_id);
 
 /*
- * @brief Read bank of 0x4000 bytes
+ * @brief Read sector of 0x1000 bytes
  **/
-void read_sector(uint32_t sector_id);
+void read_sector(uint8_t sector_id);
 
 /*
  * @brief Write a sector of 0x1000 bytes
  **/
-void write_sector(uint32_t sector_id);
+void write_sector(uint8_t sector_id);
+
+/*
+ * @brief Write fixed set of data to address
+ **/
+void write_data(uint32_t addr, uint8_t *data, uint32_t nrbytes);
 
 /**
  * Poll a byte and count number of cycles wherein upper bit is not 1

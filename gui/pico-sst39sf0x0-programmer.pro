@@ -1,4 +1,4 @@
-QT       += core gui serialport
+QT       += core gui serialport network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -11,29 +11,34 @@ CONFIG += c++17
 SOURCES += \
     src/cartridgereadthread.cpp \
     src/dialogslotselection.cpp \
+    src/filedownloader.cpp \
     src/flashthread.cpp \
+    src/hexviewwidget.cpp \
     src/ioworker.cpp \
     src/logwindow.cpp \
     src/main.cpp \
     src/mainwindow.cpp \
     src/picoflasherapplication.cpp \
-    src/qhexview.cpp \
     src/readthread.cpp \
-    src/serial_interface.cpp
+    src/serial_interface.cpp \
+    src/settingswidget.cpp
 
 HEADERS += \
+    src/colors.h \
     src/config.h \
     src/cartridgereadthread.h \
     src/dialogslotselection.h \
+    src/filedownloader.h \
     src/flashthread.h \
+    src/hexviewwidget.h \
     src/ioworker.h \
     src/logwindow.h \
     src/mainwindow.h \
     src/picoflasherapplication.h \
-    src/qhexview.h \
     src/readthread.h \
     src/romsizes.h \
-    src/serial_interface.h
+    src/serial_interface.h \
+    src/settingswidget.h
 
 # store Git id
 GIT_HASH="\\\"$$system(git -C \""$$_PRO_FILE_PWD_"\" rev-parse --short HEAD)\\\""
@@ -46,3 +51,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     resources.qrc
+
+DISTFILES += \
+    assets/fonts/Consolas.ttf

@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pico/stdlib.h>
+#include <tusb.h>
 
 #include "routines.h"
 #include "cmds.h"
@@ -30,6 +31,7 @@
 // command storage
 char instruction[9];    // stores single 8-byte instruction
 uint8_t inptr = 0;      // instruction pointer
+uint8_t buf[64];        // usb buffer
 
 // forward declarations
 void parse_instructions();
@@ -38,7 +40,11 @@ void parse_instructions();
  * Initialization routine that sets default pin configuration
  **/
 void init() {
+    // initialize standard I/O
     stdio_init_all();
+
+    // initialize TinyUSB stack
+    tusb_init();
 
     // initialize GPIO0-GPIO19 + 26,27
     gpio_init_mask(0x00CFFFFFF);
@@ -68,18 +74,25 @@ int main() {
     init();
 
     while(true) {
-        char c = getchar_timeout_us(100);
+
+        if (tud_cdc_connected()) {
+            if (tud_cdc_available()) {
+                char c = tud_cdc_read_char();
         
-        // only capture alphanumerical data
-        if((c >= 48 && c <= 57) || (c >= 65 && c <=90)) {
-            instruction[inptr] = c;
-            inptr++;
+                // only capture alphanumerical data
+                if((c >= 48 && c <= 57) || (c >= 65 && c <=90)) {
+                    instruction[inptr] = c;
+                    inptr++;
+                }
+                
+                if(inptr == 8) {
+                    parse_instructions();
+                    inptr = 0;
+                }
+            }
         }
-        
-        if(inptr == 8) {
-            parse_instructions();
-            inptr = 0;
-        }
+
+        tud_task();
     }
 }
 

@@ -18,36 +18,47 @@
  *                                                                          *
  ****************************************************************************/
 
-#ifndef HEXWIDGET_H
-#define HEXWIDGET_H
+#include "filedownloader.h"
 
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QTableWidget>
-#include <QHeaderView>
-#include <QFont>
+FileDownloader::FileDownloader(QUrl url, QObject *parent) :
+    QObject(parent) {
 
-class HexWidget : public QWidget {
-    Q_OBJECT
+    // add connection
+    connect(
+        &m_WebCtrl, SIGNAL (finished(QNetworkReply*)),
+        this, SLOT (fileDownloaded(QNetworkReply*))
+    );
 
-private:
-    QTableWidget* table_data;
+    qDebug() << QSslSocket::sslLibraryBuildVersionString();
+    qDebug() << QSslSocket::supportsSsl();
+    qDebug() << QSslSocket::sslLibraryVersionString();
 
-    QByteArray rom_data;
+    QNetworkRequest request(url);
+    qDebug() << request.url();
+    m_WebCtrl.get(request);
+}
 
-public:
-    explicit HexWidget(QWidget *parent = nullptr);
+FileDownloader::~FileDownloader() { }
 
-    void build_data_table(const QByteArray& data);
+void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
 
-    inline const QByteArray& get_data() const {
-        return this->rom_data;
+    int statuscode = pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    qDebug() << "HttpStatusCode: " << statuscode;
+
+    if(statuscode == 301) {
+        QString redirectUrl = pReply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
+        QNetworkRequest request(redirectUrl);
+        qDebug() << request.url();
+        m_WebCtrl.get(request);
+    } else {
+        m_DownloadedData = pReply->readAll();
+
+        //emit a signal
+        pReply->deleteLater();
+        emit downloaded();
     }
+}
 
-private:
-
-signals:
-
-};
-
-#endif // HEXWIDGET_H
+QByteArray FileDownloader::downloadedData() const {
+    return m_DownloadedData;
+}

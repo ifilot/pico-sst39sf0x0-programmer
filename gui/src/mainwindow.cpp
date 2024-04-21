@@ -31,38 +31,44 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     // log window
     this->log_window = std::make_unique<LogWindow>(this->log_messages);
 
+    // settings widget
+    this->settings_widget = std::make_unique<SettingsWidget>();
+    connect(this->settings_widget.get(), SIGNAL(signal_settings_update()), this, SLOT(slot_update_settings()));
+
+    // complete Window
     QWidget* container = new QWidget();
     this->setCentralWidget(container);
     QHBoxLayout* layout = new QHBoxLayout();
     container->setLayout(layout);
 
-    // add hex editor widget
+    // add hex editor widget (left side)
     QWidget* container_widget = new QWidget();
     QVBoxLayout* container_layout = new QVBoxLayout();
     container_widget->setLayout(container_layout);
     layout->addWidget(container_widget);
     this->label_data_descriptor = new QLabel();
     container_layout->addWidget(this->label_data_descriptor);
-    this->hex_widget = new QHexView();
-    this->hex_widget->setMinimumWidth(680);
-    this->hex_widget->setMaximumWidth(680);
+    this->hex_widget = new HexViewWidget();
+    this->hex_widget->setMinimumWidth(580);
+    this->hex_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     container_layout->addWidget(this->hex_widget);
 
     // create central widget for writing data
-    QWidget* right_container = new QWidget();
+    QScrollArea *scroll_area = new QScrollArea();
+    layout->addWidget(scroll_area);
+    scroll_area->setMinimumWidth(360);
+    scroll_area->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
+
+    QWidget* right_container = new QWidget(scroll_area);
     QVBoxLayout* right_layout = new QVBoxLayout();
+    right_layout->setSizeConstraint(QLayout::SetMinimumSize);
     right_container->setLayout(right_layout);
-    layout->addWidget(right_container);
+    scroll_area->setWidget(right_container);
 
     // build interfaces
     this->build_serial_interface_menu(right_layout);
     this->build_rom_selection_menu(right_layout);
     this->build_operations_menu(right_layout);
-
-    // add padding frame on RHS
-    QFrame* padding_frame = new QFrame();
-    right_layout->addWidget(padding_frame);
-    padding_frame->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding));
 
     // add compile information
     this->label_compile_data = new QLabel(tr("<b>Build:</b><br>Compile time: %1<br>Git id: %2<br>Version: %3")
@@ -71,8 +77,12 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
                                           .arg(PROGRAM_VERSION));
     right_layout->addWidget(this->label_compile_data);
 
+    // add padding frame on RHS
+    QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
+    right_layout->addSpacerItem(spacer);
+
     this->setMinimumWidth(800);
-    this->setMinimumHeight(600);
+    this->setMinimumHeight(800);
 
     this->create_dropdown_menu();
 
@@ -83,6 +93,17 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     // set icon and window title
     this->setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
     this->setWindowTitle(PROGRAM_NAME);
+
+    // set font
+    int id = QFontDatabase::addApplicationFont(":/assets/fonts/Consolas.ttf");
+    QString family = QFontDatabase::applicationFontFamilies(id).at(0);
+    QFont font10(family, 10, QFont::Normal);
+    this->hex_widget->setFont(font10);
+    QFont font8(family, 8, QFont::Normal);
+    this->label_data_descriptor->setFont(font8);
+
+    // re-apply settings
+    this->slot_update_settings();
 }
 
 /**
@@ -99,6 +120,7 @@ void MainWindow::create_dropdown_menu() {
 
     // add drop-down menus
     QMenu *menu_file = menubar->addMenu(tr("&File"));
+    QMenu *menu_edit = menubar->addMenu(tr("&Edit"));
     QMenu *menu_help = menubar->addMenu(tr("&Help"));
 
     // actions for file menu
@@ -114,6 +136,12 @@ void MainWindow::create_dropdown_menu() {
     menu_file->addAction(action_open);
     menu_file->addAction(action_save);
     menu_file->addAction(action_quit);
+
+    // actions for edit menu
+    QAction *action_settings = new QAction(menu_edit);
+    action_settings->setText(tr("Settings"));
+    menu_edit->addAction(action_settings);
+    connect(action_settings, &QAction::triggered, this, &MainWindow::slot_settings_widget);
 
     // actions for help menu
     QAction *action_about = new QAction(menu_help);
@@ -181,10 +209,10 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
      * MULTICARTRIDGE IMAGES
      */
     // create toplevel interface
-    QGroupBox* container = new QGroupBox("Multicard images");
-    container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    this->multirom_container = new QGroupBox("Multicard images");
+    this->multirom_container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     QVBoxLayout *layout = new QVBoxLayout();
-    container->setLayout(layout);
+    this->multirom_container->setLayout(layout);
 
     // add individual buttons here
     QPushButton* btn1 = new QPushButton("P2000T Multicart ROM");
@@ -197,17 +225,17 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     layout->addWidget(btn2);
     connect(btn2, SIGNAL(released()), this, SLOT(load_default_image()));
 
-    target_layout->addWidget(container);
+    target_layout->addWidget(this->multirom_container);
 
     /**
      * SINGLE ROM IMAGES
      */
 
     // create toplevel interface
-    container = new QGroupBox("Single cartridge images");
-    container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    this->singlerom_container = new QGroupBox("Single cartridge images");
+    this->singlerom_container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     layout = new QVBoxLayout();
-    container->setLayout(layout);
+    this->singlerom_container->setLayout(layout);
 
     // add individual buttons here
     btn1 = new QPushButton("P2000T BASICNL v1.1");
@@ -219,37 +247,33 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     btn2 = new QPushButton("Select other ROM");
     layout->addWidget(btn2);
 
-    // build menu for this rom
-    QStringList names = {
-        "Assembler v5.9",
-        "Familiegeheugen v4",
-        "Forth compiler",
-        "Helloworld example",
-        "Maintenance cartridge",
-        "Word Processor v2",
-        "Zemon assembler v1.4",
-    };
-    QStringList roms = {
-        "assembler 5.9.bin",
-        "familiegeheugen 4.bin",
-        "Forth.bin",
-        "helloworld.bin",
-        "Maintenance 2.bin",
-        "WordProcessor 2.bin",
-        "Zemon 1.4.bin",
+    // list of ROM images
+    QList<QPair<QString, QString>> rom_images = {
+        {"Assembler v5.9", "assembler 5.9.bin"},
+        {"BASICNL with Bootstrap for DATA cartridge [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/BASICBOOTSTRAP.BIN"},
+        {"BASICNL with Bootstrap for SD-CARD cartridge [download]", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/BASICBOOTSTRAP.BIN"},
+        {"Cassette to EEPROM Utility [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/CASSETTE_UTILITY.BIN"},
+        {"Familiegeheugen v4", "familiegeheugen 4.bin"},
+        {"Flasher for DATA cartridge [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/FLASHER.BIN"},
+        {"Flasher for SD-CARD cartridge [download]", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/FLASHER.BIN"},
+        {"Forth compiler", "Forth.bin"},
+        {"Maintenance cartridge", "Maintenance 2.bin"},
+        {"RAM (expansion board) Test [download]", "https://github.com/ifilot/p2000t-ram-expansion-board/releases/latest/download/RAMTEST.BIN"},
+        {"Word Processor v2", "WordProcessor 2.bin"},
+        {"Zemon assembler v1.4", "Zemon 1.4.bin"}
     };
 
     QMenu* rommenu = new QMenu();
-    for(unsigned int i=0; i<names.size(); i++) {
+    for(int i=0; i<rom_images.size(); i++) {
         QAction* action = new QAction();
-        action->setText(names[i]);
-        action->setProperty("image_name", QVariant(roms[i]));
+        action->setText(rom_images[i].first);
+        action->setProperty("image_name", QVariant(rom_images[i].second));
         connect(action, &QAction::triggered, this, &MainWindow::load_default_image);
         rommenu->addAction(action);
     }
     btn2->setMenu(rommenu);
 
-    target_layout->addWidget(container);
+    target_layout->addWidget(this->singlerom_container);
 }
 
 /**
@@ -511,13 +535,24 @@ void MainWindow::select_com_port() {
  * @brief Open a binary file
  */
 void MainWindow::slot_open() {
-    QString filename = QFileDialog::getOpenFileName(this, tr("Open File"));
+    // load last open path from settings
+    QDir dir = QDir(settings.value("last_open_dir", QString(QDir::homePath())).toString());
+    if(!dir.exists()) {
+        dir.setPath(QDir::homePath());
+    }
+    QString filename = QFileDialog::getOpenFileName(this, tr("Open File"), dir.absolutePath());
 
     // do nothing if user has cancelled
     if(filename.isEmpty()) {
         return;
     }
 
+    // store entry of last opened folder
+    QDir storepath = QFileInfo(filename).dir();
+    qDebug() << storepath;
+    settings.setValue("last_open_dir", storepath.path());
+
+    // load file
     QFile file(filename);
 
     // provide a warning to the user if the file is larger than half a megabyte
@@ -547,7 +582,7 @@ void MainWindow::slot_open() {
             }
         }
 
-        this->hex_widget->setData(new QHexView::DataStorageArray(data));
+        this->hex_widget->set_data(data);
 
         QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
         QFileInfo finfo(file);
@@ -578,12 +613,22 @@ void MainWindow::slot_save() {
         return;
     }
 
-    QString filename = QFileDialog::getSaveFileName(this, tr("Save File"), tr("roms (*.bin *.rom)"));
+    // load last save path from settings
+    QDir dir = QDir(settings.value("last_save_dir", QString(QDir::homePath())).toString());
+    if(!dir.exists()) {
+        dir.setPath(QDir::homePath());
+    }
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save File"), dir.absolutePath(), tr("roms (*.bin *.rom)"));
 
     // do nothing if user has cancelled
     if(filename.isEmpty()) {
         return;
     }
+
+    // store entry of last opened folder
+    QDir storepath = QFileInfo(filename).dir();
+    qDebug() << storepath;
+    settings.setValue("last_save_dir", storepath.path());
 
     QFile file(filename);
 
@@ -618,6 +663,26 @@ void MainWindow::slot_debug_log() {
 }
 
 /**
+ * @brief Show an about window
+ */
+void MainWindow::slot_settings_widget() {
+    this->settings_widget->show();
+}
+
+/**
+ * @brief Update the main window after a settings update / change
+ */
+void MainWindow::slot_update_settings() {
+    //qDebug() << "Settings update triggered";
+
+    bool show_retroroms = this->settings.value("SHOW_RETROROMS", QVariant(true)).toBool();
+    this->multirom_container->setVisible(show_retroroms);
+    this->singlerom_container->setVisible(show_retroroms);
+    dynamic_cast<QWidget*>(this->singlerom_container->parent())->layout()->invalidate();
+    this->hex_widget->viewport()->repaint();
+}
+
+/**
  * @brief      Close the application
  */
 void MainWindow::exit() {
@@ -628,26 +693,61 @@ void MainWindow::load_default_image() {
     QString image = sender()->property("image_name").toString();
     qDebug() << "Loading default image: " << image;
 
-    QString path = ":/assets/roms/" + image;
-    QFile file(path);
-    file.open(QIODevice::ReadOnly);
-    if(file.exists()) {
-        QByteArray data = file.readAll();
-        this->hex_widget->setData(new QHexView::DataStorageArray(data));
+    if(image.startsWith("http")) { // try to grab image from the web
+        QTimer timer;
+        timer.setSingleShot(true);
+        QUrl url(image);
+        FileDownloader *fd = new FileDownloader(url, this);
+        QEventLoop loop;
+        connect(fd, SIGNAL(downloaded()), &loop, SLOT(quit()));
+        connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+        timer.start(5000); // time out after 5 seconds
+        loop.exec();
 
-        QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
-        this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
-              .arg(image)
-              .arg(data.size() / 1024)
-              .arg(QString(hash.toHex()))
-        );
-    } else {
-        QMessageBox message_box;
-        message_box.setText("Unknown image. This error should not happen. Please contact the developer.");
-        message_box.setIcon(QMessageBox::Critical);
-        message_box.setWindowTitle("Could not find rom image");
-        message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
-        message_box.exec();
+        if(timer.isActive()) {
+            QByteArray data = fd->downloadedData();
+            this->hex_widget->set_data(data);
+
+            QString rom_name = image.split(QChar('/')).back();
+
+            QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+            this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
+                                                     .arg(rom_name + " (download)")
+                                                     .arg(data.size() / 1024)
+                                                     .arg(QString(hash.toHex()))
+                                                 );
+            statusBar()->showMessage(tr("Succesfully downloaded %1 from web source.").arg(rom_name));
+        } else {
+            QMessageBox message_box;
+            message_box.setText("Could not download the image. Please check your internet connection and/or try again.");
+            message_box.setIcon(QMessageBox::Critical);
+            message_box.setWindowTitle("Download of ROM failed");
+            message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+            message_box.exec();
+        }
+
+    } else {    // image is stored
+        QString path = ":/assets/roms/" + image;
+        QFile file(path);
+        file.open(QIODevice::ReadOnly);
+        if(file.exists()) {
+            QByteArray data = file.readAll();
+            this->hex_widget->set_data(data);
+
+            QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+            this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
+                                                     .arg(image)
+                                                     .arg(data.size() / 1024)
+                                                     .arg(QString(hash.toHex()))
+                                                 );
+        } else {
+            QMessageBox message_box;
+            message_box.setText("Unknown image. This error should not happen. Please contact the developer.");
+            message_box.setIcon(QMessageBox::Critical);
+            message_box.setWindowTitle("Could not find rom image");
+            message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+            message_box.exec();
+        }
     }
 }
 
@@ -674,19 +774,16 @@ void MainWindow::read_chip_id() {
             switch(chip_id & 0xFF) {
                 case 0xB5:
                     this->num_blocks = 128*1024/256;
-                    this->progress_bar_load->setMaximum(this->num_blocks);
                     statusBar()->showMessage("Identified a SST39SF010 chip");
                     this->label_chip_type->setText("ROM chip: SST39SF010");
                 break;
                 case 0xB6:
                 this->num_blocks = 256*1024/256;
-                    this->progress_bar_load->setMaximum(this->num_blocks);
                     statusBar()->showMessage("Identified a SST39SF020 chip");
                     this->label_chip_type->setText("ROM chip: SST39SF020");
                 break;
                 case 0xB7:
                     this->num_blocks = 512*1024/256;
-                    this->progress_bar_load->setMaximum(this->num_blocks);
                     statusBar()->showMessage("Identified a SST39SF040 chip");
                     this->label_chip_type->setText("ROM chip: SST39SF040");
                 break;
@@ -698,6 +795,11 @@ void MainWindow::read_chip_id() {
             throw std::runtime_error("Unknown chip id: " + chip_id_str);
         }
 
+        // set progress bar
+        this->progress_bar_load->reset();
+        this->progress_bar_load->setMaximum(this->num_blocks);
+
+        // enable buttons
         this->button_read_rom->setEnabled(true);
         this->button_flash_rom->setEnabled(true);
         this->button_flash_bank->setEnabled(true);
@@ -804,13 +906,13 @@ void MainWindow::read_result_ready() {
     }
 
     qDebug() << "Read " << data.size() << " bytes from chip.";
-    this->hex_widget->setData(new QHexView::DataStorageArray(data));
+    this->hex_widget->set_data(data);
 
     QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
     this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
           .arg("ROM data")
           .arg(data.size() / 1024)
-          .arg(QString(hash.toHex()))
+          .arg(QString(hash.toHex()).toUpper())
     );
 
     statusBar()->showMessage(QString("Done reading chip in %1 seconds.").arg(this->timer1.elapsed() / 1000.f));
@@ -825,9 +927,11 @@ void MainWindow::read_result_ready() {
  */
 void MainWindow::flash_rom() {
     // store flash data
+    qDebug() << "Loading flash data";
     this->flash_data = this->hex_widget->get_data();
 
     // verify whether the chip is correct
+    qDebug() << "Verifying chip";
     this->verify_chip();
 
     if((this->num_blocks * 256) < this->flash_data.size()) {

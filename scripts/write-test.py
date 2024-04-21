@@ -116,14 +116,10 @@ class TestBoard(unittest.TestCase):
         print(' '.join('0x%02X' % d for d in rsp))
         
         # check erasing
-        res = bytearray()
-        for i in range(0,0x1000//256):
-            self.ser.write(b'RDBK%04X' % (i + 0x50))
-            rsp = self.ser.read(8)
-            #print(rsp)
-            rsp = self.ser.read(0x100)
-            res += rsp
-        self.assertEqual(res, bytearray(np.ones(0x1000, dtype=np.uint8) * 0xFF))
+        self.ser.write(b'RDSECT05')
+        rsp = self.ser.read(8)
+        rsp = self.ser.read(0x1000)
+        self.assertEqual(rsp, bytearray(np.ones(0x1000, dtype=np.uint8) * 0xFF))
                
         # generate random data
         randomdata = bytearray(np.random.randint(0, 256, 0x1000, dtype=np.uint8))
@@ -141,6 +137,10 @@ class TestBoard(unittest.TestCase):
         self.ser.write(b'RDSECT05')
         rsp = self.ser.read(8)
         rsp = self.ser.read(0x1000)
+        
+        # printhex(randomdata[0:32])
+        # printhex(rsp[0:32])
+        
         self.assertEqual(rsp, randomdata)
 
 def crc16(data):

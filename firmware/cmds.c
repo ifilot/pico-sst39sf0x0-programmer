@@ -49,10 +49,8 @@ uint16_t get_uint16(const char* instruction, uint8_t offset) {
  * Return command back over serial
  */
 void echo_command(const char* inst, uint8_t size) {
-    for(unsigned int i=0; i<size; i++) {
-        putchar_raw(inst[i]);
-    }
-    stdio_flush();
+    tud_cdc_write(inst, size);
+    tud_cdc_write_flush();
 }
 
 /*

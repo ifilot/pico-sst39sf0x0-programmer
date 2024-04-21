@@ -46,9 +46,11 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.2'
+        version: '6.7.0'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
+        tools: 'tools_opensslv3_x64'
+        modules: 'qtserialport'
         cache: true
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -S ${{github.workspace}}/gui -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -59,26 +61,53 @@ jobs:
       with:
         name: ${{env.EXEC}}
         path: ${{github.workspace}}/build/Release/${{env.EXEC}}
-        
+  
+  # create packaging metadata
+  prepare-installer-windows:
+    runs-on: ubuntu-latest
+    needs: build-gui-windows
+    permissions: write-all
+    steps:
+    - uses: actions/checkout@v3
+    - name: install dependencies
+      run: sudo apt-get update && sudo apt-get install -y python3 python3-jinja2
+    - name: run packaging script
+      run: python3 gui/packaging/package.py
+    - name: Upload packaging scripts
+      uses: actions/upload-artifact@v3
+      with:
+        name: package-metadata
+        path: |
+          ${{github.workspace}}/gui/packaging/config/config.xml
+          ${{github.workspace}}/gui/packaging/packages/com.vendor.product/meta/installscript.qs
+          ${{github.workspace}}/gui/packaging/packages/com.vendor.product/meta/package.xml
+
+  # create Windows installer
   create-installer-windows:
     runs-on: windows-latest
-    needs: build-gui-windows
+    needs: prepare-installer-windows
     permissions: write-all
     steps:
     - uses: actions/checkout@v3
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.2'
+        version: '6.7.0'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
-        tools: 'tools_ifw'
+        modules: 'qtserialport'
+        tools: 'tools_ifw tools_opensslv3_x64'
         cache: true
     - name: Download artifact
       uses: actions/download-artifact@v3
       with:
         name: ${{env.EXEC}}
         path: gui/packaging/packages/com.vendor.product/data/
+    - name: Download installer metadata
+      uses: actions/download-artifact@v3
+      with:
+        name: package-metadata
+        path: ${{github.workspace}}/gui/packaging
     - name: Get dependencies
       run: windeployqt.exe gui\packaging\packages\com.vendor.product\data\${{env.EXEC}} --release --force
     - name: Copy assets
@@ -92,6 +121,7 @@ jobs:
         name: ${{env.PROGNAME}}-installer-win64.exe
         path: gui/packaging/${{env.PROGNAME}}-installer-win64.exe
 
+  # deploy Windows installer
   deploy-installer-windows:
     runs-on: ubuntu-latest
     needs: [create-installer-windows, create-release]

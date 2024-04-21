@@ -31,7 +31,7 @@ class TestBoard(unittest.TestCase):
                                      bytesize=serial.EIGHTBITS,
                                      parity=serial.PARITY_NONE,
                                      stopbits=serial.STOPBITS_ONE,
-                                     timeout=None)  # open serial port
+                                     timeout=1)  # open serial port
                        
             while(not self.ser.isOpen()):
                 self.ser.open()
@@ -60,22 +60,12 @@ class TestBoard(unittest.TestCase):
         rsp = self.ser.read(8)
         rsp = self.ser.read(2)
         print(" ".join("%02x" % b for b in rsp))
-    
-    def test_read(self):
-        """
-        Test reading board id
-        """
-        self.ser.write(b'TESTTEST')
-        rsp = self.ser.read(8)
-        print(rsp)
-        rsp = self.ser.read(32)
-        print(" ".join("%02x" % b for b in rsp))
         
     def test_read_block(self):
         """
         Test reading board id
         """
-        self.ser.write(b'RDBK0000')
+        self.ser.write(b'RDBANK00')
         rsp = self.ser.read(8)
         print(rsp)
         rsp = self.ser.read(256)
