@@ -249,6 +249,8 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     // list of ROM images
     QList<QPair<QString, QString>> rom_images = {
         {"Assembler v5.9", "assembler 5.9.bin"},
+        {"BASICNL with Bootstrap for DATA cartridge [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/BASICBOOTSTRAP.BIN"},
+        {"BASICNL with Bootstrap for SD-CARD cartridge [download]", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/BASICBOOTSTRAP.BIN"},
         {"Cassette to EEPROM Utility [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/CASSETTE_UTILITY.BIN"},
         {"Familiegeheugen v4", "familiegeheugen 4.bin"},
         {"Flasher for DATA cartridge [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/FLASHER.BIN"},
@@ -595,7 +597,7 @@ void MainWindow::slot_open() {
         this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3" + usage)
               .arg(finfo.fileName())
               .arg(data.size() / 1024)
-              .arg(QString(hash.toHex()).toUpper())
+              .arg(QString(hash.toHex()))
         );
     }
 }
@@ -711,7 +713,7 @@ void MainWindow::load_default_image() {
             this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
                                                      .arg(rom_name + " (download)")
                                                      .arg(data.size() / 1024)
-                                                     .arg(QString(hash.toHex()).toUpper())
+                                                     .arg(QString(hash.toHex()))
                                                  );
             statusBar()->showMessage(tr("Succesfully downloaded %1 from web source.").arg(rom_name));
         } else {
@@ -735,7 +737,7 @@ void MainWindow::load_default_image() {
             this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
                                                      .arg(image)
                                                      .arg(data.size() / 1024)
-                                                     .arg(QString(hash.toHex()).toUpper())
+                                                     .arg(QString(hash.toHex()))
                                                  );
         } else {
             QMessageBox message_box;

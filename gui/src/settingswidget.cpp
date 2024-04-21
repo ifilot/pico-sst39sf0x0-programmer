@@ -126,7 +126,7 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
         signal_mapper->setMapping(this->buttonpointers[i], keyword);
     }
 
-    connect(signal_mapper, SIGNAL(mapped(QString)), this, SLOT(slot_change_color(QString))) ;
+    connect(signal_mapper, SIGNAL(mappedString(QString)), this, SLOT(slot_change_color(QString))) ;
 
     layout->addWidget(container);
 }
