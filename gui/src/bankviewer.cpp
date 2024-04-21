@@ -79,10 +79,10 @@ QLabel* BankViewer::create_data_label(unsigned int bank_id) {
     }
 
     QString text;
-    if(subdata.count(0xFF) == BANKSIZE) {
+    if(subdata.count((unsigned char)0xFF) == BANKSIZE) {
         stylesheet = "color: #098056;";
         text = tr("Free<br>(empty 16kb x 0xFF)");
-    } else if(subdata.count(0x00) == BANKSIZE) {
+    } else if(subdata.count((unsigned char)0x00) == BANKSIZE) {
         stylesheet = "color: #098056;";
         text = tr("Free<br>(empty 16kb x 0x00)");
     } else {
