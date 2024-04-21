@@ -79,6 +79,12 @@ below.
 * [Using the programmer to create copies of P2000T cartridges](https://www.philips-p2000t.nl/tools/pico-sst39sf0x0-programmer-slot1-adapter-board.html)
 * [Using the PICO programmer in combination with the P2000T ZIF-cartridge](https://www.philips-p2000t.nl/cartridges/zif-cartridge.html#zif-cartridge)
 
+## Schematics
+
+![PCB schematics](pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.svg)
+
+[Download schematics as PDF](pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.pdf)
+
 ## Contents
 
 * [Case](case): Set of .stl files to print a handy case for your flash device.
