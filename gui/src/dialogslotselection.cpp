@@ -23,6 +23,9 @@
 DialogSlotSelection::DialogSlotSelection(unsigned int _nr_banks) :
     nr_banks(_nr_banks)
 {
+    // set icon
+    this->setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+
     // build layout
     QVBoxLayout* layout = new QVBoxLayout();
     this->setLayout(layout);

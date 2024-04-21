@@ -54,6 +54,7 @@
 #include "logwindow.h"
 #include "settingswidget.h"
 #include "filedownloader.h"
+#include "bankviewer.h"
 
 class MainWindow : public QMainWindow
 {
@@ -90,6 +91,7 @@ private:
     QPushButton* button_read_cartridge;
     QPushButton* button_flash_rom;
     QPushButton* button_flash_bank;
+    QPushButton* button_scan_slots;
 
     // file data
     QString current_filename;
@@ -201,6 +203,11 @@ private slots:
      */
     void slot_update_settings();
 
+    /**
+     * @brief Convenience function on completing a chip scan
+     */
+    void parse_chip_read_results();
+
     /****************************************************************************
      *  SIGNALS :: COMMUNICATION INTERFACE ROUTINES
      ****************************************************************************/
@@ -254,6 +261,11 @@ private slots:
      */
     void read_result_ready();
 
+    /*
+     * @brief Signal that a scan chip operation is finished
+     */
+    void scan_chip_result_ready();
+
     /****************************************************************************
      *  SIGNALS :: FLASH ROM
      ****************************************************************************/
@@ -272,6 +284,11 @@ private slots:
      * @brief Erase the chip
      */
     void erase_chip();
+
+    /**
+     * @brief MainWindow::Scan the ROMs on the chip
+     */
+    void scan_chip();
 
     /**
      * @brief Slot to indicate that a page is about to be written

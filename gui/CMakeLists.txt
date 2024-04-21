@@ -24,6 +24,7 @@ add_compile_definitions(GIT_HASH="${GIT_HASH}")
 find_package(Qt6 REQUIRED COMPONENTS Widgets SerialPort Network)
 
 add_executable(pico-sst39sf0x0-programmer
+    src/bankviewer.cpp
     src/cartridgereadthread.cpp
     src/dialogslotselection.cpp
     src/filedownloader.cpp
