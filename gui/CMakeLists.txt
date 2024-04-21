@@ -46,7 +46,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     )
 endif()
 
-target_link_libraries(pico-sst39sf0x0-programmer PRIVATE Qt5::Core Qt5::Widgets Qt5::SerialPort)
+target_link_libraries(pico-sst39sf0x0-programmer PRIVATE Qt6::Core Qt6::Widgets Qt6::SerialPort Qt6::Network)
 
 set_target_properties(pico-sst39sf0x0-programmer PROPERTIES
     WIN32_EXECUTABLE ON
