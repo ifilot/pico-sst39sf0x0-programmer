@@ -26,13 +26,14 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets SerialPort Network)
 add_executable(pico-sst39sf0x0-programmer
     src/cartridgereadthread.cpp
     src/dialogslotselection.cpp
+    src/filedownloader.cpp
     src/flashthread.cpp
+    src/hexviewwidget.cpp
     src/ioworker.cpp
     src/logwindow.cpp
     src/main.cpp
     src/mainwindow.cpp
     src/picoflasherapplication.cpp
-    src/hexviewwidget.cpp
     src/readthread.cpp
     src/serial_interface.cpp
     src/settingswidget.cpp
