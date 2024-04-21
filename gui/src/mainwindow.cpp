@@ -298,6 +298,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     this->button_read_cartridge = new QPushButton("Read P2000T Cartridge");
     this->button_flash_rom = new QPushButton("Write ROM");
     this->button_flash_bank = new QPushButton("Write ROM to bank");
+    this->button_scan_slots = new QPushButton("Scan slots");
 
     layout->addWidget(this->button_identify_chip);
     layout->addWidget(this->button_read_rom);
@@ -305,6 +306,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     layout->addWidget(this->button_flash_rom);
     layout->addWidget(this->button_flash_bank);
     layout->addWidget(this->button_erase_chip);
+    layout->addWidget(this->button_scan_slots);
 
     this->button_identify_chip->setEnabled(false);
     this->button_erase_chip->setEnabled(false);
@@ -312,6 +314,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     this->button_read_rom->setEnabled(false);
     this->button_flash_rom->setEnabled(false);
     this->button_flash_bank->setEnabled(false);
+    this->button_scan_slots->setEnabled(false);
 
     connect(this->button_read_rom, SIGNAL(released()), this, SLOT(read_rom()));
     connect(this->button_read_cartridge, SIGNAL(released()), this, SLOT(read_cartridge()));
@@ -319,6 +322,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     connect(this->button_identify_chip, SIGNAL(released()), this, SLOT(read_chip_id()));
     connect(this->button_flash_bank, SIGNAL(released()), this, SLOT(flash_bank()));
     connect(this->button_erase_chip, SIGNAL(released()), this, SLOT(erase_chip()));
+    connect(this->button_scan_slots, SIGNAL(released()), this, SLOT(scan_chip()));
 
     target_layout->addWidget(container);
     this->progress_bar_load = new QProgressBar();
@@ -683,6 +687,36 @@ void MainWindow::slot_update_settings() {
 }
 
 /**
+ * @brief Convenience function on completing a chip scan
+ */
+void MainWindow::parse_chip_read_results() {
+    this->progress_bar_load->setValue(this->progress_bar_load->maximum());
+
+    QByteArray data;
+    if(this->readerthread) {
+        data = this->readerthread->get_data();
+        this->readerthread.reset(); // delete object
+    } else if(this->cartridgereaderthread) {
+        data = this->cartridgereaderthread->get_data();
+        this->readerthread.reset(); // delete object
+    } else {
+        qDebug() << "This function should not have been called.";
+    }
+
+    qDebug() << "Read " << data.size() << " bytes from chip.";
+    this->hex_widget->set_data(data);
+
+    QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+    this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
+                                             .arg("ROM data")
+                                             .arg(data.size() / 1024)
+                                             .arg(QString(hash.toHex()))
+                                         );
+
+    statusBar()->showMessage(QString("Done reading chip in %1 seconds.").arg(this->timer1.elapsed() / 1000.f));
+}
+
+/**
  * @brief      Close the application
  */
 void MainWindow::exit() {
@@ -804,6 +838,7 @@ void MainWindow::read_chip_id() {
         this->button_flash_rom->setEnabled(true);
         this->button_flash_bank->setEnabled(true);
         this->button_erase_chip->setEnabled(true);
+        this->button_scan_slots->setEnabled(true);
     } catch (const std::exception& e) {
         QMessageBox msg_box;
         msg_box.setIcon(QMessageBox::Warning);
@@ -892,30 +927,18 @@ void MainWindow::read_block_done(unsigned int block_id, unsigned int nr_blocks) 
  * @brief Signal that a read operation is finished
  */
 void MainWindow::read_result_ready() {
-    this->progress_bar_load->setValue(this->progress_bar_load->maximum());
+    this->parse_chip_read_results();
+}
 
-    QByteArray data;
-    if(this->readerthread) {
-        data = this->readerthread->get_data();
-        this->readerthread.reset(); // delete object
-    } else if(this->cartridgereaderthread) {
-        data = this->cartridgereaderthread->get_data();
-        this->readerthread.reset(); // delete object
-    } else {
-        qDebug() << "This function should not have been called.";
-    }
+/*
+ * @brief Signal that a scan chip operation is finished
+ */
+void MainWindow::scan_chip_result_ready() {
+    this->parse_chip_read_results();
 
-    qDebug() << "Read " << data.size() << " bytes from chip.";
-    this->hex_widget->set_data(data);
-
-    QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
-    this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
-          .arg("ROM data")
-          .arg(data.size() / 1024)
-          .arg(QString(hash.toHex()).toUpper())
-    );
-
-    statusBar()->showMessage(QString("Done reading chip in %1 seconds.").arg(this->timer1.elapsed() / 1000.f));
+    // at this point, the chip has been scanned and we can process the results
+    BankViewer bankviewer(this->num_blocks / BLOCKSPERBANK, this->hex_widget->get_data(), this);
+    bankviewer.exec();
 }
 
 /****************************************************************************
@@ -1033,6 +1056,30 @@ void MainWindow::erase_chip() {
     this->serial_interface->close_port();
 
     QMessageBox::information(this, "Chip erased.", "Done erasing the chip. All bytes are set of 0xFF.");
+}
+
+/**
+ * @brief MainWindow::Scan the ROMs on the chip
+ */
+void MainWindow::scan_chip() {
+    // ask where to store file
+    statusBar()->showMessage("Reading from chip, please wait...");
+    this->label_data_descriptor->clear();
+
+    // dispatch thread
+    this->timer1.start();
+
+    // disable all buttons so that the user cannot interrupt this task
+    //this->disable_all_buttons();
+
+    // dispatch thread
+    //this->operation = "Reading"; // message for statusbar
+    this->readerthread = std::make_unique<ReadThread>(this->serial_interface);
+    this->readerthread->set_serial_port(this->combobox_serial_ports->currentText().toStdString());
+    connect(this->readerthread.get(), SIGNAL(read_result_ready()), this, SLOT(scan_chip_result_ready()));
+    connect(this->readerthread.get(), SIGNAL(read_block_start(uint,uint)), this, SLOT(read_block_start(uint,uint)));
+    connect(this->readerthread.get(), SIGNAL(read_block_done(uint,uint)), this, SLOT(read_block_done(uint,uint)));
+    this->readerthread->start();
 }
 
 /**

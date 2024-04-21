@@ -40,6 +40,7 @@
         <file>assets/roms/WordProcessor 1.bin</file>
         <file>assets/roms/WordProcessor 2.bin</file>
         <file>assets/roms/Zemon 1.4.bin</file>
-	<file>assets/fonts/Consolas.ttf</file>
+        <file>assets/fonts/Consolas.ttf</file>
+        <file>assets/icon/clipboard.png</file>
     </qresource>
 </RCC>
