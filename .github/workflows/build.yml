@@ -50,6 +50,7 @@ jobs:
         target: 'desktop'
         arch: 'win64_msvc2019_64'
         tools: 'tools_opensslv3_x64'
+        modules: 'qtserialport'
         cache: true
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -S ${{github.workspace}}/gui -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
