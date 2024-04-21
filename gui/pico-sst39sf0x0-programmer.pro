@@ -1,4 +1,4 @@
-QT       += core gui serialport
+QT       += core gui serialport network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     src/cartridgereadthread.cpp \
     src/dialogslotselection.cpp \
+    src/filedownloader.cpp \
     src/flashthread.cpp \
     src/hexviewwidget.cpp \
     src/ioworker.cpp \
@@ -27,6 +28,7 @@ HEADERS += \
     src/config.h \
     src/cartridgereadthread.h \
     src/dialogslotselection.h \
+    src/filedownloader.h \
     src/flashthread.h \
     src/hexviewwidget.h \
     src/ioworker.h \

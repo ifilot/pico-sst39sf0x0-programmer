@@ -20,8 +20,8 @@ execute_process(
 )
 add_compile_definitions(GIT_HASH="${GIT_HASH}")
 
-# Find Qt6 packages
-find_package(Qt5 REQUIRED COMPONENTS Widgets SerialPort)
+# Find Qt5 packages
+find_package(Qt5 REQUIRED COMPONENTS Widgets SerialPort Network)
 
 add_executable(pico-sst39sf0x0-programmer
     src/cartridgereadthread.cpp

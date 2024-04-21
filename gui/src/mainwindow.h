@@ -53,6 +53,7 @@
 #include "romsizes.h"
 #include "logwindow.h"
 #include "settingswidget.h"
+#include "filedownloader.h"
 
 class MainWindow : public QMainWindow
 {

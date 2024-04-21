@@ -49,7 +49,7 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     this->label_data_descriptor = new QLabel();
     container_layout->addWidget(this->label_data_descriptor);
     this->hex_widget = new HexViewWidget();
-    this->hex_widget->setMinimumWidth(680);
+    this->hex_widget->setMinimumWidth(580);
     this->hex_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     container_layout->addWidget(this->hex_widget);
 
@@ -97,10 +97,9 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     // set font
     int id = QFontDatabase::addApplicationFont(":/assets/fonts/Consolas.ttf");
     QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-    QFont font11(family, 11, QFont::Normal);
-    this->hex_widget->setFont(font11);
     QFont font10(family, 10, QFont::Normal);
-    this->label_data_descriptor->setFont(font10);
+    this->hex_widget->setFont(font10);
+    //this->label_data_descriptor->setFont(font10);
 
     // re-apply settings
     this->slot_update_settings();
@@ -247,31 +246,25 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     btn2 = new QPushButton("Select other ROM");
     layout->addWidget(btn2);
 
-    // build menu for this rom
-    QStringList names = {
-        "Assembler v5.9",
-        "Familiegeheugen v4",
-        "Forth compiler",
-        "Helloworld example",
-        "Maintenance cartridge",
-        "Word Processor v2",
-        "Zemon assembler v1.4",
-    };
-    QStringList roms = {
-        "assembler 5.9.bin",
-        "familiegeheugen 4.bin",
-        "Forth.bin",
-        "helloworld.bin",
-        "Maintenance 2.bin",
-        "WordProcessor 2.bin",
-        "Zemon 1.4.bin",
+    // list of ROM images
+    QList<QPair<QString, QString>> rom_images = {
+        {"Assembler v5.9", "assembler 5.9.bin"},
+        {"Cassette to EEPROM Utility [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/CASSETTE_UTILITY.BIN"},
+        {"Familiegeheugen v4", "familiegeheugen 4.bin"},
+        {"Flasher for DATA cartridge [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/FLASHER.BIN"},
+        {"Flasher for SD-CARD cartridge [download]", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/FLASHER.BIN"},
+        {"Forth compiler", "Forth.bin"},
+        {"Maintenance cartridge", "Maintenance 2.bin"},
+        {"RAM (expansion board) Test [download]", "https://github.com/ifilot/p2000t-ram-expansion-board/releases/latest/download/RAMTEST.BIN"},
+        {"Word Processor v2", "WordProcessor 2.bin"},
+        {"Zemon assembler v1.4", "Zemon 1.4.bin"}
     };
 
     QMenu* rommenu = new QMenu();
-    for(int i=0; i<names.size(); i++) {
+    for(int i=0; i<rom_images.size(); i++) {
         QAction* action = new QAction();
-        action->setText(names[i]);
-        action->setProperty("image_name", QVariant(roms[i]));
+        action->setText(rom_images[i].first);
+        action->setProperty("image_name", QVariant(rom_images[i].second));
         connect(action, &QAction::triggered, this, &MainWindow::load_default_image);
         rommenu->addAction(action);
     }
@@ -697,26 +690,61 @@ void MainWindow::load_default_image() {
     QString image = sender()->property("image_name").toString();
     qDebug() << "Loading default image: " << image;
 
-    QString path = ":/assets/roms/" + image;
-    QFile file(path);
-    file.open(QIODevice::ReadOnly);
-    if(file.exists()) {
-        QByteArray data = file.readAll();
-        this->hex_widget->set_data(data);
+    if(image.startsWith("http")) { // try to grab image from the web
+        QTimer timer;
+        timer.setSingleShot(true);
+        QUrl url(image);
+        FileDownloader *fd = new FileDownloader(url, this);
+        QEventLoop loop;
+        connect(fd, SIGNAL(downloaded()), &loop, SLOT(quit()));
+        connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+        timer.start(5000); // time out after 5 seconds
+        loop.exec();
 
-        QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
-        this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
-              .arg(image)
-              .arg(data.size() / 1024)
-              .arg(QString(hash.toHex()).toUpper())
-        );
-    } else {
-        QMessageBox message_box;
-        message_box.setText("Unknown image. This error should not happen. Please contact the developer.");
-        message_box.setIcon(QMessageBox::Critical);
-        message_box.setWindowTitle("Could not find rom image");
-        message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
-        message_box.exec();
+        if(timer.isActive()) {
+            QByteArray data = fd->downloadedData();
+            this->hex_widget->set_data(data);
+
+            QString rom_name = image.split(QChar('/')).back();
+
+            QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+            this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
+                                                     .arg(rom_name + " (download)")
+                                                     .arg(data.size() / 1024)
+                                                     .arg(QString(hash.toHex()).toUpper())
+                                                 );
+            statusBar()->showMessage(tr("Succesfully downloaded %1 from web source.").arg(rom_name));
+        } else {
+            QMessageBox message_box;
+            message_box.setText("Could not download the image. Please check your internet connection and/or try again.");
+            message_box.setIcon(QMessageBox::Critical);
+            message_box.setWindowTitle("Download of ROM failed");
+            message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+            message_box.exec();
+        }
+
+    } else {    // image is stored
+        QString path = ":/assets/roms/" + image;
+        QFile file(path);
+        file.open(QIODevice::ReadOnly);
+        if(file.exists()) {
+            QByteArray data = file.readAll();
+            this->hex_widget->set_data(data);
+
+            QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+            this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3")
+                                                     .arg(image)
+                                                     .arg(data.size() / 1024)
+                                                     .arg(QString(hash.toHex()).toUpper())
+                                                 );
+        } else {
+            QMessageBox message_box;
+            message_box.setText("Unknown image. This error should not happen. Please contact the developer.");
+            message_box.setIcon(QMessageBox::Critical);
+            message_box.setWindowTitle("Could not find rom image");
+            message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+            message_box.exec();
+        }
     }
 }
 

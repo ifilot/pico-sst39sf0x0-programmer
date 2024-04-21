@@ -46,9 +46,10 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.2'
+        version: '6.7.0'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
+        tools: 'tools_opensslv3_x64'
         cache: true
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -S ${{github.workspace}}/gui -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -90,7 +91,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.2'
+        version: '6.7.0'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
         tools: 'tools_ifw'
