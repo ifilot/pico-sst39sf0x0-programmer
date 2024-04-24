@@ -29,11 +29,21 @@ HexViewWidget::HexViewWidget(QWidget *parent)
 }
 
 /**
+ * @brief set data for the HexView class to display
+ * @param _data data to display
+ */
+void HexViewWidget::set_data(const QByteArray& _data) {
+    QMutexLocker locker(&this->lock);
+    this->data = _data;
+    this->viewport()->update();
+}
+
+/**
  * @brief Draw the contents of the HexViewer widget
  * @param event
  */
 void HexViewWidget::paintEvent(QPaintEvent *event) {
-    QMutexLocker(&this->lock);
+    QMutexLocker locker(&this->lock);
 
     this->update_positions();
 
@@ -41,7 +51,7 @@ void HexViewWidget::paintEvent(QPaintEvent *event) {
     QSize area_size = viewport()->size();
     QSize widget_size = this->get_widget_size();
     this->verticalScrollBar()->setPageStep(area_size.height() / charheight);
-    this->verticalScrollBar()->setRange(0, (widget_size.height() - area_size.height()) / charheight + 1);
+    this->verticalScrollBar()->setRange(0, (widget_size.height() - area_size.height()) / charheight + 2);
 
     // grab colors
     settings.sync();

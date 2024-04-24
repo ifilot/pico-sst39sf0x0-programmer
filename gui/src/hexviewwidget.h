@@ -70,11 +70,7 @@ public:
      * @brief set data for the HexView class to display
      * @param _data data to display
      */
-    void set_data(const QByteArray& _data) {
-        QMutexLocker(&this->lock);
-        this->data = _data;
-        this->viewport()->update();
-    }
+    void set_data(const QByteArray& _data);
 
     /**
      * @brief Grab data from HexViewer class
