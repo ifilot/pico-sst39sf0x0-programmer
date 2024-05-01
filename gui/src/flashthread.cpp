@@ -39,7 +39,10 @@ void FlashThread::flash_sst39sf0x0() {
     // check that the chip id is correct
     unsigned int chip_id = this->serial_interface->get_chip_id();
     if(!(chip_id == 0xBFB5 || chip_id == 0xBFB6 || chip_id == 0xBFB7)) {
-        emit(flash_chip_id_error(chip_id));
+        std::string chip_id_str = tr("0x%1%2").arg((uint16_t)chip_id >> 8, 2, 16, QChar('0')).arg((uint8_t)chip_id & 0xFF, 2, 16, QChar('0')).toStdString();
+        emit(thread_abort(tr("Unknown chip id: %1").arg(chip_id_str.c_str())));
+        this->serial_interface->close_port();
+        return;
         return;
     }
 

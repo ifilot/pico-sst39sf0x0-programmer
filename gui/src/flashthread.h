@@ -106,12 +106,6 @@ signals:
      * @param block_id
      */
     void flash_sector_done(unsigned int sector_id, unsigned int nr_sectors);
-
-    /**
-     * @brief signal when flash chip id is incorrect
-     * @param block_id
-     */
-    void flash_chip_id_error(unsigned int chip_id);
 };
 
 #endif // FLASHTHREAD_H

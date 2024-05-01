@@ -53,6 +53,11 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     this->hex_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     container_layout->addWidget(this->hex_widget);
 
+    this->button_reload_file = new QPushButton("Reload file");
+    container_layout->addWidget(this->button_reload_file);
+    this->button_reload_file->setEnabled(false);
+    connect(this->button_reload_file, SIGNAL(released()), this, SLOT(slot_reload_file()));
+
     // create central widget for writing data
     QScrollArea *scroll_area = new QScrollArea();
     layout->addWidget(scroll_area);
@@ -569,9 +574,10 @@ void MainWindow::slot_open() {
         return;
     }
 
-    file.open(QIODevice::ReadOnly);
     if(file.exists()) {
+        file.open(QIODevice::ReadOnly);
         QByteArray data = file.readAll();
+        this->current_filename = file.fileName();
         int filesize = data.size();
 
         // ask the user whether they want to expand the image
@@ -582,11 +588,15 @@ void MainWindow::slot_open() {
                                                 "be used as a cartridge, would you like to to expand it "
                                                 "to 16kb by padding the data with 0x00?", QMessageBox::Yes|QMessageBox::No);
             if (reply == QMessageBox::Yes) {
+                this->current_file_expanded = true;
                 resize_qbytearray(&data, 0x4000);
+            } else {
+                this->current_file_expanded = false;
             }
         }
 
         this->hex_widget->set_data(data);
+        this->button_reload_file->setEnabled(true);
 
         QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
         QFileInfo finfo(file);
@@ -604,6 +614,46 @@ void MainWindow::slot_open() {
               .arg(data.size() / 1024)
               .arg(QString(hash.toHex()))
         );
+    }
+}
+
+/**
+ * @brief MainWindow::reload a file
+ */
+void MainWindow::slot_reload_file() {
+    QFile file(this->current_filename);
+
+    if(file.exists()) {
+        file.open(QIODevice::ReadOnly);
+        QByteArray data = file.readAll();
+        this->current_filename = file.fileName();
+        int filesize = data.size();
+
+        // ask the user whether they want to expand the image
+        if(data.size() < 0x4000 && this->current_file_expanded) {
+            resize_qbytearray(&data, 0x4000);
+        }
+
+        this->hex_widget->set_data(data);
+
+        QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+        QFileInfo finfo(file);
+
+        QString usage;
+        if(data.size() == 0x4000) {
+            usage = QString(" | %1 kb / %2 kb (%3 %)")
+                        .arg(QString::number((float)filesize/(float)1024, 'f', 1))
+                        .arg(QString::number(16, 'f', 1))
+                        .arg((float)filesize/(float)(16 * 1024) * 100, 0, 'f', 1);
+        }
+
+        this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3" + usage)
+                                                 .arg(finfo.fileName())
+                                                 .arg(data.size() / 1024)
+                                                 .arg(QString(hash.toHex()))
+                                             );
+
+        statusBar()->showMessage(tr("Reloaded %1 from drive.").arg(this->current_filename));
     }
 }
 
@@ -741,6 +791,7 @@ void MainWindow::load_default_image() {
         if(timer.isActive()) {
             QByteArray data = fd->downloadedData();
             this->hex_widget->set_data(data);
+            this->button_reload_file->setEnabled(false);
 
             QString rom_name = image.split(QChar('/')).back();
 
@@ -870,6 +921,7 @@ void MainWindow::read_rom() {
     connect(this->readerthread.get(), SIGNAL(read_result_ready()), this, SLOT(read_result_ready()));
     connect(this->readerthread.get(), SIGNAL(read_block_start(uint,uint)), this, SLOT(read_block_start(uint,uint)));
     connect(this->readerthread.get(), SIGNAL(read_block_done(uint,uint)), this, SLOT(read_block_done(uint,uint)));
+    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     this->readerthread->start();
 }
 
@@ -899,6 +951,7 @@ void MainWindow::read_cartridge() {
     connect(this->cartridgereaderthread.get(), SIGNAL(read_result_ready()), this, SLOT(read_result_ready()));
     connect(this->cartridgereaderthread.get(), SIGNAL(read_block_start(uint,uint)), this, SLOT(read_block_start(uint,uint)));
     connect(this->cartridgereaderthread.get(), SIGNAL(read_block_done(uint,uint)), this, SLOT(read_block_done(uint,uint)));
+    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     this->cartridgereaderthread->start();
 }
 
@@ -955,7 +1008,17 @@ void MainWindow::flash_rom() {
 
     // verify whether the chip is correct
     qDebug() << "Verifying chip";
-    this->verify_chip();
+    try {
+        this->verify_chip();
+    } catch(const std::exception& e) {
+        this->raise_error_window(QMessageBox::Critical,
+                                 "Cannot flash this ROM to bank due to a problem with "
+                                 "with the CHIP id. Please carefully check the chip and "
+                                 "whether it is properly inserted into the socket."
+                                 "\n\nError message: " + QString(e.what())
+                                 );
+        return;
+    }
 
     if((this->num_blocks * 256) < this->flash_data.size()) {
 
@@ -984,7 +1047,7 @@ void MainWindow::flash_rom() {
     connect(this->flashthread.get(), SIGNAL(flash_result_ready()), this, SLOT(flash_result_ready()));
     connect(this->flashthread.get(), SIGNAL(flash_sector_start(uint,uint)), this, SLOT(flash_sector_start(uint,uint)));
     connect(this->flashthread.get(), SIGNAL(flash_sector_done(uint,uint)), this, SLOT(flash_sector_done(uint,uint)));
-    connect(this->flashthread.get(), SIGNAL(flash_chip_id_error(uint)), this, SLOT(flash_chip_id_error(uint)));
+    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     flashthread->start();
 
     // disable all buttons
@@ -1011,7 +1074,17 @@ void MainWindow::flash_bank() {
     this->flash_data = this->hex_widget->get_data();
 
     // verify whether the chip is correct
-    this->verify_chip();
+    try {
+        this->verify_chip();
+    } catch(const std::exception& e) {
+        this->raise_error_window(QMessageBox::Critical,
+                                 "Cannot flash this ROM to bank due to a problem with "
+                                 "with the CHIP id. Please carefully check the chip and "
+                                 "whether it is properly inserted into the socket."
+                                 "\n\nError message: " + QString(e.what())
+                                 );
+        return;
+    }
 
     if(this->flash_data.size() > 16 * 1024) {
         this->raise_error_window(QMessageBox::Critical,
@@ -1034,7 +1107,7 @@ void MainWindow::flash_bank() {
     connect(this->flashthread.get(), SIGNAL(flash_result_ready()), this, SLOT(flash_result_ready()));
     connect(this->flashthread.get(), SIGNAL(flash_sector_start(uint,uint)), this, SLOT(flash_sector_start(uint,uint)));
     connect(this->flashthread.get(), SIGNAL(flash_sector_done(uint,uint)), this, SLOT(flash_sector_done(uint,uint)));
-    connect(this->flashthread.get(), SIGNAL(flash_chip_id_error(uint)), this, SLOT(flash_chip_id_error(uint)));
+    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     flashthread->start();
 
     // disable all buttons
@@ -1045,6 +1118,19 @@ void MainWindow::flash_bank() {
  * @brief Put rom on flash cartridge
  */
 void MainWindow::erase_chip() {
+    // verify whether the chip is correct
+    try {
+        this->verify_chip();
+    } catch(const std::exception& e) {
+        this->raise_error_window(QMessageBox::Critical,
+                                 "Cannot flash this ROM to bank due to a problem with "
+                                 "with the CHIP id. Please carefully check the chip and "
+                                 "whether it is properly inserted into the socket."
+                                 "\n\nError message: " + QString(e.what())
+                                 );
+        return;
+    }
+
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this, "Wipe chip?", "Are you sure you want to completely wipe the chip?", QMessageBox::Yes|QMessageBox::No);
     if (reply != QMessageBox::Yes) {
@@ -1079,6 +1165,7 @@ void MainWindow::scan_chip() {
     connect(this->readerthread.get(), SIGNAL(read_result_ready()), this, SLOT(scan_chip_result_ready()));
     connect(this->readerthread.get(), SIGNAL(read_block_start(uint,uint)), this, SLOT(read_block_start(uint,uint)));
     connect(this->readerthread.get(), SIGNAL(read_block_done(uint,uint)), this, SLOT(read_block_done(uint,uint)));
+    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     this->readerthread->start();
 }
 
@@ -1126,6 +1213,7 @@ void MainWindow::flash_result_ready() {
     connect(this->readerthread.get(), SIGNAL(read_result_ready()), this, SLOT(verify_result_ready()));
     connect(this->readerthread.get(), SIGNAL(read_block_start(uint,uint)), this, SLOT(verify_block_start(uint,uint)));
     connect(this->readerthread.get(), SIGNAL(read_block_done(uint,uint)), this, SLOT(verify_block_done(uint,uint)));
+    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     this->readerthread->start();
 }
 
@@ -1192,4 +1280,30 @@ void MainWindow::verify_result_ready() {
     // re-enable all buttons when data is read
     // this->enable_all_buttons();
     this->progress_bar_load->reset();
+}
+
+void MainWindow::thread_abort(const QString& error) {
+    // clean up threads
+    if(this->readerthread) {
+        while(!this->readerthread->isFinished()) {}
+        this->readerthread.reset(); // delete object
+    }
+
+    if(this->flashthread) {
+        while(!this->flashthread->isFinished()) {}
+        this->flashthread.reset(); // delete object
+    }
+
+    if(this->cartridgereaderthread) {
+        while(!this->cartridgereaderthread->isFinished()) {}
+        this->cartridgereaderthread.reset(); // delete object
+    }
+
+    // throw error message
+    this->raise_error_window(QMessageBox::Critical,
+                             "Operation terminated unexpectedly. Please carefully "
+                             "check all settings and verify that the chip is "
+                             "properly inserted into the socket."
+                             "\n\nError message: " + error
+                             );
 }

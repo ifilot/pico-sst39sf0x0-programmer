@@ -111,6 +111,9 @@ public:
 
 protected:
 
+signals:
+    void thread_abort(const QString&);
+
 };
 
 #endif // IOWORKER_H
