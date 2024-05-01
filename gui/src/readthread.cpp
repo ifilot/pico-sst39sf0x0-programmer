@@ -44,11 +44,16 @@ void ReadThread::run() {
                     this->nr_banks = 512 / 16;
                 break;
                 default:
-                    throw std::runtime_error("Unknown chip suffix: " + std::to_string(chip_id));
+                    emit(thread_abort("Invalid suffix for chip id."));
+                    this->serial_interface->close_port();
+                    return;
                 break;
             }
         } else {
-            throw std::runtime_error("Unknown chip id: " + std::to_string(chip_id));
+            std::string chip_id_str = tr("0x%1%2").arg((uint16_t)chip_id >> 8, 2, 16, QChar('0')).arg((uint8_t)chip_id & 0xFF, 2, 16, QChar('0')).toStdString();
+            emit(thread_abort(tr("Unknown chip id: %1").arg(chip_id_str.c_str())));
+            this->serial_interface->close_port();
+            return;
         }
     }
 

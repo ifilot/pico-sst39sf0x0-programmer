@@ -92,9 +92,11 @@ private:
     QPushButton* button_flash_rom;
     QPushButton* button_flash_bank;
     QPushButton* button_scan_slots;
+    QPushButton* button_reload_file;
 
     // file data
     QString current_filename;
+    bool current_file_expanded = false;
     std::unique_ptr<CartridgeReadThread> cartridgereaderthread;
     std::unique_ptr<ReadThread> readerthread;
     std::unique_ptr<FlashThread> flashthread;
@@ -177,6 +179,11 @@ private slots:
      * @brief Open a binary file
      */
     void slot_open();
+
+    /**
+     * @brief Reload a file
+     */
+    void slot_reload_file();
 
     /**
      * @brief Save a binary file
@@ -324,6 +331,11 @@ private slots:
      * @brief Signal that a verified operation is finished
      */
     void verify_result_ready();
+
+    /****************************************************************************
+     *  SIGNALS :: OTHER
+     ****************************************************************************/
+    void thread_abort(const QString& error);
 
 };
 #endif // MAINWINDOW_H
