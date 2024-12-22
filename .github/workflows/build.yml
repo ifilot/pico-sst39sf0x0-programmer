@@ -116,13 +116,13 @@ jobs:
     - name: Create installer
       run: |
         dir ${{github.workspace}}\..\Qt\Tools\QtInstallerFramework
-        ${{github.workspace}}\..\Qt\Tools\QtInstallerFramework\4.7\bin\binarycreator.exe -c config\config.xml -p packages ${{env.PROGNAME}}-${{ github.ref }}-installer-win64.exe
+        ${{github.workspace}}\..\Qt\Tools\QtInstallerFramework\4.7\bin\binarycreator.exe -c config\config.xml -p packages ${{env.PROGNAME}}-installer-win64.exe
       working-directory: gui/packaging
     - name: Upload installer
       uses: actions/upload-artifact@v3
       with:
-        name: ${{env.PROGNAME}}-${{ github.ref }}-installer-win64.exe
-        path: gui/packaging/${{env.PROGNAME}}-${{ github.ref }}-installer-win64.exe
+        name: ${{env.PROGNAME}}-installer-win64.exe
+        path: gui/packaging/${{env.PROGNAME}}-installer-win64.exe
 
   # deploy Windows installer
   deploy-installer-windows:
@@ -220,6 +220,7 @@ jobs:
         mkdir build && cd build
         cmake -DPICO_PLATFORM=rp2350-arm-s -DPICO_BOARD=pico2 ../firmware
         make -j
+        cp -v ${{env.FIRMWARE}}.uf2 ${{env.FIRMWARE2}}.uf2
     - name: Upload firmware .uf2 file
       uses: actions/upload-artifact@v3
       with:
