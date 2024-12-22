@@ -421,7 +421,8 @@ void MainWindow::scan_com_devices() {
 
     // pattern to recognise COM PORTS (same ids as Raspberry Pi Pico)
     static const std::vector<std::pair<uint16_t, uint16_t> > patterns = {
-        std::make_pair<uint16_t, uint16_t>(0x2E8A, 0x0A),     // Raspberry PICO
+        std::make_pair<uint16_t, uint16_t>(0x2E8A, 0x000A),   // Raspberry PICO
+        std::make_pair<uint16_t, uint16_t>(0x2E8A, 0x0009),   // Raspberry PICO2
         //std::make_pair<uint16_t, uint16_t>(0x2341, 0x36),   // Arduino Leonardo / 32u4
         //std::make_pair<uint16_t, uint16_t>(0x0403, 0x6001)  // FTDI FT232RL
 
