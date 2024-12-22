@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+    <Name>PICO SST39SF0x0 Programmer</Name>
+    <Version>1.5.3</Version>
+    <Title>PICO SST39SF0x0 Programmer Installer</Title>
+    <Publisher>retrohacks.nl</Publisher>
+    <StartMenuDir>retrohacks.nl</StartMenuDir>
+    <TargetDir>@HomeDir@/retrohacks.nl/pico-sst39sf0x0-programmer-1.5.3</TargetDir>
+    <RunProgram>@TargetDir@/pico-sst39sf0x0-programmer/</RunProgram>
+    <RunProgramDescription>PICO SST39SF0x0 Programmer</RunProgramDescription>
+</Installer>
