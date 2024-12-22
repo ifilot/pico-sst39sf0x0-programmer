@@ -14,7 +14,7 @@ def main():
     # set names and folders
     variables = {
         'publisher': 'retrohacks.nl',
-        'progfolder': 'PICO SST39SF0x0 Programmer',
+        'progfolder': 'pico-sst39sf0x0-programmer-' + version,
         'executable': 'pico-sst39sf0x0-programmer',
         'progdescription': 'PICO SST39SF0x0 Programmer',
         'progname': 'PICO SST39SF0x0 Programmer',
@@ -55,7 +55,6 @@ def grab_version():
             m = re.match(ptn, line)
             if m:
                 return m.group(1)
-    
 
 if __name__ == '__main__':
     main()
