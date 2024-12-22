@@ -218,7 +218,7 @@ jobs:
       shell: bash
       run: |
         mkdir build && cd build
-        cmake -DPICO_BOARD=pico2 ../firmware
+        cmake -DPICO_PLATFORM=rp2350-arm-s -DPICO_BOARD=pico2 ../firmware
         make -j
     - name: Upload firmware .uf2 file
       uses: actions/upload-artifact@v3
