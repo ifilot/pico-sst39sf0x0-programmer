@@ -143,8 +143,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ${{env.PROGNAME}}-${{ github.ref }}-installer-win64.exe
-        asset_name: ${{env.PROGNAME}}-${{ github.ref }}-installer-win64.exe
+        asset_path: ${{env.PROGNAME}}-installer-win64.exe
+        asset_name: ${{env.PROGNAME}}-installer-win64.exe
         asset_content_type: application/vnd.microsoft.portable-executable
 
   #
