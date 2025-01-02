@@ -70,6 +70,10 @@ an alternative way to communicate with the PICO programmer.
 
 ![PICO programmer GUI](img/pico-programmer-gui-01.JPG)
 
+> [!NOTE]  
+> There is also a command-line tool available via
+> [this repository](https://github.com/ifilot/pico-flasher-cli).
+
 ## Documentation and tutorials
 
 A number of useful tutorials to work with the PICO programmer are provided
