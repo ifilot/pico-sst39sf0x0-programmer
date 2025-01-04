@@ -10,6 +10,17 @@
 > [!NOTE]  
 > Wish to buy an assembled device? Feel free to contact me at ivo@ivofilot.nl. Price will be around €20,00. Will ship from the Netherlands.
 
+> [!TIP]
+> There also exists [a command-line tool](https://github.com/ifilot/pico-flasher-cli) to interface with the PICO-SST39SF0x0 Programmer.
+
+## Obtaining pre-built binaries
+
+Download the latest version of the binaries via the links below.
+
+* [Firmware PICO (.uf2 file)](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-firmware.uf2)
+* [Firmware PICO2 (.uf2 file)](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico2-sst39sf0x0-programmer-firmware.uf2)
+* [GUI Installer](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-installer-win64.exe)
+
 ## Purpose
 
 This open hardware project aims users to produce a low-cost flasher for the
@@ -100,14 +111,6 @@ below.
 * [PCB](pcb): Kicad files to produce the PICO flash device and the PLCC32 adapter board.
 * [Scripts](scripts): Number of Python scripts the correct working of your PICO
   device.
-
-## Obtaining pre-built binaries
-
-Download the latest version of the binaries via the links below.
-
-* [Firmware PICO (.uf2 file)](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-firmware.uf2)
-* [Firmware PICO2 (.uf2 file)](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico2-sst39sf0x0-programmer-firmware.uf2)
-* [GUI Installer](https://github.com/ifilot/pico-sst39sf0x0-programmer/releases/latest/download/pico-sst39sf0x0-programmer-installer-win64.exe)
 
 ## License
 
