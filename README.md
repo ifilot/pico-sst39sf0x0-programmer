@@ -7,6 +7,9 @@
 
 [![OSHW](img/certification-mark-NL000020-wide.svg)](https://certification.oshwa.org/nl000020.html)
 
+> [!NOTE]  
+> Wish to buy an assembled device? Feel free to contact me at ivo@ivofilot.nl. Price will be around €20,00. Will ship from the Netherlands.
+
 ## Purpose
 
 This open hardware project aims users to produce a low-cost flasher for the
