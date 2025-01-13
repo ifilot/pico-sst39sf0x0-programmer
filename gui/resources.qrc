@@ -2,44 +2,6 @@
     <qresource prefix="/">
         <file>assets/icon/eeprom_icon.ico</file>
         <file>assets/roms/c64-megacart.bin</file>
-        <file>assets/roms/p2000t-multicart.bin</file>
-        <file>assets/roms/jwsbasic.bin</file>
-        <file>assets/roms/assembler 5.6.bin</file>
-        <file>assets/roms/assembler 5.9.bin</file>
-        <file>assets/roms/BASIC.BIN</file>
-        <file>assets/roms/Basic-24 systemtracks.bin</file>
-        <file>assets/roms/Basic-24.bin</file>
-        <file>assets/roms/BASICBOOTSTRAP.bin</file>
-        <file>assets/roms/BIS system.bin</file>
-        <file>assets/roms/BIS.bin</file>
-        <file>assets/roms/CPM Nater.bin</file>
-        <file>assets/roms/EPROM-programmer.bin</file>
-        <file>assets/roms/familiegeheugen 2.bin</file>
-        <file>assets/roms/familiegeheugen 3.bin</file>
-        <file>assets/roms/familiegeheugen 4.bin</file>
-        <file>assets/roms/flexbase.bin</file>
-        <file>assets/roms/Forth.bin</file>
-        <file>assets/roms/GOS 3.6.bin</file>
-        <file>assets/roms/helloworld.bin</file>
-        <file>assets/roms/Maintenance 1.bin</file>
-        <file>assets/roms/Maintenance 2.bin</file>
-        <file>assets/roms/MCPM.bin</file>
-        <file>assets/roms/MCPM-system.bin</file>
-        <file>assets/roms/memcheck.bin</file>
-        <file>assets/roms/Miniware 1.0.bin</file>
-        <file>assets/roms/NeboCalc system.bin</file>
-        <file>assets/roms/NeboCalc.bin</file>
-        <file>assets/roms/PDOS.bin</file>
-        <file>assets/roms/Seeters.bin</file>
-        <file>assets/roms/tapemonitor.bin</file>
-        <file>assets/roms/tekst 1.bin</file>
-        <file>assets/roms/Text2000 2.bin</file>
-        <file>assets/roms/Text2000 3.bin</file>
-        <file>assets/roms/UCSD Pascal system.bin</file>
-        <file>assets/roms/UCSD Pascal.bin</file>
-        <file>assets/roms/WordProcessor 1.bin</file>
-        <file>assets/roms/WordProcessor 2.bin</file>
-        <file>assets/roms/Zemon 1.4.bin</file>
         <file>assets/fonts/Consolas.ttf</file>
         <file>assets/icon/clipboard.png</file>
     </qresource>
