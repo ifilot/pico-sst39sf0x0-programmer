@@ -221,7 +221,7 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
 
     // add individual buttons here
     QPushButton* btn1 = new QPushButton("P2000T Multicart ROM");
-    btn1->setProperty("image_name", QVariant(QString("p2000t-multicart.bin")));
+    btn1->setProperty("image_name", QVariant(QString("https://github.com/ifilot/p2000t-rompacks/releases/download/nightly/MULTIROM-512KiB.BIN")));
     layout->addWidget(btn1);
     connect(btn1, SIGNAL(released()), this, SLOT(load_default_image()));
 
@@ -244,7 +244,7 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
 
     // add individual buttons here
     btn1 = new QPushButton("P2000T BASICNL v1.1");
-    btn1->setProperty("image_name", QVariant(QString("BASIC.BIN")));
+    btn1->setProperty("image_name", QVariant(QString("https://github.com/p2000t/software/raw/refs/heads/main/cartridges/BASICNL1.1.bin")));
     layout->addWidget(btn1);
     connect(btn1, SIGNAL(released()), this, SLOT(load_default_image()));
 
@@ -254,18 +254,15 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
 
     // list of ROM images
     QList<QPair<QString, QString>> rom_images = {
-        {"Assembler v5.9", "assembler 5.9.bin"},
-        {"BASICNL with Bootstrap for DATA cartridge [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/BASICBOOTSTRAP.BIN"},
-        {"BASICNL with Bootstrap for SD-CARD cartridge [download]", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/BASICBOOTSTRAP.BIN"},
-        {"Cassette to EEPROM Utility [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/CASSETTE_UTILITY.BIN"},
-        {"Familiegeheugen v4", "familiegeheugen 4.bin"},
-        {"Flasher for DATA cartridge [download]", "https://github.com/ifilot/p2000t-tape-monitor/releases/latest/download/FLASHER.BIN"},
-        {"Flasher for SD-CARD cartridge [download]", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/FLASHER.BIN"},
-        {"Forth compiler", "Forth.bin"},
-        {"Maintenance cartridge", "Maintenance 2.bin"},
-        {"RAM (expansion board) Test [download]", "https://github.com/ifilot/p2000t-ram-expansion-board/releases/latest/download/RAMTEST.BIN"},
-        {"Word Processor v2", "WordProcessor 2.bin"},
-        {"Zemon assembler v1.4", "Zemon 1.4.bin"}
+        {"Assembler v5.9", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/assembler%205.9.bin"},
+        {"BASICNL with Bootstrap for SD-CARD cartridge", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/BASICBOOTSTRAP.BIN"},
+        {"Familiegeheugen v4", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/familiegeheugen%204.bin"},
+        {"Flasher for SD-CARD cartridge", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/FLASHER.BIN"},
+        {"Forth compiler", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/Forth.bin"},
+        {"Maintenance cartridge", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/Maintenance%202.bin"},
+        {"RAM (expansion board) Test", "https://github.com/ifilot/p2000t-ram-expansion-board/releases/latest/download/RAMTEST.BIN"},
+        {"Word Processor v2", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/WordProcessor%202.bin"},
+        {"Zemon assembler v1.4", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/Zemon%201.4.bin"}
     };
 
     QMenu* rommenu = new QMenu();
