@@ -13,6 +13,11 @@
 > [!TIP]
 > There also exists [a command-line tool](https://github.com/ifilot/pico-flasher-cli) to interface with the PICO-SST39SF0x0 Programmer.
 
+> [!CAUTION]  
+> Whenever possible, avoid using USB hubs to connect your **PICO-SST39SF0x0 Programmer**. 
+> USB hubs can sometimes cause instability in the serial connection, which may 
+> lead to crashes or unexpected program behavior.
+
 ## Obtaining pre-built binaries
 
 Download the latest version of the binaries via the links below.
@@ -38,11 +43,14 @@ use the PICO-SST39SF0x0 Programmer flasher.
 * [P2000T Cartridges](https://github.com/ifilot/p2000t-cartridges): A set of
   homebrew cartridges designed for the P2000T. These cartridges all use
   SST39SF0x0 type of ROM chips.
-* [P2000T Tape Monitor](https://github.com/ifilot/p2000t-tape-monitor): A SLOT2
-  datacartridge for loading programs into the P2000T.
+* C64 Multirom
 
 Nevertheless, this is a general purpose product and you are able to flash and
 kind of data onto the ROM chips.
+
+> [!TIP]  
+> If you do not like seeing these ROM files being displayed, you can hide them
+> via `Edit > Settings`.
 
 ## Device
 
