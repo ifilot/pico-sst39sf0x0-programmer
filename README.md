@@ -63,7 +63,7 @@ Raspberry Pi PICO. When this button is pressed down and a USB cable is inserted,
 the PICO will expose a file system allowing the user to upload the firmware
 to the device.
 
-![Image of the PICO Flasher device](img/pico-flasher.jpg)
+![Image of the PICO Flasher device](img/pico-flasher-multimaterial.jpg)
 
 Inside the enclosure is a single PCB that hosts the PICO, the ZIF cartridge
 and a number of chips. Since the GPIO pins on the PICO are 3.3V, extensive use
