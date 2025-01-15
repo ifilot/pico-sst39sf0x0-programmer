@@ -254,6 +254,7 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
 
     // list of ROM images
     QList<QPair<QString, QString>> rom_images = {
+        {"P2000T Games Bundle", "https://github.com/ifilot/p2000t-rompacks/releases/download/nightly/GAMES-128KiB.BIN"},
         {"Assembler v5.9", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/assembler%205.9.bin"},
         {"BASICNL with Bootstrap for SD-CARD cartridge", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/BASICBOOTSTRAP.BIN"},
         {"Familiegeheugen v4", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/familiegeheugen%204.bin"},
