@@ -19,11 +19,19 @@ jobs:
 
         - name: Redirect HOME to a writable directory
           run: mkdir -p ${{ runner.temp }}/home
+
+        - name: Check permissions in GitHub Actions environment
+          run: |
+            echo "Checking permissions in /home/runner"
+            ls -ld /home/runner
+            echo "Checking environment variables"
+            env
   
         - name: Run KiCad CLI in Docker
           run: |
             docker run --rm \
-              -e XDG_CACHE_HOME=${{ runner.temp }}/kicad_cache \
+              --env HOME=/tmp \
+              -v ${{ runner.temp }}/home:/home/runner \
               -v ${{ github.workspace }}:/workspace:rw \
               -w /workspace \
               kicad/kicad:8.0.8 \
