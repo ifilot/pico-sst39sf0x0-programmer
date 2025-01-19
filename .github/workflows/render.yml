@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "master", "develop", "ga-render" ]
 
+env:
+  XDG_CACHE_HOME: /tmp/cache
+
 jobs:
     create-wrl:
       runs-on: ubuntu-latest
