@@ -28,3 +28,8 @@ jobs:
               -w /workspace \
               kicad/kicad:8.0.8 \
               kicad-cli pcb export vrml --output /workspace/board.wrl /workspace/pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb
+        - name: Upload packaging scripts
+          uses: actions/upload-artifact@v3
+          with:
+            name: wrl
+            path: /workspace/board.wrl
