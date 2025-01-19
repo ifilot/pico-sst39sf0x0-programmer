@@ -16,7 +16,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Generate wrl
-        run: kicad-cli pcb export vrml --output ${{github.workspace}}/board.wrl ${{github.workspace}}/pcb/pico-sst39sf0x0-pcb.kicad_pcb
+        run: sudo kicad-cli pcb export vrml --output ${{github.workspace}}/board.wrl ${{github.workspace}}/pcb/pico-sst39sf0x0-pcb.kicad_pcb
       - name: Upload wrl
         uses: actions/upload-artifact@v3
         with:
