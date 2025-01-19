@@ -24,7 +24,7 @@ jobs:
           run: |
             docker run --rm \
               -e XDG_CACHE_HOME=${{ runner.temp }}/kicad_cache \
-              -v ${{ github.workspace }}:/workspace \
+              -v ${{ github.workspace }}:/workspace:rw \
               -w /workspace \
               kicad/kicad:8.0.8 \
               kicad-cli pcb export vrml --output /workspace/board.wrl /workspace/pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb && \
