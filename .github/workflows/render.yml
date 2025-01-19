@@ -7,21 +7,16 @@ on:
     branches: [ "master", "develop", "ga-render" ]
 
 jobs:
-  render-image:
-    name: render-image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
-
-      - name: render pcb image
-        uses: linalinn/kicad-render@main
-        with:
-          pcb_file: pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb
-          output_path: ${{ github.workspace }}/images
-        
+    create-wrl:
+      runs-on: ubuntu-latest
+      permissions: write-all
+      container:
+        image: kicad/kicad:8.0.8
+      steps:
+      - name: Generate wrl
+        run: kicad-cli pcb export vrml --output ${{github.workspace}}/board.wrl ${{github.workspace}}/pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb
       - name: Upload wrl
         uses: actions/upload-artifact@v3
         with:
-          name: images
-          path: images/*
+          name: board.wrl
+          path: ${{github.workspace}}/board.wrl
