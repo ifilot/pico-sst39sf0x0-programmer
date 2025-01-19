@@ -34,6 +34,7 @@ jobs:
               -v ${{ runner.temp }}/home:/home/runner \
               -v ${{ github.workspace }}:/workspace \
               -w /workspace \
+              kicad/kicad:8.0.8 \
               ls -la /workspace
             docker run --rm \
               --env HOME=/tmp \
@@ -47,6 +48,7 @@ jobs:
               -v ${{ runner.temp }}/home:/home/runner \
               -v ${{ github.workspace }}:/workspace \
               -w /workspace \
+              kicad/kicad:8.0.8 \
               ls -la /workspace
 
         - name: Find .wrl files
