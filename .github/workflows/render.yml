@@ -13,6 +13,7 @@ jobs:
       container:
         image: kicad/kicad:8.0.8
       steps:
+      - uses: actions/checkout@v3
       - name: Generate wrl
         run: kicad-cli pcb export vrml --output ${{github.workspace}}/board.wrl ${{github.workspace}}/pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb
       - name: Upload wrl
