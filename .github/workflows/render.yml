@@ -32,4 +32,23 @@ jobs:
           uses: actions/upload-artifact@v3
           with:
             name: wrl
-            path: /workspace/board.wrl
+            path: ${{ github.workspace }}/board.wrl
+
+    render:
+      runs-on: ubuntu-latest
+      needs: [create-wrl]
+      permissions: write-all
+      steps:
+      - name: Install dependencies
+        run: |
+          sudo apt update && sudo apt -y install libpng-dev wget imagemagick
+          wget https://master.dl.sourceforge.net/project/castle-engine/rayhunter/rayhunter-1.3.4-linux-x86_64.tar.gz
+          tar xzvf rayhunter-1.3.4-linux-x86_64.tar.gz
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: board.wrl
+          path: ./
+      - name: render
+        run: bash scripts/render.sh
+
