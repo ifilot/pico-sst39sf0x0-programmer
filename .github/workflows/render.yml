@@ -16,6 +16,9 @@ jobs:
   
         - name: Create writable cache directory
           run: mkdir -p ${{ runner.temp }}/kicad_cache
+
+        - name: Redirect HOME to a writable directory
+          run: mkdir -p ${{ runner.temp }}/home
   
         - name: Run KiCad CLI in Docker
           run: |
