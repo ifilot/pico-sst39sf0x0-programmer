@@ -1,0 +1,41 @@
+name: build
+
+on:
+  push:
+    branches: [ "master", "develop", "ga-render" ]
+  pull_request:
+    branches: [ "master", "develop", "ga-render" ]
+
+jobs:
+  #
+  # (optional) Create release
+  #
+  create-wrl:
+    runs-on: ubuntu-latest
+    container:
+      image: kicad/kicad:8.0.8
+    - name: Generate wrl
+      run: kicad-cli pcb export vrml --output ${{github.workspace}}/board.wrl ${{github.workspace}}/pcb/pico-sst39sf0x0-pcb.kicad_pcb
+    - name: Upload wrl
+      uses: actions/upload-artifact@v3
+      with:
+        name: board.wrl
+        path: ${{github.workspace}}/board.wrl
+
+  render:
+    runs-on: ubuntu-latest
+    needs: [create-wrl]
+    permissions: write-all
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt update && sudo apt -y install libpng-dev wget imagemagick
+        wget https://master.dl.sourceforge.net/project/castle-engine/rayhunter/rayhunter-1.3.4-linux-x86_64.tar.gz
+        tar xzvf rayhunter-1.3.4-linux-x86_64.tar.gz
+    - name: Download artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: board.wrl
+        path: ./
+    - name: render
+      run: bash scripts/render.sh
