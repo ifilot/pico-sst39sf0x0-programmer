@@ -32,11 +32,10 @@ jobs:
             docker run --rm \
               --env HOME=/tmp \
               -v ${{ runner.temp }}/home:/home/runner \
-              -v ${{ github.workspace }}:/workspace:rw \
+              -v ${{ github.workspace }}:/workspace \
               -w /workspace \
               kicad/kicad:8.0.8 \
-              kicad-cli pcb export vrml --output /workspace/board.wrl /workspace/pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb && \
-              ls -alh ${{ github.workspace }}
+              kicad-cli pcb export vrml --output /home/runner/board.wrl /workspace/pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb
 
         - name: Find .wrl files
           run: find ${{ github.workspace }} -name *.wrl
@@ -45,7 +44,7 @@ jobs:
           uses: actions/upload-artifact@v3
           with:
             name: wrl
-            path: ${{ github.workspace }}/board.wrl
+            path: ${{ runner.temp }}/board.wrl
 
     render:
       runs-on: ubuntu-latest
