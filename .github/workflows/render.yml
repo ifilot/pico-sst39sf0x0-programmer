@@ -27,7 +27,8 @@ jobs:
               -v ${{ github.workspace }}:/workspace \
               -w /workspace \
               kicad/kicad:8.0.8 \
-              kicad-cli pcb export vrml --output /workspace/board.wrl /workspace/pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb
+              kicad-cli pcb export vrml --output /workspace/board.wrl /workspace/pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb && \
+              ls -alh ${{ github.workspace }}
         - name: Upload packaging scripts
           uses: actions/upload-artifact@v3
           with:
