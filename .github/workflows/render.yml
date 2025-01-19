@@ -34,8 +34,20 @@ jobs:
               -v ${{ runner.temp }}/home:/home/runner \
               -v ${{ github.workspace }}:/workspace \
               -w /workspace \
+              ls -la /workspace
+            docker run --rm \
+              --env HOME=/tmp \
+              -v ${{ runner.temp }}/home:/home/runner \
+              -v ${{ github.workspace }}:/workspace \
+              -w /workspace \
               kicad/kicad:8.0.8 \
               kicad-cli pcb export vrml --output /home/runner/board.wrl /workspace/pcb/pico-sst39sf0x0-pcb/pico-sst39sf0x0-pcb.kicad_pcb
+            docker run --rm \
+              --env HOME=/tmp \
+              -v ${{ runner.temp }}/home:/home/runner \
+              -v ${{ github.workspace }}:/workspace \
+              -w /workspace \
+              ls -la /workspace
 
         - name: Find .wrl files
           run: find ${{ github.workspace }} -name *.wrl
