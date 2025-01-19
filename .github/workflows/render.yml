@@ -14,13 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: kicad/kicad:8.0.8
-    - name: Generate wrl
-      run: kicad-cli pcb export vrml --output ${{github.workspace}}/board.wrl ${{github.workspace}}/pcb/pico-sst39sf0x0-pcb.kicad_pcb
-    - name: Upload wrl
-      uses: actions/upload-artifact@v3
-      with:
-        name: board.wrl
-        path: ${{github.workspace}}/board.wrl
+    steps:
+      - name: Generate wrl
+        run: kicad-cli pcb export vrml --output ${{github.workspace}}/board.wrl ${{github.workspace}}/pcb/pico-sst39sf0x0-pcb.kicad_pcb
+      - name: Upload wrl
+        uses: actions/upload-artifact@v3
+        with:
+          name: board.wrl
+          path: ${{github.workspace}}/board.wrl
 
   render:
     runs-on: ubuntu-latest
