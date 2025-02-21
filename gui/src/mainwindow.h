@@ -111,8 +111,7 @@ private:
     QLabel* label_compile_data;
     QSettings settings;
 
-    QGroupBox *multirom_container;
-    QGroupBox *singlerom_container;
+    QGroupBox *rom_container;
 
 public:
     /**

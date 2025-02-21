@@ -214,10 +214,10 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
      * MULTICARTRIDGE IMAGES
      */
     // create toplevel interface
-    this->multirom_container = new QGroupBox("Multicard images");
-    this->multirom_container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    this->rom_container = new QGroupBox("ROM images");
+    this->rom_container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     QVBoxLayout *layout = new QVBoxLayout();
-    this->multirom_container->setLayout(layout);
+    this->rom_container->setLayout(layout);
 
     // add individual buttons here
     QPushButton* btn1 = new QPushButton("P2000T Multicart ROM");
@@ -230,31 +230,17 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     layout->addWidget(btn2);
     connect(btn2, SIGNAL(released()), this, SLOT(load_default_image()));
 
-    target_layout->addWidget(this->multirom_container);
-
-    /**
-     * SINGLE ROM IMAGES
-     */
-
-    // create toplevel interface
-    this->singlerom_container = new QGroupBox("Single cartridge images");
-    this->singlerom_container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    layout = new QVBoxLayout();
-    this->singlerom_container->setLayout(layout);
-
     // add individual buttons here
-    btn1 = new QPushButton("P2000T BASICNL v1.1");
-    btn1->setProperty("image_name", QVariant(QString("https://github.com/p2000t/software/raw/refs/heads/main/cartridges/BASICNL1.1.bin")));
-    layout->addWidget(btn1);
-    connect(btn1, SIGNAL(released()), this, SLOT(load_default_image()));
-
-    // add individual buttons here
-    btn2 = new QPushButton("Select other ROM");
-    layout->addWidget(btn2);
+    QPushButton* btn3 = new QPushButton("Select other ROM");
+    layout->addWidget(btn3);
 
     // list of ROM images
     QList<QPair<QString, QString>> rom_images = {
-        {"P2000T Games Bundle", "https://github.com/ifilot/p2000t-rompacks/releases/download/nightly/GAMES-128KiB.BIN"},
+        {"P2000T BASICNL v1.1", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/BASICNL1.1.bin"},
+        {"P2000T Games Bundle (8-pack; 128 KiB; Space Fight)", "https://github.com/ifilot/p2000t-rompacks/releases/download/nightly/GAMES-128KiB.BIN"},
+        {"P2000T Games Bundle (8-pack; 128 KiB; Fraxxon)", "https://github.com/ifilot/p2000t-rompacks/releases/download/nightly/GAMES-128KiB-ALT.BIN"},
+        {"P2000T Games Bundle (16-pack; 256 KiB)", "https://github.com/ifilot/p2000t-rompacks/releases/download/nightly/GAMES-256KiB.BIN"},
+        {"P2000T Joystick ROM", "https://github.com/ifilot/p2000t-joystick-cartridge/releases/download/nightly/joystick_eeprom.bin"},
         {"Assembler v5.9", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/assembler%205.9.bin"},
         {"BASICNL with Bootstrap for SD-CARD cartridge", "https://github.com/ifilot/p2000t-sdcard/releases/latest/download/BASICBOOTSTRAP.BIN"},
         {"Familiegeheugen v4", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/familiegeheugen%204.bin"},
@@ -274,9 +260,9 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
         connect(action, &QAction::triggered, this, &MainWindow::load_default_image);
         rommenu->addAction(action);
     }
-    btn2->setMenu(rommenu);
+    btn3->setMenu(rommenu);
 
-    target_layout->addWidget(this->singlerom_container);
+    target_layout->addWidget(this->rom_container);
 }
 
 /**
@@ -729,9 +715,7 @@ void MainWindow::slot_update_settings() {
     //qDebug() << "Settings update triggered";
 
     bool show_retroroms = this->settings.value("SHOW_RETROROMS", QVariant(true)).toBool();
-    this->multirom_container->setVisible(show_retroroms);
-    this->singlerom_container->setVisible(show_retroroms);
-    dynamic_cast<QWidget*>(this->singlerom_container->parent())->layout()->invalidate();
+    this->rom_container->setVisible(show_retroroms);
     this->hex_widget->viewport()->repaint();
 }
 
