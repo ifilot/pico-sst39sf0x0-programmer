@@ -90,6 +90,7 @@ private:
     QPushButton* button_read_rom;
     QPushButton* button_read_cartridge;
     QPushButton* button_flash_rom;
+    QPushButton* button_flash_rom_quick;
     QPushButton* button_flash_bank;
     QPushButton* button_scan_slots;
     QPushButton* button_reload_file;
@@ -280,6 +281,11 @@ private slots:
      * @brief Put rom on flash cartridge
      */
     void flash_rom();
+
+    /**
+     * @brief Put rom on flash cartridge
+     */
+    void flash_rom_quick();
 
     /**
      * @brief Put rom on flash cartridge

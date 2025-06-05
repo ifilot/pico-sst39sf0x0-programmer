@@ -23,6 +23,8 @@
 
 #include <QMessageBox>
 #include <QIcon>
+#include <algorithm>
+#include <QDebug>
 
 #include "ioworker.h"
 #include "romsizes.h"
@@ -35,7 +37,6 @@
 class FlashThread : public IOWorker {
 
     Q_OBJECT
-
 private:
     /**
      * @brief number of blocks to flash
@@ -47,20 +48,27 @@ private:
      */
     uint8_t starting_bank;
 
+    /**
+     * @brief Whether to only flash those segments that are not 0xFF
+     */
+    bool quickflash = false;
+
 public:
     /**
      * @brief Default constructor
      */
-    FlashThread() {}
+    FlashThread(bool _quickflash = false) : quickflash(_quickflash) {}
 
     /**
      * @brief Constructor allocating SerialInterface
      * @param _serial_interface
      */
     FlashThread(const std::shared_ptr<SerialInterface>& _serial_interface,
-                uint8_t _starting_bank = 0) :
+                uint8_t _starting_bank = 0,
+                bool _quickflash = false) :
         IOWorker(_serial_interface),
-        starting_bank(_starting_bank) {}
+        starting_bank(_starting_bank),
+        quickflash(_quickflash) {}
 
     /**
      * @brief run cart flash routine

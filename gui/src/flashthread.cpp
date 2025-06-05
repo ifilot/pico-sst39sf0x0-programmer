@@ -43,19 +43,38 @@ void FlashThread::flash_sst39sf0x0() {
         emit(thread_abort(tr("Unknown chip id: %1").arg(chip_id_str.c_str())));
         this->serial_interface->close_port();
         return;
-        return;
     }
 
-    for(unsigned int i=0; i<this->num_sectors; i++) {
-        unsigned int sector_id = i + this->starting_bank * SECTORSPERBANK; // shift block id by the starting bank
+    if(this->quickflash) {
+        qDebug() << "Flashing chip using QuickWrite";
+        this->serial_interface->erase_chip();
+        for(unsigned int i=0; i<this->num_sectors; i++) {
+            unsigned int sector_id = i + this->starting_bank * SECTORSPERBANK; // shift block id by the starting bank
 
-        emit(flash_sector_start(sector_id, this->num_sectors));
+            emit(flash_sector_start(sector_id, this->num_sectors));
 
-        // erase the sector and write new data to it
-        this->serial_interface->erase_sector(sector_id << 4);
-        this->serial_interface->burn_sector(sector_id, this->data.mid(i * SECTORSIZE, SECTORSIZE));
+            // only erase the sector if it contains data not equal to 0xFF
+            const auto& sectordata = this->data.mid(i * SECTORSIZE, SECTORSIZE);
+            if (!std::all_of(sectordata.begin(), sectordata.end(),
+                            [](char byte) { return static_cast<unsigned char>(byte) == 0xFF; })) {
+                this->serial_interface->burn_sector(sector_id, this->data.mid(i * SECTORSIZE, SECTORSIZE));
+            } else {
+                qDebug() << "Skipping sector: " << i << " (no non-0xFF data).";
+            }
+            emit(flash_sector_done(i, this->num_sectors));
+        }
+    } else {
+        for(unsigned int i=0; i<this->num_sectors; i++) {
+            unsigned int sector_id = i + this->starting_bank * SECTORSPERBANK; // shift block id by the starting bank
 
-        emit(flash_sector_done(i, this->num_sectors));
+            emit(flash_sector_start(sector_id, this->num_sectors));
+
+            // erase the sector and write new data to it
+            this->serial_interface->erase_sector(sector_id << 4);
+            this->serial_interface->burn_sector(sector_id, this->data.mid(i * SECTORSIZE, SECTORSIZE));
+
+            emit(flash_sector_done(i, this->num_sectors));
+        }
     }
 
     this->serial_interface->close_port();
