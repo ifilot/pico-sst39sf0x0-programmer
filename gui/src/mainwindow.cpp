@@ -1028,7 +1028,7 @@ void MainWindow::flash_rom() {
     this->timer1.start();
 
     this->progress_bar_load->setMaximum(8 * SECTORSPERBANK);
-    this->flashthread = std::make_unique<FlashThread>(this->serial_interface);
+    this->flashthread = std::make_unique<FlashThread>(this->serial_interface);  // regular flash pattern (=non-quick)
     this->flashthread->set_serial_port(this->combobox_serial_ports->currentText().toStdString());
     this->flashthread->set_data(this->flash_data);
 
@@ -1084,7 +1084,7 @@ void MainWindow::flash_rom_quick() {
     this->timer1.start();
 
     this->progress_bar_load->setMaximum(8 * SECTORSPERBANK);
-    this->flashthread = std::make_unique<FlashThread>(this->serial_interface, 0, true);
+    this->flashthread = std::make_unique<FlashThread>(this->serial_interface, 0, true); // ("true" parameter indicated quick-flash)
     this->flashthread->set_serial_port(this->combobox_serial_ports->currentText().toStdString());
     this->flashthread->set_data(this->flash_data);
 

@@ -8,4 +8,5 @@
     <TargetDir>@HomeDir@/{{ publisher }}/{{ progfolder }}</TargetDir>
     <RunProgram>@TargetDir@/{{ executable }}/</RunProgram>
     <RunProgramDescription>{{ progdescription }}</RunProgramDescription>
+    <InstallerApplicationIcon>{{ iconfilename }}</InstallerApplicationIcon>
 </Installer>

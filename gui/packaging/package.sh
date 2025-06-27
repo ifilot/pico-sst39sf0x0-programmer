@@ -14,6 +14,7 @@ cp -v ../build/release/pico-sst39sf0x0-programmer.exe packages/com.vendor.produc
 
 # copy icon
 cp -v ../../gui/assets/icon/eeprom_icon.ico packages/com.vendor.product/data/eeprom_icon.ico
+cp -v ../../gui/assets/icon/eeprom_icon.ico config/eeprom_icon.ico
 
 # run script generators
 python3 package.py
