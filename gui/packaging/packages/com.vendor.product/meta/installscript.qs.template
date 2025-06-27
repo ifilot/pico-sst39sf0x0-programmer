@@ -1,12 +1,26 @@
 function Component()
 {
     // default constructor
+    component.forceInstallation = true;
 }
 
 Component.prototype.createOperations = function()
 {
     component.createOperations();
 
+    // Remove old executable if it exists (optional cleanup)
+    var oldExe = "@TargetDir@/{{ executable }}.exe"
+    if (QFile.exists(oldExe)) {
+        installer.performOperation("Delete", oldExe);
+    }
+
+    // Remove old shortcut if it exists (optional cleanup)
+    var oldShortcut = "@StartMenuDir@/{{ executable }}.lnk";
+    if (QFile.exists(oldShortcut)) {
+        installer.performOperation("Delete", oldShortcut);
+    }
+
+    // Windows-specific shortcut creation
     if (systemInfo.productType === "windows") {
         component.addOperation("CreateShortcut", "@TargetDir@/{{ executable }}.exe", 
                                "@StartMenuDir@/{{ executable }}.lnk",
@@ -14,4 +28,12 @@ Component.prototype.createOperations = function()
                                "iconPath=@TargetDir@/{{ iconfilename }}",
                                "description=Open {{ progname }}");
     }
+
+    // Optional: Run the application after install
+    component.addOperation("Execute", 
+        "@TargetDir@/{{ executable }}.exe", 
+        "", 
+        "UNDOEXECUTE", 
+        "@TargetDir@/{{ executable }}.exe"
+    );
 }

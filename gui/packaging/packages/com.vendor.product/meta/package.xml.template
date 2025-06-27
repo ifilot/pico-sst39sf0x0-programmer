@@ -6,4 +6,6 @@
     <ReleaseDate>{{ releasedate }}</ReleaseDate>
     <Default>true</Default>
     <Script>installscript.qs</Script>
+    <Essential>true</Essential>
+    <AutoUpdate>true</AutoUpdate>
 </Package>
