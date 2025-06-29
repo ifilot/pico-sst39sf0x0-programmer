@@ -14,7 +14,7 @@ def main():
     # set names and folders
     variables = {
         'publisher': 'retrohacks.nl',
-        'progfolder': 'pico-sst39sf0x0-programmer-' + version,
+        'progfolder': 'pico-sst39sf0x0-programmer',
         'executable': 'pico-sst39sf0x0-programmer',
         'progdescription': 'PICO SST39SF0x0 Programmer',
         'progname': 'PICO SST39SF0x0 Programmer',
