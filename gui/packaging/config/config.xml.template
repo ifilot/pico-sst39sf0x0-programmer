@@ -5,8 +5,14 @@
     <Title>{{ progname }} Installer</Title>
     <Publisher>{{ publisher }}</Publisher>
     <StartMenuDir>{{ publisher }}</StartMenuDir>
-    <TargetDir>@HomeDir@/{{ publisher }}/{{ progfolder }}</TargetDir>
-    <RunProgram>@TargetDir@/{{ executable }}/</RunProgram>
+
+    <!-- Fixed install location (no version folder) -->
+    <TargetDir>@ApplicationsDir@/{{ publisher }}/{{ progfolder }}</TargetDir>
+
+    <!-- Launch main executable after install -->
+    <RunProgram>{{ executable }}.exe</RunProgram>
     <RunProgramDescription>{{ progdescription }}</RunProgramDescription>
+
+    <!-- Installer window icon -->
     <InstallerApplicationIcon>{{ iconfilename }}</InstallerApplicationIcon>
 </Installer>

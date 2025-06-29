@@ -1,35 +1,32 @@
 function Component()
 {
-    // default constructor
-    component.forceInstallation = true;
+    component.forceInstallation = true;  // Ensures component installs even if already present
 }
 
 Component.prototype.createOperations = function()
 {
     component.createOperations();
 
-    // Remove old executable if it exists (optional cleanup)
-    var oldExe = "@TargetDir@/{{ executable }}.exe"
-    if (QFile.exists(oldExe)) {
-        installer.performOperation("Delete", oldExe);
+    var exePath = installer.value("TargetDir") + "/{{ executable }}.exe";
+    var shortcutPath = installer.value("StartMenuDir") + "/{{ executable }}.lnk";
+
+    // Clean up old shortcut (QtIF doesn't remove shortcuts if renamed/moved)
+    if (installer.fileExists(shortcutPath)) {
+        installer.performOperation("Delete", shortcutPath);
     }
 
-    // Remove old shortcut if it exists (optional cleanup)
-    var oldShortcut = "@StartMenuDir@/{{ executable }}.lnk";
-    if (QFile.exists(oldShortcut)) {
-        installer.performOperation("Delete", oldShortcut);
-    }
-
-    // Windows-specific shortcut creation
+    // Create Start Menu shortcut (Windows only)
     if (systemInfo.productType === "windows") {
-        component.addOperation("CreateShortcut", "@TargetDir@/{{ executable }}.exe", 
-                               "@StartMenuDir@/{{ executable }}.lnk",
-                               "workingDirectory=@TargetDir@", 
-                               "iconPath=@TargetDir@/{{ iconfilename }}",
-                               "description=Open {{ progname }}");
+        component.addOperation("CreateShortcut", 
+            "@TargetDir@/{{ executable }}.exe", 
+            "@StartMenuDir@/{{ executable }}.lnk",
+            "workingDirectory=@TargetDir@", 
+            "iconPath=@TargetDir@/{{ iconfilename }}",
+            "description=Open {{ progname }}"
+        );
     }
 
-    // Optional: Run the application after install
+    // Optional: launch the application after install
     component.addOperation("Execute", 
         "@TargetDir@/{{ executable }}.exe", 
         "", 
