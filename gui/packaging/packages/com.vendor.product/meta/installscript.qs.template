@@ -25,12 +25,4 @@ Component.prototype.createOperations = function()
             "description=Open {{ progname }}"
         );
     }
-
-    // Optional: launch the application after install
-    component.addOperation("Execute", 
-        "@TargetDir@/{{ executable }}.exe", 
-        "", 
-        "UNDOEXECUTE", 
-        "@TargetDir@/{{ executable }}.exe"
-    );
 }

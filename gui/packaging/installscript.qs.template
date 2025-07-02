@@ -1,0 +1,19 @@
+var checkbox;
+
+function Controller() {}
+
+Controller.prototype.FinishedPageCallback = function() {
+    var page = gui.pageWidgetByObjectName("FinishedPage");
+
+    checkbox = new QCheckBox();
+    checkbox.text = "Launch {{ progname }}";
+    checkbox.checked = true;
+    page.layout().addWidget(checkbox);
+};
+
+Controller.prototype.FinishedClickedCallback = function() {
+    if (checkbox && checkbox.checked) {
+        var exePath = installer.value("TargetDir") + "/{{ executable }}.exe";
+        QProcess.startDetached(exePath);
+    }
+};
