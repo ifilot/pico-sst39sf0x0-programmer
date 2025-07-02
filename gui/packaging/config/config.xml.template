@@ -7,6 +7,7 @@
     <StartMenuDir>{{ publisher }}</StartMenuDir>
 
     <!-- Fixed install location (no version folder) -->
+    <ControlScript>installscript.qs</ControlScript>
     <TargetDir>@ApplicationsDir@/{{ publisher }}/{{ progfolder }}</TargetDir>
     <RemoveTargetDir>true</RemoveTargetDir>
 
