@@ -1,18 +1,38 @@
-function Controller() {}
+function Component()
+{
+    component.forceInstallation = true;
+}
 
-Controller.prototype.TargetDirectoryPageCallback = function() {
-    var page = gui.pageWidgetByObjectName("TargetDirectoryPage");
+Component.prototype.createOperations = function()
+{
+    // Remove QtIFW internal installation marker
+    var installInfoPath = installer.value("TargetDir") + "/InstallationInformation";
+    var componentsXmlPath = installer.value("TargetDir") + "/components.xml";
 
-    // Override the default validation function
-    page.targetDirectoryLineEdit().textChanged.connect(function(dir) {
-        // Always allow the user to continue
-        page.completeChanged();
-    });
+    if (QFile.exists(installInfoPath)) {
+        installer.performOperation("Delete", installInfoPath);
+    }
+    if (QFile.exists(componentsXmlPath)) {
+        installer.performOperation("Delete", componentsXmlPath);
+    }
 
-    page.isComplete = function() {
-        var dir = page.targetDirectoryLineEdit().text;
+    component.createOperations();  // must come after cleanup
 
-        // If the directory exists and has an existing installation, we still allow it
-        return true;
-    };
-};
+    // Your existing logic...
+    var exePath = installer.value("TargetDir") + "/{{ executable }}.exe";
+    var shortcutPath = installer.value("StartMenuDir") + "/{{ executable }}.lnk";
+
+    if (installer.fileExists(shortcutPath)) {
+        installer.performOperation("Delete", shortcutPath);
+    }
+
+    if (systemInfo.productType === "windows") {
+        component.addOperation("CreateShortcut", 
+            "@TargetDir@/{{ executable }}.exe", 
+            "@StartMenuDir@/{{ executable }}.lnk",
+            "workingDirectory=@TargetDir@", 
+            "iconPath=@TargetDir@/{{ iconfilename }}",
+            "description=Open {{ progname }}"
+        );
+    }
+}
