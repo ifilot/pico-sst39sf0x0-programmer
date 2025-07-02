@@ -8,6 +8,7 @@
 
     <!-- Fixed install location (no version folder) -->
     <TargetDir>@ApplicationsDir@/{{ publisher }}/{{ progfolder }}</TargetDir>
+    <RemoveTargetDir>true</RemoveTargetDir>
 
     <!-- Installer window icon -->
     <InstallerApplicationIcon>{{ iconfilename }}</InstallerApplicationIcon>
