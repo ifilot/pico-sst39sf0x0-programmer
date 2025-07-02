@@ -12,6 +12,7 @@
     <!-- Installer window icon -->
     <InstallerApplicationIcon>{{ iconfilename }}</InstallerApplicationIcon>
 
-    <!-- Optional: Add control script for custom UI like launch checkbox -->
-    <ControlScript>installscript.qs</ControlScript>
+    <!-- Launch app after install (shows checkbox automatically) -->
+    <RunProgram>{{ executable }}.exe</RunProgram>
+    <RunProgramDescription>Launch {{ progname }}</RunProgramDescription>
 </Installer>

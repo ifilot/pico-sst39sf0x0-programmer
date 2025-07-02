@@ -34,7 +34,6 @@ def render(templates, filenames, variables):
 
 def read_templates():
     templates = [
-        os.path.join(ROOT, 'installscript.qs'),
         os.path.join(ROOT, 'config', 'config.xml'),
         os.path.join(ROOT, 'packages', 'com.vendor.product', 'meta', 'installscript.qs'),
         os.path.join(ROOT, 'packages', 'com.vendor.product', 'meta', 'package.xml'),

@@ -286,7 +286,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     this->button_read_rom = new QPushButton("Read ROM");
     this->button_read_cartridge = new QPushButton("Read P2000T Cartridge");
     this->button_flash_rom = new QPushButton("Write ROM");
-    this->button_flash_rom_quick = new QPushButton("QuickWrite ROM");
+    //this->button_flash_rom_quick = new QPushButton("QuickWrite ROM");
     this->button_flash_bank = new QPushButton("Write ROM to bank");
     this->button_scan_slots = new QPushButton("Scan slots");
 
@@ -294,7 +294,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     layout->addWidget(this->button_read_rom);
     layout->addWidget(this->button_read_cartridge);
     layout->addWidget(this->button_flash_rom);
-    layout->addWidget(this->button_flash_rom_quick);
+    //layout->addWidget(this->button_flash_rom_quick);
     layout->addWidget(this->button_flash_bank);
     layout->addWidget(this->button_erase_chip);
     layout->addWidget(this->button_scan_slots);
@@ -304,14 +304,14 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     this->button_read_cartridge->setEnabled(false);
     this->button_read_rom->setEnabled(false);
     this->button_flash_rom->setEnabled(false);
-    this->button_flash_rom_quick->setEnabled(false);
+    //this->button_flash_rom_quick->setEnabled(false);
     this->button_flash_bank->setEnabled(false);
     this->button_scan_slots->setEnabled(false);
 
     connect(this->button_read_rom, SIGNAL(released()), this, SLOT(read_rom()));
     connect(this->button_read_cartridge, SIGNAL(released()), this, SLOT(read_cartridge()));
-    connect(this->button_flash_rom, SIGNAL(released()), this, SLOT(flash_rom()));
-    connect(this->button_flash_rom_quick, SIGNAL(released()), this, SLOT(flash_rom_quick()));
+    connect(this->button_flash_rom, SIGNAL(released()), this, SLOT(flash_rom_quick()));
+    //connect(this->button_flash_rom_quick, SIGNAL(released()), this, SLOT(flash_rom_quick()));
     connect(this->button_identify_chip, SIGNAL(released()), this, SLOT(read_chip_id()));
     connect(this->button_flash_bank, SIGNAL(released()), this, SLOT(flash_bank()));
     connect(this->button_erase_chip, SIGNAL(released()), this, SLOT(erase_chip()));
@@ -874,7 +874,7 @@ void MainWindow::read_chip_id() {
         // enable buttons
         this->button_read_rom->setEnabled(true);
         this->button_flash_rom->setEnabled(true);
-        this->button_flash_rom_quick->setEnabled(true);
+        //this->button_flash_rom_quick->setEnabled(true);
         this->button_flash_bank->setEnabled(true);
         this->button_erase_chip->setEnabled(true);
         this->button_scan_slots->setEnabled(true);
