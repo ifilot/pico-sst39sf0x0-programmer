@@ -112,7 +112,9 @@ jobs:
       shell: powershell
 
     - name: Build installer
-      run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" gui\packaging\setup.iss'
+      shell: cmd
+      run: |
+        "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" gui\packaging\setup.iss
 
     - name: Upload installer
       uses: actions/upload-artifact@v4
