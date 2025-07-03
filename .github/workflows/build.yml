@@ -66,7 +66,7 @@ jobs:
   # create Windows installer
   create-installer-windows:
     runs-on: windows-latest
-    needs: prepare-installer-windows
+    needs: build-gui-windows
     permissions: write-all
     steps:
     - uses: actions/checkout@v3
