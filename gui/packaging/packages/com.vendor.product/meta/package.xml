@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Package>
-    <DisplayName>Core</DisplayName>
-    <Description>Install PICO SST39SF0x0 Programmer.</Description>
-    <Version>1.5.3</Version>
-    <ReleaseDate>2024-06-14</ReleaseDate>
-    <Default>true</Default>
-    <Script>installscript.qs</Script>
-</Package>

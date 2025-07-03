@@ -1,0 +1,28 @@
+[Setup]
+AppName={{ progname }}
+AppVersion={{ version }}
+AppPublisher={{ publisher }}
+DefaultDirName={autopf}\{{ publisher }}\{{ progfolder }}
+DefaultGroupName={{ progname }}
+OutputDir=installer
+OutputBaseFilename={{ progfolder }}-setup
+Compression=lzma
+SolidCompression=yes
+SetupIconFile=data\{{ iconfilename }}
+UninstallDisplayIcon={app}\{{ iconfilename }}
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+
+[Files]
+Source: "data\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{group}\{{ progname }}"; Filename: "{app}\{{ executable }}.exe"; IconFilename: "{app}\{{ iconfilename }}"
+Name: "{commondesktop}\{{ progname }}"; Filename: "{app}\{{ executable }}.exe"; Tasks: desktopicon; IconFilename: "{app}\{{ iconfilename }}"
+
+[Tasks]
+Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; Flags: unchecked
+
+[Run]
+Filename: "{app}\{{ executable }}.exe"; Description: "Launch application"; Flags: nowait postinstall skipifsilent

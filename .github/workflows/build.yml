@@ -90,39 +90,61 @@ jobs:
     permissions: write-all
     steps:
     - uses: actions/checkout@v3
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v3
-      with:
-        version: '6.7.0'
-        target: 'desktop'
-        arch: 'win64_msvc2019_64'
-        modules: 'qtserialport'
-        tools: 'tools_ifw tools_opensslv3_x64'
-        cache: true
-    - name: Download artifact
+
+    - name: Download built executable
       uses: actions/download-artifact@v4
       with:
         name: ${{env.EXEC}}
-        path: gui/packaging/packages/com.vendor.product/data/
-    - name: Download installer metadata
+        path: data/
+
+    - name: Download packaging metadata
       uses: actions/download-artifact@v4
       with:
         name: package-metadata
-        path: ${{github.workspace}}/gui/packaging
-    - name: Get dependencies
-      run: windeployqt.exe gui\packaging\packages\com.vendor.product\data\${{env.EXEC}} --release --force
-    - name: Copy assets
-      run: copy gui\assets\icon\eeprom_icon.ico gui\packaging\packages\com.vendor.product\data\eeprom_icon.ico
-    - name: Create installer
+        path: ./gui/packaging
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: pip install jinja2
+
+    - name: Install Qt (windeployqt)
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: 6.9.1
+        host: windows
+        target: desktop
+        arch: win64_mingw
+        modules: qtserialport
+        tools: tools_mingw
+
+    - name: Run windeployqt
       run: |
-        dir ${{github.workspace}}\..\Qt\Tools\QtInstallerFramework
-        ${{github.workspace}}\..\Qt\Tools\QtInstallerFramework\4.7\bin\binarycreator.exe -c config\config.xml -p packages ${{env.PROGNAME}}-installer-win64.exe
-      working-directory: gui/packaging
+        & "${{ env.Qt6_DIR }}\bin\windeployqt.exe" data\${{ env.EXEC }} --release --force
+
+    - name: Copy icon
+      run: copy gui\assets\icon\eeprom_icon.ico data\
+
+    - name: Generate Inno Setup script
+      run: python gui/packaging/package.py
+
+    - name: Install Inno Setup
+      run: |
+        Invoke-WebRequest -Uri "https://jrsoftware.org/download.php/ispack.exe" -OutFile "ispack.exe"
+        Start-Process -Wait -FilePath ".\ispack.exe" -ArgumentList "/verysilent", "/norestart"
+      shell: powershell
+
+    - name: Build installer
+      run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" gui\packaging\installer\setup.iss'
+
     - name: Upload installer
       uses: actions/upload-artifact@v4
       with:
         name: ${{env.PROGNAME}}-installer-win64.exe
-        path: gui/packaging/${{env.PROGNAME}}-installer-win64.exe
+        path: gui/packaging/installer/*.exe
 
   # deploy Windows installer
   deploy-installer-windows:
