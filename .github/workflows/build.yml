@@ -135,6 +135,8 @@ jobs:
       with:
         name: installer-artifact
         path: ./
+    - name: List files before release upload
+      run: ls -al
     - name: Upload Release Asset
       id: upload-release-asset 
       uses: actions/upload-release-asset@v1
