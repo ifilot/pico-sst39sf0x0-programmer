@@ -47,7 +47,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '6.7.0'
+        version: '6.9.1'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
         tools: 'tools_opensslv3_x64'
@@ -114,8 +114,6 @@ jobs:
     - name: Build installer
       shell: cmd
       run: |
-        dir gui\packaging
-        tree gui\packaging
         "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" gui\packaging\setup.iss
 
     - name: Upload installer
