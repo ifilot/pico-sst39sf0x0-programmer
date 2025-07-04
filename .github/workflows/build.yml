@@ -88,12 +88,13 @@ jobs:
     - name: Install Qt (windeployqt)
       uses: jurplel/install-qt-action@v3
       with:
-        version: 6.7.0
+        version: '6.7.0'
         host: windows
-        target: desktop
-        arch: win64_mingw
-        modules: qtserialport
-        tools: tools_mingw
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        tools: 'tools_opensslv3_x64'
+        modules: 'qtserialport'
+        cache: true
 
     - name: Run windeployqt
       run: |
