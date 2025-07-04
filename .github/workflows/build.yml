@@ -75,7 +75,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: ${{env.EXEC}}
-        path: data/
+        path: gui/packaging/data/
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -97,10 +97,10 @@ jobs:
 
     - name: Run windeployqt
       run: |
-        & "${{ env.Qt6_DIR }}\bin\windeployqt.exe" data\${{ env.EXEC }} --release --force
+        & "${{ env.Qt6_DIR }}\bin\windeployqt.exe" gui\packaging\data\${{ env.EXEC }} --release --force
 
     - name: Copy icon
-      run: copy gui\assets\icon\eeprom_icon.ico data\
+      run: copy gui\assets\icon\eeprom_icon.ico gui\packaging\data\
 
     - name: Generate Inno Setup script
       run: python gui/packaging/package.py
