@@ -120,8 +120,8 @@ jobs:
     - name: Upload installer
       uses: actions/upload-artifact@v4
       with:
-        name: ${{env.PROGNAME}}-installer-win64.exe
-        path: gui/packaging/installer/*.exe
+        name: installer-artifact
+        path: gui/packaging/installer/${{env.PROGNAME}}-installer-win64.exe
 
   # deploy Windows installer
   deploy-installer-windows:
@@ -133,7 +133,7 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: ${{env.PROGNAME}}-installer-win64.exe
+        name: installer-artifact
         path: ./
     - name: Upload Release Asset
       id: upload-release-asset 
