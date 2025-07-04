@@ -286,6 +286,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     this->button_read_rom = new QPushButton("Read ROM");
     this->button_read_cartridge = new QPushButton("Read P2000T Cartridge");
     this->button_flash_rom = new QPushButton("Write ROM");
+    //this->button_flash_rom_quick = new QPushButton("QuickWrite ROM");
     this->button_flash_bank = new QPushButton("Write ROM to bank");
     this->button_scan_slots = new QPushButton("Scan slots");
 
@@ -293,6 +294,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     layout->addWidget(this->button_read_rom);
     layout->addWidget(this->button_read_cartridge);
     layout->addWidget(this->button_flash_rom);
+    //layout->addWidget(this->button_flash_rom_quick);
     layout->addWidget(this->button_flash_bank);
     layout->addWidget(this->button_erase_chip);
     layout->addWidget(this->button_scan_slots);
@@ -302,12 +304,14 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     this->button_read_cartridge->setEnabled(false);
     this->button_read_rom->setEnabled(false);
     this->button_flash_rom->setEnabled(false);
+    //this->button_flash_rom_quick->setEnabled(false);
     this->button_flash_bank->setEnabled(false);
     this->button_scan_slots->setEnabled(false);
 
     connect(this->button_read_rom, SIGNAL(released()), this, SLOT(read_rom()));
     connect(this->button_read_cartridge, SIGNAL(released()), this, SLOT(read_cartridge()));
-    connect(this->button_flash_rom, SIGNAL(released()), this, SLOT(flash_rom()));
+    connect(this->button_flash_rom, SIGNAL(released()), this, SLOT(flash_rom_quick()));
+    //connect(this->button_flash_rom_quick, SIGNAL(released()), this, SLOT(flash_rom_quick()));
     connect(this->button_identify_chip, SIGNAL(released()), this, SLOT(read_chip_id()));
     connect(this->button_flash_bank, SIGNAL(released()), this, SLOT(flash_bank()));
     connect(this->button_erase_chip, SIGNAL(released()), this, SLOT(erase_chip()));
@@ -870,6 +874,7 @@ void MainWindow::read_chip_id() {
         // enable buttons
         this->button_read_rom->setEnabled(true);
         this->button_flash_rom->setEnabled(true);
+        //this->button_flash_rom_quick->setEnabled(true);
         this->button_flash_bank->setEnabled(true);
         this->button_erase_chip->setEnabled(true);
         this->button_scan_slots->setEnabled(true);
@@ -1023,7 +1028,63 @@ void MainWindow::flash_rom() {
     this->timer1.start();
 
     this->progress_bar_load->setMaximum(8 * SECTORSPERBANK);
-    this->flashthread = std::make_unique<FlashThread>(this->serial_interface);
+    this->flashthread = std::make_unique<FlashThread>(this->serial_interface);  // regular flash pattern (=non-quick)
+    this->flashthread->set_serial_port(this->combobox_serial_ports->currentText().toStdString());
+    this->flashthread->set_data(this->flash_data);
+
+    connect(this->flashthread.get(), SIGNAL(flash_result_ready()), this, SLOT(flash_result_ready()));
+    connect(this->flashthread.get(), SIGNAL(flash_sector_start(uint,uint)), this, SLOT(flash_sector_start(uint,uint)));
+    connect(this->flashthread.get(), SIGNAL(flash_sector_done(uint,uint)), this, SLOT(flash_sector_done(uint,uint)));
+    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
+    flashthread->start();
+
+    // disable all buttons
+    //this->disable_all_buttons();
+}
+
+/**
+ * @brief Put rom on flash cartridge
+ */
+void MainWindow::flash_rom_quick() {
+    // store flash data
+    qDebug() << "Loading flash data";
+    this->flash_data = this->hex_widget->get_data();
+
+    // verify whether the chip is correct
+    qDebug() << "Verifying chip";
+    try {
+        this->verify_chip();
+    } catch(const std::exception& e) {
+        this->raise_error_window(QMessageBox::Critical,
+                                 "Cannot flash this ROM to bank due to a problem with "
+                                 "with the CHIP id. Please carefully check the chip and "
+                                 "whether it is properly inserted into the socket."
+                                 "\n\nError message: " + QString(e.what())
+                                 );
+        return;
+    }
+
+    if((this->num_blocks * 256) < this->flash_data.size()) {
+
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Truncate file?",
+                                      QString("The capacity of the chip (%1 bytes) is less than the amount "
+                                              "of data (%2 bytes) to be flashed. The data will be truncated. Continue?")
+                                          .arg(this->num_blocks * 256)
+                                          .arg(this->flash_data.size()),
+                                      QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+            this->resize_qbytearray(&this->flash_data, this->num_blocks * 256);
+        } else {
+            return;
+        }
+    }
+
+    // dispatch thread
+    this->timer1.start();
+
+    this->progress_bar_load->setMaximum(8 * SECTORSPERBANK);
+    this->flashthread = std::make_unique<FlashThread>(this->serial_interface, 0, true); // ("true" parameter indicated quick-flash)
     this->flashthread->set_serial_port(this->combobox_serial_ports->currentText().toStdString());
     this->flashthread->set_data(this->flash_data);
 

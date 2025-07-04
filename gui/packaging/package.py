@@ -14,7 +14,7 @@ def main():
     # set names and folders
     variables = {
         'publisher': 'retrohacks.nl',
-        'progfolder': 'pico-sst39sf0x0-programmer-' + version,
+        'progfolder': 'pico-sst39sf0x0-programmer',
         'executable': 'pico-sst39sf0x0-programmer',
         'progdescription': 'PICO SST39SF0x0 Programmer',
         'progname': 'PICO SST39SF0x0 Programmer',
@@ -29,14 +29,13 @@ def main():
 def render(templates, filenames, variables):
     for template, filename in zip(templates, filenames):
         content = template.render(variables)
+        print('Writing to: %s' % filename)
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(content)
 
 def read_templates():
     templates = [
-        os.path.join(ROOT, 'config', 'config.xml'),
-        os.path.join(ROOT, 'packages', 'com.vendor.product', 'meta', 'installscript.qs'),
-        os.path.join(ROOT, 'packages', 'com.vendor.product', 'meta', 'package.xml'),
+        os.path.join(ROOT, 'setup.iss'),
     ]
     
     jinja_templates = []
