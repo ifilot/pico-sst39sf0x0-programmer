@@ -29,6 +29,7 @@ def main():
 def render(templates, filenames, variables):
     for template, filename in zip(templates, filenames):
         content = template.render(variables)
+        print('Writing to: %s' % filename)
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(content)
 
