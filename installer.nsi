@@ -1,8 +1,7 @@
-; ============================
-; Schoenflies NSIS Installer (User-level)
-; ============================
+; ==============
+; NSIS Installer
+; ==============
 
-!define APP_NAME "wheel-of-anecdotes"
 !define APP_VERSION "1.0.0"
 !define APP_PUBLISHER "Ivo Filot"
 !define APP_EXE "wheel-of-anecdotes.exe"
