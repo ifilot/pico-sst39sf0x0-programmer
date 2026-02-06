@@ -6,8 +6,8 @@
 !define APP_EXE "pico-sst39sf0x0-programmer.exe"
 
 ; Installer icon
-Icon "gui/assets/icon/eeprom_icon.ico"
-UninstallIcon "gui/assets/icon/eeprom_icon.ico"
+Icon "gui\assets\icon\eeprom_icon.ico"
+UninstallIcon "gui\assets\icon\eeprom_icon.ico"
 
 OutFile "${APP_NAME}-${APP_VERSION}-setup.exe"
 
@@ -25,7 +25,7 @@ Section "Install"
     SetOutPath "$INSTDIR"
 
     ; Install shortcut icon
-    File "gui/assets/icon/eeprom_icon.ico"
+    File "gui\assets\icon\eeprom_icon.ico"
 
     ; Copy application files
     File /r "dist\*.*"
