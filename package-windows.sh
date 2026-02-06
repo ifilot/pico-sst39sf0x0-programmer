@@ -21,7 +21,7 @@ mkdir -p "${BUILD_DIR}" "${DIST_DIR}"
 # Configure
 # ------------------------------------------------------------
 echo "==> Configuring with CMake"
-cmake -S ../gui -B "${BUILD_DIR}" -G Ninja \
+cmake -S gui -B "${BUILD_DIR}" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_PREFIX_PATH=/mingw64
 
