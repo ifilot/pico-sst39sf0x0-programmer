@@ -2,9 +2,8 @@
 ; NSIS Installer
 ; ==============
 
-!define APP_VERSION "1.0.0"
 !define APP_PUBLISHER "Ivo Filot"
-!define APP_EXE "wheel-of-anecdotes.exe"
+!define APP_EXE "pico-sst39sf0x0-programmer.exe"
 
 ; Installer icon
 Icon "gui/assets/icon/eeprom_icon.ico"
