@@ -20,8 +20,8 @@ execute_process(
 )
 add_compile_definitions(GIT_HASH="${GIT_HASH}")
 
-# Find Qt6 packages
-find_package(Qt6 REQUIRED COMPONENTS Widgets SerialPort Network)
+# Find Qt5 packages
+find_package(Qt5 REQUIRED COMPONENTS Widgets SerialPort Network)
 
 add_executable(pico-sst39sf0x0-programmer
     src/bankviewer.cpp
@@ -48,7 +48,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     )
 endif()
 
-target_link_libraries(pico-sst39sf0x0-programmer PRIVATE Qt6::Core Qt6::Widgets Qt6::SerialPort Qt6::Network)
+target_link_libraries(pico-sst39sf0x0-programmer PRIVATE Qt5::Core Qt5::Widgets Qt5::SerialPort Qt5::Network)
 
 set_target_properties(pico-sst39sf0x0-programmer PROPERTIES
     WIN32_EXECUTABLE ON
