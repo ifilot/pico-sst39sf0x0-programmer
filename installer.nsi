@@ -28,7 +28,7 @@ Section "Install"
     File "gui/assets/icon/eeprom_icon.ico"
 
     ; Copy application files
-    File /r "dist\${APP_NAME}\*"
+    File /r "dist\*.*"
 
     ; Save install location
     WriteRegStr HKCU "Software\${APP_NAME}" "InstallDir" "$INSTDIR"
