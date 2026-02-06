@@ -45,18 +45,21 @@ void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
     int statuscode = pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     qDebug() << "HttpStatusCode: " << statuscode;
 
-    if(statuscode == 301) {
-        QString redirectUrl = pReply->attribute(QNetworkRequest::RedirectionTargetAttribute).toString();
+    QVariant redirectTarget = pReply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+    if (statuscode >= 300 && statuscode < 400 && redirectTarget.isValid()) {
+        QUrl redirectUrl = pReply->url().resolved(redirectTarget.toUrl());
         QNetworkRequest request(redirectUrl);
         qDebug() << request.url();
-        m_WebCtrl.get(request);
-    } else {
-        m_DownloadedData = pReply->readAll();
-
-        //emit a signal
         pReply->deleteLater();
-        emit downloaded();
+        m_WebCtrl.get(request);
+        return;
     }
+
+    m_DownloadedData = pReply->readAll();
+
+    //emit a signal
+    pReply->deleteLater();
+    emit downloaded();
 }
 
 QByteArray FileDownloader::downloadedData() const {
