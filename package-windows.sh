@@ -85,7 +85,7 @@ fi
 
 makensis \
   -DAPP_NAME="${APP_NAME}" \
-  -DVERSION="${VERSION}" \
+  -DAPP_VERSION="${VERSION}" \
   "installer.nsi"
 
 echo "==> Done"
