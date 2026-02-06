@@ -9,7 +9,7 @@
 Icon "gui\assets\icon\eeprom_icon.ico"
 UninstallIcon "gui\assets\icon\eeprom_icon.ico"
 
-OutFile "${APP_NAME}-${APP_VERSION}-setup.exe"
+OutFile "${APP_NAME}-installer-win64.exe"
 
 ; Install inside user profile
 InstallDir "$LOCALAPPDATA\Programs\${APP_NAME}"
