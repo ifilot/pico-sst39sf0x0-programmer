@@ -27,6 +27,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QDebug>
+#include <QString>
 
 class FileDownloader : public QObject
 {
@@ -35,6 +36,8 @@ public:
     explicit FileDownloader(QUrl url, QObject *parent = 0);
     virtual ~FileDownloader();
     QByteArray downloadedData() const;
+    bool isSuccessful() const;
+    QString errorMessage() const;
 
 signals:
     void downloaded();
@@ -44,6 +47,9 @@ private slots:
 private:
     QNetworkAccessManager m_WebCtrl;
     QByteArray m_DownloadedData;
+    bool m_Success = false;
+    QString m_ErrorMessage;
+    int m_RedirectCount = 0;
 };
 
 #endif // FILEDOWNLOADER_H

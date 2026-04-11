@@ -24,7 +24,14 @@
  * @brief run cart flash routine
  */
 void FlashThread::run() {
-    flash_sst39sf0x0();
+    try {
+        flash_sst39sf0x0();
+    } catch(const std::exception& e) {
+        emit(thread_abort(QString("Flash operation failed: %1").arg(e.what())));
+        try {
+            this->serial_interface->close_port();
+        } catch(...) {}
+    }
 }
 
 /**

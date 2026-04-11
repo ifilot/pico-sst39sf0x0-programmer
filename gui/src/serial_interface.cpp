@@ -44,7 +44,9 @@ void SerialInterface::open_port() {
     this->port->setParity(QSerialPort::NoParity);
     this->port->setFlowControl(QSerialPort::NoFlowControl);
 
-    this->port->open(QIODevice::ReadWrite);
+    if(!this->port->open(QIODevice::ReadWrite)) {
+        throw std::runtime_error("Failed to open COM port " + this->portname + ": " + this->port->errorString().toStdString());
+    }
     this->port->setDataTerminalReady(true);
 
     qDebug() << QObject::tr("Opening COM port:") + QObject::tr(this->portname.c_str());
@@ -55,8 +57,12 @@ void SerialInterface::open_port() {
  *        the QSerialPort object
  */
 void SerialInterface::close_port() {
-    this->port->close();
-    this->port.reset();
+    if(this->port) {
+        if(this->port->isOpen()) {
+            this->port->close();
+        }
+        this->port.reset();
+    }
 
     qDebug() << QObject::tr("Closing COM port:") + QObject::tr(this->portname.c_str());
 }
@@ -84,7 +90,7 @@ std::string SerialInterface::get_board_info() {
         return response_data.toStdString();
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -101,7 +107,7 @@ QByteArray SerialInterface::read_block(unsigned int block_addr) {
         return response_data;
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -118,7 +124,7 @@ QByteArray SerialInterface::read_segment_cartridge(unsigned int segment_addr) {
         return response_data;
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -135,7 +141,7 @@ QByteArray SerialInterface::read_bank(unsigned int bank_id) {
         return response_data;
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -152,7 +158,7 @@ void SerialInterface::erase_sector(unsigned int sector_id) {
         qDebug() << QString("Succesfully erased sector 0x%1 in %2 cycles").arg(sector_id >> 4, 4, 16, QLatin1Char('0')).arg(nrcycles);
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -197,7 +203,7 @@ void SerialInterface::burn_block(unsigned int sector_addr, const QByteArray& dat
         this->flush_buffer();
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -244,7 +250,7 @@ void SerialInterface::burn_sector(unsigned int sector_id, const QByteArray& data
         this->flush_buffer();
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -260,7 +266,7 @@ uint16_t SerialInterface::get_chip_id() {
         return chip_id;
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 
 }
@@ -274,7 +280,7 @@ void SerialInterface::erase_chip() {
         auto response = this->send_command_capture_response(command, 2);
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -294,7 +300,7 @@ void SerialInterface::write_address(uint16_t address, uint8_t value) {
 
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 

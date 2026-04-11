@@ -27,7 +27,8 @@
  * class is runned
  */
 void CartridgeReadThread::run() {
-    this->serial_interface->open_port();
+    try {
+        this->serial_interface->open_port();
 
     int numsegments = 4;
 
@@ -39,6 +40,12 @@ void CartridgeReadThread::run() {
         emit(read_block_done(i, numsegments));
     }
 
-    this->serial_interface->close_port();
-    emit(read_result_ready());
+        this->serial_interface->close_port();
+        emit(read_result_ready());
+    } catch(const std::exception& e) {
+        emit(thread_abort(QString("Cartridge read operation failed: %1").arg(e.what())));
+        try {
+            this->serial_interface->close_port();
+        } catch(...) {}
+    }
 }

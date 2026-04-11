@@ -27,7 +27,8 @@
  * class is runned
  */
 void ReadThread::run() {
-    this->serial_interface->open_port();
+    try {
+        this->serial_interface->open_port();
 
     // get chip id
     if(this->nr_banks == 0) {
@@ -65,6 +66,12 @@ void ReadThread::run() {
         emit(read_block_done(i, this->nr_banks));
     }
 
-    this->serial_interface->close_port();
-    emit(read_result_ready());
+        this->serial_interface->close_port();
+        emit(read_result_ready());
+    } catch(const std::exception& e) {
+        emit(thread_abort(QString("Read operation failed: %1").arg(e.what())));
+        try {
+            this->serial_interface->close_port();
+        } catch(...) {}
+    }
 }

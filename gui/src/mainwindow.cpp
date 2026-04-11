@@ -101,7 +101,13 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
 
     // set font
     int id = QFontDatabase::addApplicationFont(":/assets/fonts/Consolas.ttf");
-    QString family = QFontDatabase::applicationFontFamilies(id).at(0);
+    QString family = "Monospace";
+    if(id >= 0) {
+        auto families = QFontDatabase::applicationFontFamilies(id);
+        if(!families.empty()) {
+            family = families.at(0);
+        }
+    }
     QFont font10(family, 10, QFont::Normal);
     this->hex_widget->setFont(font10);
     QFont font8(family, 8, QFont::Normal);
@@ -735,7 +741,7 @@ void MainWindow::parse_chip_read_results() {
         this->readerthread.reset(); // delete object
     } else if(this->cartridgereaderthread) {
         data = this->cartridgereaderthread->get_data();
-        this->readerthread.reset(); // delete object
+        this->cartridgereaderthread.reset(); // delete object
     } else {
         qDebug() << "This function should not have been called.";
     }
@@ -775,8 +781,17 @@ void MainWindow::load_default_image() {
         timer.start(5000); // time out after 5 seconds
         loop.exec();
 
-        if(timer.isActive()) {
+        if(timer.isActive() && fd->isSuccessful()) {
             QByteArray data = fd->downloadedData();
+            if(data.isEmpty()) {
+                QMessageBox message_box;
+                message_box.setText("Downloaded file is empty or invalid.");
+                message_box.setIcon(QMessageBox::Critical);
+                message_box.setWindowTitle("Download of ROM failed");
+                message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+                message_box.exec();
+                return;
+            }
             this->hex_widget->set_data(data);
             this->button_reload_file->setEnabled(false);
 
@@ -791,7 +806,11 @@ void MainWindow::load_default_image() {
             statusBar()->showMessage(tr("Succesfully downloaded %1 from web source.").arg(rom_name));
         } else {
             QMessageBox message_box;
-            message_box.setText("Could not download the image. Please check your internet connection and/or try again.");
+            if(timer.isActive()) {
+                message_box.setText(QString("Could not download the image: %1").arg(fd->errorMessage()));
+            } else {
+                message_box.setText("Could not download the image. Please check your internet connection and/or try again.");
+            }
             message_box.setIcon(QMessageBox::Critical);
             message_box.setWindowTitle("Download of ROM failed");
             message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));

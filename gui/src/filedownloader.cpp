@@ -42,11 +42,27 @@ FileDownloader::~FileDownloader() { }
 
 void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
 
+    if(pReply->error() != QNetworkReply::NoError) {
+        m_Success = false;
+        m_ErrorMessage = pReply->errorString();
+        pReply->deleteLater();
+        emit downloaded();
+        return;
+    }
+
     int statuscode = pReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     qDebug() << "HttpStatusCode: " << statuscode;
 
     QVariant redirectTarget = pReply->attribute(QNetworkRequest::RedirectionTargetAttribute);
     if (statuscode >= 300 && statuscode < 400 && redirectTarget.isValid()) {
+        m_RedirectCount++;
+        if(m_RedirectCount > 5) {
+            m_Success = false;
+            m_ErrorMessage = "Too many HTTP redirects.";
+            pReply->deleteLater();
+            emit downloaded();
+            return;
+        }
         QUrl redirectUrl = pReply->url().resolved(redirectTarget.toUrl());
         QNetworkRequest request(redirectUrl);
         qDebug() << request.url();
@@ -55,7 +71,16 @@ void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
         return;
     }
 
+    if(statuscode < 200 || statuscode >= 300) {
+        m_Success = false;
+        m_ErrorMessage = QString("Unexpected HTTP status code %1.").arg(statuscode);
+        pReply->deleteLater();
+        emit downloaded();
+        return;
+    }
+
     m_DownloadedData = pReply->readAll();
+    m_Success = true;
 
     //emit a signal
     pReply->deleteLater();
@@ -64,4 +89,12 @@ void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
 
 QByteArray FileDownloader::downloadedData() const {
     return m_DownloadedData;
+}
+
+bool FileDownloader::isSuccessful() const {
+    return m_Success;
+}
+
+QString FileDownloader::errorMessage() const {
+    return m_ErrorMessage;
 }
