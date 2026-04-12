@@ -52,8 +52,15 @@ protected:
     std::shared_ptr<SerialInterface> serial_interface;
 
 public:
+    /**
+     * @brief Default constructor.
+     */
     IOWorker() {}
 
+    /**
+     * @brief Construct a worker bound to a serial interface.
+     * @param _serial_interface shared serial interface
+     */
     IOWorker(const std::shared_ptr<SerialInterface>& _serial_interface) :
         serial_interface(_serial_interface)
     {}
@@ -112,6 +119,10 @@ public:
 protected:
 
 signals:
+    /**
+     * @brief Signal emitted when a worker aborts because of an error.
+     * @param error error message
+     */
     void thread_abort(const QString&);
 
 };

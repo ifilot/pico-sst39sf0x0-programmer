@@ -30,9 +30,10 @@ SettingsWidget::SettingsWidget(QWidget *parent)
 
 /**
  * @brief slot to trigger settings update
- * @param state
+ * @param state checkbox state
  */
 void SettingsWidget::slot_settings_update(int state) {
+    Q_UNUSED(state);
     this->settings.setValue("SHOW_RETROROMS", QVariant(this->checkbox_retroroms->checkState()));
     this->settings.sync();
 
@@ -41,7 +42,7 @@ void SettingsWidget::slot_settings_update(int state) {
 
 /**
  * @brief build layout for the hexviewer widget
- * @param layout
+ * @param layout target layout
  */
 void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
     layout->addWidget(new QLabel("<b>Hexviewer theme</b>"));
@@ -133,7 +134,7 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
 
 /**
  * @brief slot for single color change
- * @param color name
+ * @param name color setting key
  */
 void SettingsWidget::slot_change_color(const QString& name) {
     QPushButton *btn = nullptr;
@@ -163,7 +164,7 @@ void SettingsWidget::slot_change_color(const QString& name) {
 
 /**
  * @brief slot after changing color theme
- * @param state
+ * @param idx selected theme index
  */
 void SettingsWidget::slot_theme_change(int idx) {
     auto colors = this->theme_combobox->itemData(idx).toList();

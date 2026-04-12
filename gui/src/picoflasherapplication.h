@@ -38,14 +38,19 @@ public:
     PicoFlasherApplication(int& argc, char** argv);
 
     /**
-     * @brief notify
-     * @param receiver
-     * @param event
-     * @return
+     * @brief Deliver an event while catching uncaught exceptions.
+     * @param receiver object receiving the event
+     * @param event event to deliver
+     * @return true when the event was handled
      */
     bool notify(QObject* receiver, QEvent* event);
 
 private:
+    /**
+     * @brief Show a critical error window.
+     * @param title message window title
+     * @param message detailed error message
+     */
     void throw_message_window(const QString& title, const QString& message);
 };
 

@@ -37,13 +37,24 @@ private:
     unsigned int nr_banks = 0;
 
 public:
+    /**
+     * @brief Construct the ROM slot selection dialog.
+     * @param _nr_banks total number of banks on the chip
+     */
     DialogSlotSelection(unsigned _nr_banks);
 
+    /**
+     * @brief Get the selected slot id.
+     * @return selected slot id or -1 if none was selected
+     */
     int get_slot_id() const {
         return this->slot_id;
     }
 
 private slots:
+    /**
+     * @brief Store the selected slot and close the dialog.
+     */
     void slot_select_romslot();
 };
 

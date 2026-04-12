@@ -5,31 +5,24 @@ set -euo pipefail
 # Configuration
 # ------------------------------------------------------------
 APP_NAME="pico-sst39sf0x0-programmer"
-BUILD_DIR="build-windows"
-DIST_DIR="dist"
-INSTALLER_DIR="installer"
+BUILD_DIR="${BUILD_DIR:-build-windows}"
+DIST_DIR="${DIST_DIR:-dist}"
+INSTALLER_DIR="${INSTALLER_DIR:-installer}"
+BUILD_TYPE="${BUILD_TYPE:-Release}"
 
 echo "==> Packaging ${APP_NAME} (Windows / MinGW / Qt5)"
 
 # ------------------------------------------------------------
-# Clean previous build
+# Validate existing build
 # ------------------------------------------------------------
-rm -rf "${BUILD_DIR}" "${DIST_DIR}"
+if [[ ! -f "${BUILD_DIR}/${APP_NAME}.exe" ]]; then
+  echo "[ERROR] Expected built executable at ${BUILD_DIR}/${APP_NAME}.exe"
+  echo "[ERROR] Run the configure/build/test steps before packaging."
+  exit 1
+fi
+
+rm -rf "${DIST_DIR}"
 mkdir -p "${BUILD_DIR}" "${DIST_DIR}"
-
-# ------------------------------------------------------------
-# Configure
-# ------------------------------------------------------------
-echo "==> Configuring with CMake"
-cmake -S gui -B "${BUILD_DIR}" -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH=/mingw64
-
-# ------------------------------------------------------------
-# Build
-# ------------------------------------------------------------
-echo "==> Building"
-cmake --build "${BUILD_DIR}"
 
 # ------------------------------------------------------------
 # Copy executable

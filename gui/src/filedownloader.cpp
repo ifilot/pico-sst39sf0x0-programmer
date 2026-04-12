@@ -20,6 +20,11 @@
 
 #include "filedownloader.h"
 
+/**
+ * @brief Construct a downloader for a single URL.
+ * @param url source URL
+ * @param parent parent object
+ */
 FileDownloader::FileDownloader(QUrl url, QObject *parent) :
     QObject(parent) {
 
@@ -38,8 +43,15 @@ FileDownloader::FileDownloader(QUrl url, QObject *parent) :
     m_WebCtrl.get(request);
 }
 
+/**
+ * @brief Destroy the downloader.
+ */
 FileDownloader::~FileDownloader() { }
 
+/**
+ * @brief Handle a completed network reply.
+ * @param pReply reply object
+ */
 void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
 
     if(pReply->error() != QNetworkReply::NoError) {
@@ -87,14 +99,26 @@ void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
     emit downloaded();
 }
 
+/**
+ * @brief Get the downloaded payload.
+ * @return response body
+ */
 QByteArray FileDownloader::downloadedData() const {
     return m_DownloadedData;
 }
 
+/**
+ * @brief Check whether the download completed successfully.
+ * @return true on success
+ */
 bool FileDownloader::isSuccessful() const {
     return m_Success;
 }
 
+/**
+ * @brief Get the last download error message.
+ * @return error message
+ */
 QString FileDownloader::errorMessage() const {
     return m_ErrorMessage;
 }

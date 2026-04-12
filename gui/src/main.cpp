@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <QApplication>
+#include <QIcon>
 #include <QStringList>
 #include <QDateTime>
 #include <QString>
@@ -30,12 +31,13 @@
 std::shared_ptr<QStringList> log_messages;
 
 /**
- * @brief custom function for storing and display messages
- * @param type
- * @param context
- * @param msg
+ * @brief Custom message handler for storing and displaying log messages.
+ * @param type Qt message type
+ * @param context message context
+ * @param msg message text
  */
 void message_output(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
+    Q_UNUSED(context);
     QString local_msg = QString(msg.toLocal8Bit());
 
     QDateTime date = QDateTime::currentDateTime();
@@ -65,13 +67,21 @@ void message_output(QtMsgType type, const QMessageLogContext &context, const QSt
     }
 }
 
+/**
+ * @brief Main application entry point.
+ * @param argc number of command line arguments
+ * @param argv command line arguments
+ * @return application exit code
+ */
 int main(int argc, char *argv[])
 {
     QCoreApplication::setOrganizationName("Retrohacks.nl");
     QCoreApplication::setOrganizationDomain("retrohacks.nl");
     QCoreApplication::setApplicationName(PROGRAM_NAME);
+    QApplication::setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
 
     PicoFlasherApplication app(argc, argv);
+    app.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
     qRegisterMetaType<std::vector<uint8_t>>("stdvector_uint8_t");
 
     std::unique_ptr<MainWindow> mainWindow;

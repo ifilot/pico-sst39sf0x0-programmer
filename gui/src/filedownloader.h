@@ -33,16 +33,47 @@ class FileDownloader : public QObject
 {
     Q_OBJECT
 public:
+    /**
+     * @brief Construct a downloader for a single URL.
+     * @param url source URL
+     * @param parent parent object
+     */
     explicit FileDownloader(QUrl url, QObject *parent = 0);
+
+    /**
+     * @brief Destroy the downloader.
+     */
     virtual ~FileDownloader();
+
+    /**
+     * @brief Get the downloaded payload.
+     * @return response body
+     */
     QByteArray downloadedData() const;
+
+    /**
+     * @brief Check whether the download completed successfully.
+     * @return true on success
+     */
     bool isSuccessful() const;
+
+    /**
+     * @brief Get the last download error message.
+     * @return error message
+     */
     QString errorMessage() const;
 
 signals:
+    /**
+     * @brief Signal emitted when the transfer finishes.
+     */
     void downloaded();
 
 private slots:
+    /**
+     * @brief Handle a completed network reply.
+     * @param pReply reply object
+     */
     void fileDownloaded(QNetworkReply* pReply);
 private:
     QNetworkAccessManager m_WebCtrl;

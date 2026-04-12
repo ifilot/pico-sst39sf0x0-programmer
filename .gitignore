@@ -9,3 +9,4 @@ build
 build-*
 *.step
 *.lck
+.codex

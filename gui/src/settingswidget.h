@@ -62,31 +62,34 @@ public:
     explicit SettingsWidget(QWidget *parent = nullptr);
 
 signals:
+    /**
+     * @brief Signal emitted after settings have changed.
+     */
     void signal_settings_update();
 
 private:
     /**
      * @brief build layout for the hexviewer widget
-     * @param layout
+     * @param layout target layout
      */
     void build_hexviewer_settings(QVBoxLayout* layout);
 
 private slots:
     /**
      * @brief slot for single color change
-     * @param color name
+     * @param name color setting key
      */
     void slot_change_color(const QString& name);
 
     /**
      * @brief slot after changing color theme
-     * @param state
+     * @param idx selected theme index
      */
     void slot_theme_change(int);
 
     /**
      * @brief slot to trigger settings update
-     * @param state
+     * @param state checkbox state
      */
     void slot_settings_update(int);
 };

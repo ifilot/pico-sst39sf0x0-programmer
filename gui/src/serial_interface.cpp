@@ -19,13 +19,23 @@
  ****************************************************************************/
 
 #include "serial_interface.h"
+#include "serial_transport_qt.h"
 
 /**
  * @brief SerialInterface
  * @param _portname address of the com port
+ * @param _transport_factory optional transport factory for tests
  */
-SerialInterface::SerialInterface(const std::string& _portname) {
+SerialInterface::SerialInterface(const std::string& _portname,
+                                 TransportFactory _transport_factory) {
     this->portname = _portname;
+    if(_transport_factory) {
+        this->transport_factory = std::move(_transport_factory);
+    } else {
+        this->transport_factory = [](const std::string& portname) {
+            return std::make_unique<QtSerialTransport>(portname);
+        };
+    }
 }
 
 /**
@@ -37,15 +47,10 @@ void SerialInterface::open_port() {
         throw std::runtime_error("No port has been set");
     }
 
-    this->port = std::make_unique<QSerialPort>(this->portname.c_str());
-    this->port->setBaudRate(QSerialPort::Baud19200);
-    this->port->setDataBits(QSerialPort::Data8);
-    this->port->setStopBits(QSerialPort::OneStop);
-    this->port->setParity(QSerialPort::NoParity);
-    this->port->setFlowControl(QSerialPort::NoFlowControl);
+    this->port = this->transport_factory(this->portname);
 
-    if(!this->port->open(QIODevice::ReadWrite)) {
-        throw std::runtime_error("Failed to open COM port " + this->portname + ": " + this->port->errorString().toStdString());
+    if(!this->port->open()) {
+        throw std::runtime_error("Failed to open COM port " + this->portname + ": " + this->port->errorString());
     }
     this->port->setDataTerminalReady(true);
 
@@ -186,7 +191,7 @@ void SerialInterface::burn_block(unsigned int sector_addr, const QByteArray& dat
         // send command to serial interface
         this->send_command(command);
 
-        this->port->write(data, 256);
+        this->port->write(data);
         while(this->port->waitForBytesWritten(SERIAL_TIMEOUT_BLOCK)){}
 
         this->wait_for_response(1);
@@ -228,7 +233,7 @@ void SerialInterface::burn_sector(unsigned int sector_id, const QByteArray& data
         // send command to serial interface
         this->send_command(command);
 
-        this->port->write(data, 0x1000);
+        this->port->write(data);
         while(this->port->waitForBytesWritten(SERIAL_TIMEOUT_BLOCK)){}
 
         this->wait_for_response(2); // wait for CRC16 checksum
@@ -262,7 +267,8 @@ uint16_t SerialInterface::get_chip_id() {
     try {
         std::string command = "DEVIDSST";
         auto response = this->send_command_capture_response(command, 2);
-        uint16_t chip_id = (uint16_t)(response[0]+1) * 256 + (uint16_t)response[1];
+        uint16_t chip_id = (static_cast<uint8_t>(response[0]) << 8) |
+                           static_cast<uint8_t>(response[1]);
         return chip_id;
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;

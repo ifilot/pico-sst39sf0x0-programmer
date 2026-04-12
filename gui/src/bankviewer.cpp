@@ -1,5 +1,11 @@
 #include "bankviewer.h"
 
+/**
+ * @brief Construct a bank overview dialog.
+ * @param nrbanks number of banks on the chip
+ * @param _data full chip image
+ * @param parent parent widget
+ */
 BankViewer::BankViewer(unsigned int nrbanks, const QByteArray& _data, QWidget *parent)
     : QDialog{parent} {
 
@@ -13,6 +19,10 @@ BankViewer::BankViewer(unsigned int nrbanks, const QByteArray& _data, QWidget *p
     this->build_widget(nrbanks);
 }
 
+/**
+ * @brief Build the dialog layout for all banks.
+ * @param nrbanks number of banks on the chip
+ */
 void BankViewer::build_widget(unsigned int nrbanks) {
     // build layout
     QVBoxLayout* layout = new QVBoxLayout();
@@ -66,6 +76,11 @@ void BankViewer::build_widget(unsigned int nrbanks) {
     connect(button_ok, SIGNAL(released()), this, SLOT(accept()));
 }
 
+/**
+ * @brief Create the descriptive label for a bank.
+ * @param bank_id bank index
+ * @return label describing the bank contents
+ */
 QLabel* BankViewer::create_data_label(unsigned int bank_id) {
     QByteArray subdata = this->data.mid(bank_id * BANKSIZE, BANKSIZE);
     QByteArray hash = QCryptographicHash::hash(subdata, QCryptographicHash::Md5);
@@ -96,6 +111,9 @@ QLabel* BankViewer::create_data_label(unsigned int bank_id) {
     return res;
 }
 
+/**
+ * @brief Copy the selected bank checksum to the clipboard.
+ */
 void BankViewer::slot_copy_checksum() {
     QPushButton* button = qobject_cast<QPushButton*>(sender());
     unsigned int slot_id = button->property("slot_id").toUInt();
