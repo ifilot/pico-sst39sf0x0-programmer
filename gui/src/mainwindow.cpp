@@ -22,11 +22,22 @@
 
 /**
  * @brief MainWindow
- * @param parent
+ * @param _log_messages shared list with captured log messages
+ * @param parent parent widget
+ * @param _serial_interface_factory optional factory for creating serial interfaces
  */
-MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget *parent)
+MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages,
+                       QWidget *parent,
+                       SerialInterfaceFactory _serial_interface_factory)
     : QMainWindow(parent),
-      log_messages(_log_messages) {
+      log_messages(_log_messages),
+      serial_interface_factory(_serial_interface_factory) {
+
+    if(!this->serial_interface_factory) {
+        this->serial_interface_factory = [](const std::string& portname) {
+            return std::make_shared<SerialInterface>(portname);
+        };
+    }
 
     // log window
     this->log_window = std::make_unique<LogWindow>(this->log_messages);
@@ -47,13 +58,16 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     container_widget->setLayout(container_layout);
     layout->addWidget(container_widget);
     this->label_data_descriptor = new QLabel();
+    this->label_data_descriptor->setObjectName("labelDataDescriptor");
     container_layout->addWidget(this->label_data_descriptor);
     this->hex_widget = new HexViewWidget();
+    this->hex_widget->setObjectName("hexViewWidget");
     this->hex_widget->setMinimumWidth(580);
     this->hex_widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     container_layout->addWidget(this->hex_widget);
 
     this->button_reload_file = new QPushButton("Reload file");
+    this->button_reload_file->setObjectName("buttonReloadFile");
     container_layout->addWidget(this->button_reload_file);
     this->button_reload_file->setEnabled(false);
     connect(this->button_reload_file, SIGNAL(released()), this, SLOT(slot_reload_file()));
@@ -100,11 +114,17 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
     this->setWindowTitle(PROGRAM_NAME);
 
     // set font
-    int id = QFontDatabase::addApplicationFont(":/assets/fonts/Consolas.ttf");
-    QString family = QFontDatabase::applicationFontFamilies(id).at(0);
+    const int id = QFontDatabase::addApplicationFont(":/assets/fonts/Consolas.ttf");
+    QString family = "Consolas";
+    const auto families = QFontDatabase::applicationFontFamilies(id);
+    if(!families.isEmpty()) {
+        family = families.first();
+    }
     QFont font10(family, 10, QFont::Normal);
+    font10.setStyleHint(QFont::TypeWriter);
     this->hex_widget->setFont(font10);
     QFont font8(family, 8, QFont::Normal);
+    font8.setStyleHint(QFont::TypeWriter);
     this->label_data_descriptor->setFont(font8);
 
     // re-apply settings
@@ -115,6 +135,15 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages, QWidget
  * @brief Default destructor method
  */
 MainWindow::~MainWindow() {
+    if(this->readerthread) {
+        this->readerthread->wait();
+    }
+    if(this->flashthread) {
+        this->flashthread->wait();
+    }
+    if(this->cartridgereaderthread) {
+        this->cartridgereaderthread->wait();
+    }
 }
 
 /**
@@ -187,10 +216,13 @@ void MainWindow::build_serial_interface_menu(QVBoxLayout* target_layout) {
     QLabel* comportlabel = new QLabel(tr("COM port"));
     serial_layout->addWidget(comportlabel);
     this->combobox_serial_ports = new QComboBox(this);
+    this->combobox_serial_ports->setObjectName("comboboxSerialPorts");
     serial_layout->addWidget(this->combobox_serial_ports);
     this->button_scan_ports = new QPushButton(tr("Scan"));
+    this->button_scan_ports->setObjectName("buttonScanPorts");
     serial_layout->addWidget(this->button_scan_ports);
     this->button_select_serial = new QPushButton(tr("Select"));
+    this->button_select_serial->setObjectName("buttonSelectSerial");
     this->button_select_serial->setEnabled(false);
     serial_layout->addWidget(this->button_select_serial);
 
@@ -199,8 +231,10 @@ void MainWindow::build_serial_interface_menu(QVBoxLayout* target_layout) {
     QHBoxLayout *serial_selected_layout = new QHBoxLayout();
     serial_selected_container->setLayout(serial_selected_layout);
     this->label_serial = new QLabel(tr("Please select a COM port from the menu above"));
+    this->label_serial->setObjectName("labelSerial");
     serial_selected_layout->addWidget(this->label_serial);
     this->label_board_id = new QLabel();
+    this->label_board_id->setObjectName("labelBoardId");
     serial_selected_layout->addWidget(this->label_board_id);
     layout_serial_vertical->addWidget(serial_selected_container);
 }
@@ -278,6 +312,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
 
     // add chip label
     this->label_chip_type = new QLabel("");
+    this->label_chip_type->setObjectName("labelChipType");
     layout->addWidget(this->label_chip_type);
 
     // add individual buttons here
@@ -289,6 +324,13 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     //this->button_flash_rom_quick = new QPushButton("QuickWrite ROM");
     this->button_flash_bank = new QPushButton("Write ROM to bank");
     this->button_scan_slots = new QPushButton("Scan slots");
+    this->button_identify_chip->setObjectName("buttonIdentifyChip");
+    this->button_erase_chip->setObjectName("buttonEraseChip");
+    this->button_read_rom->setObjectName("buttonReadRom");
+    this->button_read_cartridge->setObjectName("buttonReadCartridge");
+    this->button_flash_rom->setObjectName("buttonFlashRom");
+    this->button_flash_bank->setObjectName("buttonFlashBank");
+    this->button_scan_slots->setObjectName("buttonScanSlots");
 
     layout->addWidget(this->button_identify_chip);
     layout->addWidget(this->button_read_rom);
@@ -319,6 +361,7 @@ void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
 
     target_layout->addWidget(container);
     this->progress_bar_load = new QProgressBar();
+    this->progress_bar_load->setObjectName("progressBarLoad");
     target_layout->addWidget(this->progress_bar_load);
 }
 
@@ -476,7 +519,7 @@ void MainWindow::scan_com_devices() {
  * @brief Select communication port for serial to 32u4
  */
 void MainWindow::select_com_port() {
-    this->serial_interface = std::make_shared<SerialInterface>(this->combobox_serial_ports->currentText().toStdString());
+    this->serial_interface = this->serial_interface_factory(this->combobox_serial_ports->currentText().toStdString());
 
     this->serial_interface->open_port();
     std::string board_info = this->serial_interface->get_board_info();
@@ -731,11 +774,13 @@ void MainWindow::parse_chip_read_results() {
 
     QByteArray data;
     if(this->readerthread) {
+        this->readerthread->wait();
         data = this->readerthread->get_data();
         this->readerthread.reset(); // delete object
     } else if(this->cartridgereaderthread) {
+        this->cartridgereaderthread->wait();
         data = this->cartridgereaderthread->get_data();
-        this->readerthread.reset(); // delete object
+        this->cartridgereaderthread.reset(); // delete object
     } else {
         qDebug() << "This function should not have been called.";
     }
@@ -765,6 +810,14 @@ void MainWindow::load_default_image() {
     qDebug() << "Loading default image: " << image;
 
     if(image.startsWith("http")) { // try to grab image from the web
+        QProgressDialog progress_dialog("Downloading ROM image...", QString(), 0, 0, this);
+        progress_dialog.setWindowTitle("Please wait");
+        progress_dialog.setWindowModality(Qt::ApplicationModal);
+        progress_dialog.setCancelButton(nullptr);
+        progress_dialog.setMinimumDuration(0);
+        progress_dialog.show();
+        QApplication::processEvents();
+
         QTimer timer;
         timer.setSingleShot(true);
         QUrl url(image);
@@ -774,9 +827,19 @@ void MainWindow::load_default_image() {
         connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
         timer.start(5000); // time out after 5 seconds
         loop.exec();
+        progress_dialog.hide();
 
-        if(timer.isActive()) {
+        if(timer.isActive() && fd->isSuccessful()) {
             QByteArray data = fd->downloadedData();
+            if(data.isEmpty()) {
+                QMessageBox message_box;
+                message_box.setText("Downloaded file is empty or invalid.");
+                message_box.setIcon(QMessageBox::Critical);
+                message_box.setWindowTitle("Download of ROM failed");
+                message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
+                message_box.exec();
+                return;
+            }
             this->hex_widget->set_data(data);
             this->button_reload_file->setEnabled(false);
 
@@ -791,7 +854,11 @@ void MainWindow::load_default_image() {
             statusBar()->showMessage(tr("Succesfully downloaded %1 from web source.").arg(rom_name));
         } else {
             QMessageBox message_box;
-            message_box.setText("Could not download the image. Please check your internet connection and/or try again.");
+            if(timer.isActive()) {
+                message_box.setText(QString("Could not download the image: %1").arg(fd->errorMessage()));
+            } else {
+                message_box.setText("Could not download the image. Please check your internet connection and/or try again.");
+            }
             message_box.setIcon(QMessageBox::Critical);
             message_box.setWindowTitle("Download of ROM failed");
             message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
@@ -939,7 +1006,7 @@ void MainWindow::read_cartridge() {
     connect(this->cartridgereaderthread.get(), SIGNAL(read_result_ready()), this, SLOT(read_result_ready()));
     connect(this->cartridgereaderthread.get(), SIGNAL(read_block_start(uint,uint)), this, SLOT(read_block_start(uint,uint)));
     connect(this->cartridgereaderthread.get(), SIGNAL(read_block_done(uint,uint)), this, SLOT(read_block_done(uint,uint)));
-    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
+    connect(this->cartridgereaderthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     this->cartridgereaderthread->start();
 }
 
@@ -1035,7 +1102,7 @@ void MainWindow::flash_rom() {
     connect(this->flashthread.get(), SIGNAL(flash_result_ready()), this, SLOT(flash_result_ready()));
     connect(this->flashthread.get(), SIGNAL(flash_sector_start(uint,uint)), this, SLOT(flash_sector_start(uint,uint)));
     connect(this->flashthread.get(), SIGNAL(flash_sector_done(uint,uint)), this, SLOT(flash_sector_done(uint,uint)));
-    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
+    connect(this->flashthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     flashthread->start();
 
     // disable all buttons
@@ -1091,7 +1158,7 @@ void MainWindow::flash_rom_quick() {
     connect(this->flashthread.get(), SIGNAL(flash_result_ready()), this, SLOT(flash_result_ready()));
     connect(this->flashthread.get(), SIGNAL(flash_sector_start(uint,uint)), this, SLOT(flash_sector_start(uint,uint)));
     connect(this->flashthread.get(), SIGNAL(flash_sector_done(uint,uint)), this, SLOT(flash_sector_done(uint,uint)));
-    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
+    connect(this->flashthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     flashthread->start();
 
     // disable all buttons
@@ -1151,7 +1218,7 @@ void MainWindow::flash_bank() {
     connect(this->flashthread.get(), SIGNAL(flash_result_ready()), this, SLOT(flash_result_ready()));
     connect(this->flashthread.get(), SIGNAL(flash_sector_start(uint,uint)), this, SLOT(flash_sector_start(uint,uint)));
     connect(this->flashthread.get(), SIGNAL(flash_sector_done(uint,uint)), this, SLOT(flash_sector_done(uint,uint)));
-    connect(this->readerthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
+    connect(this->flashthread.get(), SIGNAL(thread_abort(const QString&)), this, SLOT(thread_abort(const QString&)));
     flashthread->start();
 
     // disable all buttons
@@ -1301,6 +1368,7 @@ void MainWindow::verify_block_done(unsigned int block_id, unsigned int nr_blocks
  */
 void MainWindow::verify_result_ready() {
     this->progress_bar_load->setValue(this->num_blocks);
+    this->readerthread->wait();
     QByteArray verify_data = this->readerthread->get_data();
     this->readerthread.reset(); // delete object
 
@@ -1329,17 +1397,17 @@ void MainWindow::verify_result_ready() {
 void MainWindow::thread_abort(const QString& error) {
     // clean up threads
     if(this->readerthread) {
-        while(!this->readerthread->isFinished()) {}
+        this->readerthread->wait();
         this->readerthread.reset(); // delete object
     }
 
     if(this->flashthread) {
-        while(!this->flashthread->isFinished()) {}
+        this->flashthread->wait();
         this->flashthread.reset(); // delete object
     }
 
     if(this->cartridgereaderthread) {
-        while(!this->cartridgereaderthread->isFinished()) {}
+        this->cartridgereaderthread->wait();
         this->cartridgereaderthread.reset(); // delete object
     }
 

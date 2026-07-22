@@ -21,8 +21,6 @@
 #ifndef FLASHTHREAD_H
 #define FLASHTHREAD_H
 
-#include <QMessageBox>
-#include <QIcon>
 #include <algorithm>
 #include <QDebug>
 
@@ -56,12 +54,15 @@ private:
 public:
     /**
      * @brief Default constructor
+     * @param _quickflash whether to skip all-0xFF sectors
      */
     FlashThread(bool _quickflash = false) : quickflash(_quickflash) {}
 
     /**
      * @brief Constructor allocating SerialInterface
-     * @param _serial_interface
+     * @param _serial_interface shared serial interface
+     * @param _starting_bank bank to start writing to
+     * @param _quickflash whether to skip all-0xFF sectors
      */
     FlashThread(const std::shared_ptr<SerialInterface>& _serial_interface,
                 uint8_t _starting_bank = 0,

@@ -21,6 +21,10 @@
 #include "config.h"
 #include "logwindow.h"
 
+/**
+ * @brief Construct the debug log window.
+ * @param _log_messages shared list with captured log lines
+ */
 LogWindow::LogWindow(const std::shared_ptr<QStringList>& _log_messages) :
     log_messages(_log_messages) {
     qDebug() << "Spawning Debug log window";
@@ -57,6 +61,9 @@ LogWindow::LogWindow(const std::shared_ptr<QStringList>& _log_messages) :
     timer->start(1000);
 }
 
+/**
+ * @brief Append new log messages to the text box.
+ */
 void LogWindow::update_log() {
     int newsize = this->log_messages->size();
     for(int i=this->linesread; i<newsize; i++) {

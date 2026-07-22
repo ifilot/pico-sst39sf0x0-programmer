@@ -39,8 +39,17 @@ private:
     uint8_t starting_bank = 0;      // bank to start reading from
 
 public:
+    /**
+     * @brief Default constructor.
+     */
     ReadThread() {}
 
+    /**
+     * @brief Construct a reader thread.
+     * @param _serial_interface shared serial interface
+     * @param _starting_bank bank to start reading from
+     * @param _nr_banks number of banks to read, or zero to auto-detect
+     */
     ReadThread(const std::shared_ptr<SerialInterface>& _serial_interface,
                uint8_t _starting_bank = 0,
                uint8_t _nr_banks = 0) :

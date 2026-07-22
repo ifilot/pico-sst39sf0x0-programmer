@@ -84,12 +84,29 @@ jobs:
           ls /mingw64/bin/windeployqt*
 
       # --------------------------------------------------------
-      # Build & package (delegated to script)
+      # Configure, build, and test
       # --------------------------------------------------------
-      - name: Build & Package (Windows)
+      - name: Configure (Windows)
+        run: |
+          cmake -S gui -B build-windows -G Ninja \
+            -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+            -DCMAKE_PREFIX_PATH=/mingw64
+
+      - name: Build (Windows)
+        run: |
+          cmake --build build-windows --parallel
+
+      - name: Test (Windows)
+        run: |
+          ctest --test-dir build-windows --build-config ${BUILD_TYPE} --output-on-failure
+
+      # --------------------------------------------------------
+      # Package
+      # --------------------------------------------------------
+      - name: Package (Windows)
         run: |
           chmod +x ./package-windows.sh
-          ./package-windows.sh
+          BUILD_DIR=build-windows ./package-windows.sh
 
       # --------------------------------------------------------
       # Always keep installer as artifact
@@ -120,11 +137,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install packages
-      run: sudo apt update && sudo apt install -y qtbase5-dev cmake libqt5serialport5-dev
+      run: sudo apt update && sudo apt install -y qtbase5-dev cmake libqt5serialport5-dev qttools5-dev-tools
     - name: Configure CMake
       run: mkdir ${{github.workspace}}/build && cd ${{github.workspace}}/build && cmake ../gui
     - name: Build
       run: cd ${{github.workspace}}/build && make -j
+    - name: Test
+      run: cd ${{github.workspace}}/build && ctest --output-on-failure
 
   #
   # PICO firmware

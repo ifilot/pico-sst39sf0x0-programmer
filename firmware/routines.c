@@ -21,6 +21,25 @@
 #include "routines.h"
 
 /*
+ * Write a full buffer over CDC, looping until every byte is actually queued/sent.
+ * Return false if the host disconnects before the transfer completes.
+ */
+static bool write_all(const uint8_t *data, uint32_t len) {
+    uint32_t written = 0;
+    while (written < len) {
+        if(!tud_cdc_connected()) {
+            return false;
+        }
+
+        written += tud_cdc_write(data + written, len - written);
+        tud_cdc_write_flush();
+        tud_task();
+    }
+
+    return true;
+}
+
+/*
  * Read device ID and print it to console
  */
 void read_chip_id() {
@@ -96,8 +115,7 @@ void read_block(uint32_t block_id) {
     // disable chip
     gpio_put(CE, true);
 
-    tud_cdc_write(data, 0x100);
-    tud_cdc_write_flush();
+    write_all(data, 0x100);
 
     gpio_put(LED_RD, false);
 }
@@ -125,7 +143,7 @@ void read_p2k_cartridge_block(uint8_t block_id) {
         for(unsigned int i=0; i<0x100; i++) {
             // set lower address
             set_address_low(i);
-        
+
             // small delay to properly receive response
             sleep_us(DELAY_READ);
 
@@ -133,8 +151,9 @@ void read_p2k_cartridge_block(uint8_t block_id) {
             data[i] = gpio_get_all();
         }
 
-        tud_cdc_write(data, 0x100);
-        tud_cdc_write_flush();
+        if(!write_all(data, 0x100)) {
+            break;
+        }
     }
 
     gpio_put(CE, true);
@@ -163,15 +182,16 @@ void read_bank(uint8_t bank_id) {
         set_address((j + 0x40 * bank_id) << 8);
         for(uint32_t i=0; i<0x100; i++) {
             set_address_low(i);
-        
+
             sleep_us(DELAY_READ);
 
             // read from lower 8 pins, discard rest
             data[i] = gpio_get_all();
         }
 
-        tud_cdc_write(data, 0x100);
-        tud_cdc_write_flush();
+        if(!write_all(data, 0x100)) {
+            break;
+        }
     }
 
     gpio_put(CE, true);
@@ -200,15 +220,16 @@ void read_sector(uint8_t sector_id) {
         set_address((j + 0x10 * sector_id) << 8);
         for(uint32_t i=0; i<0x100; i++) {
             set_address_low(i);
-        
+
             sleep_us(DELAY_READ);
 
             // read from lower 8 pins, discard rest
             data[i] = gpio_get_all();
         }
 
-        tud_cdc_write(data, 0x100);
-        tud_cdc_write_flush();
+        if(!write_all(data, 0x100)) {
+            break;
+        }
     }
 
     gpio_put(CE, true);

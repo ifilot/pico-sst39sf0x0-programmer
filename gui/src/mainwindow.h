@@ -38,10 +38,12 @@
 #include <QElapsedTimer>
 #include <QFrame>
 #include <QFileDialog>
+#include <QProgressDialog>
 #include <QCryptographicHash>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QFontDatabase>
+#include <functional>
 
 #include "config.h"
 #include "hexviewwidget.h"
@@ -59,6 +61,9 @@
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+
+public:
+    using SerialInterfaceFactory = std::function<std::shared_ptr<SerialInterface>(const std::string&)>;
 
 private:
     // widgets
@@ -113,14 +118,18 @@ private:
     QSettings settings;
 
     QGroupBox *rom_container;
+    SerialInterfaceFactory serial_interface_factory;
 
 public:
     /**
      * @brief MainWindow
-     * @param parent
+     * @param _log_messages shared list with captured log messages
+     * @param parent parent widget
+     * @param _serial_interface_factory optional factory for creating serial interfaces
      */
     MainWindow(const std::shared_ptr<QStringList> _log_messages,
-               QWidget *parent = nullptr);
+               QWidget *parent = nullptr,
+               SerialInterfaceFactory _serial_interface_factory = nullptr);
 
     /**
      * @brief Default destructor method

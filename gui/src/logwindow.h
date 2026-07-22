@@ -40,11 +40,21 @@ private:
     int linesread = 0;
 
 public:
+    /**
+     * @brief Default constructor.
+     */
     LogWindow(){}
 
+    /**
+     * @brief Construct the debug log window.
+     * @param _log_messages shared list with captured log lines
+     */
     LogWindow(const std::shared_ptr<QStringList>& _log_messages);
 
 private slots:
+    /**
+     * @brief Append new log messages to the text box.
+     */
     void update_log();
 };
 

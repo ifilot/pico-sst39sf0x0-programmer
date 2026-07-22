@@ -19,13 +19,23 @@
  ****************************************************************************/
 
 #include "serial_interface.h"
+#include "serial_transport_qt.h"
 
 /**
  * @brief SerialInterface
  * @param _portname address of the com port
+ * @param _transport_factory optional transport factory for tests
  */
-SerialInterface::SerialInterface(const std::string& _portname) {
+SerialInterface::SerialInterface(const std::string& _portname,
+                                 TransportFactory _transport_factory) {
     this->portname = _portname;
+    if(_transport_factory) {
+        this->transport_factory = std::move(_transport_factory);
+    } else {
+        this->transport_factory = [](const std::string& portname) {
+            return std::make_unique<QtSerialTransport>(portname);
+        };
+    }
 }
 
 /**
@@ -37,14 +47,11 @@ void SerialInterface::open_port() {
         throw std::runtime_error("No port has been set");
     }
 
-    this->port = std::make_unique<QSerialPort>(this->portname.c_str());
-    this->port->setBaudRate(QSerialPort::Baud19200);
-    this->port->setDataBits(QSerialPort::Data8);
-    this->port->setStopBits(QSerialPort::OneStop);
-    this->port->setParity(QSerialPort::NoParity);
-    this->port->setFlowControl(QSerialPort::NoFlowControl);
+    this->port = this->transport_factory(this->portname);
 
-    this->port->open(QIODevice::ReadWrite);
+    if(!this->port->open()) {
+        throw std::runtime_error("Failed to open COM port " + this->portname + ": " + this->port->errorString());
+    }
     this->port->setDataTerminalReady(true);
 
     qDebug() << QObject::tr("Opening COM port:") + QObject::tr(this->portname.c_str());
@@ -55,8 +62,12 @@ void SerialInterface::open_port() {
  *        the QSerialPort object
  */
 void SerialInterface::close_port() {
-    this->port->close();
-    this->port.reset();
+    if(this->port) {
+        if(this->port->isOpen()) {
+            this->port->close();
+        }
+        this->port.reset();
+    }
 
     qDebug() << QObject::tr("Closing COM port:") + QObject::tr(this->portname.c_str());
 }
@@ -84,7 +95,7 @@ std::string SerialInterface::get_board_info() {
         return response_data.toStdString();
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -101,7 +112,7 @@ QByteArray SerialInterface::read_block(unsigned int block_addr) {
         return response_data;
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -118,7 +129,7 @@ QByteArray SerialInterface::read_segment_cartridge(unsigned int segment_addr) {
         return response_data;
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -135,7 +146,7 @@ QByteArray SerialInterface::read_bank(unsigned int bank_id) {
         return response_data;
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -152,7 +163,7 @@ void SerialInterface::erase_sector(unsigned int sector_id) {
         qDebug() << QString("Succesfully erased sector 0x%1 in %2 cycles").arg(sector_id >> 4, 4, 16, QLatin1Char('0')).arg(nrcycles);
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -180,11 +191,10 @@ void SerialInterface::burn_block(unsigned int sector_addr, const QByteArray& dat
         // send command to serial interface
         this->send_command(command);
 
-        this->port->write(data, 256);
+        this->port->write(data);
         while(this->port->waitForBytesWritten(SERIAL_TIMEOUT_BLOCK)){}
 
-        this->wait_for_response(1);
-        auto response = this->port->readAll();
+        auto response = this->wait_for_response(1);
 
         if((uint8_t)response.data()[0] != checksum) {
             qCritical() << "Invalid checksum received: " << checksum << " versus " << response[0];
@@ -197,7 +207,7 @@ void SerialInterface::burn_block(unsigned int sector_addr, const QByteArray& dat
         this->flush_buffer();
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -222,11 +232,10 @@ void SerialInterface::burn_sector(unsigned int sector_id, const QByteArray& data
         // send command to serial interface
         this->send_command(command);
 
-        this->port->write(data, 0x1000);
+        this->port->write(data);
         while(this->port->waitForBytesWritten(SERIAL_TIMEOUT_BLOCK)){}
 
-        this->wait_for_response(2); // wait for CRC16 checksum
-        auto response = this->port->readAll();
+        auto response = this->wait_for_response(2); // wait for CRC16 checksum
 
         uint16_t checksum_response = 0x0000;
         memcpy((void*)&checksum_response, (void*)&response.data()[0], 2);
@@ -244,7 +253,7 @@ void SerialInterface::burn_sector(unsigned int sector_id, const QByteArray& data
         this->flush_buffer();
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -256,11 +265,12 @@ uint16_t SerialInterface::get_chip_id() {
     try {
         std::string command = "DEVIDSST";
         auto response = this->send_command_capture_response(command, 2);
-        uint16_t chip_id = (uint16_t)(response[0]+1) * 256 + (uint16_t)response[1];
+        uint16_t chip_id = (static_cast<uint8_t>(response[0]) << 8) |
+                           static_cast<uint8_t>(response[1]);
         return chip_id;
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 
 }
@@ -274,7 +284,7 @@ void SerialInterface::erase_chip() {
         auto response = this->send_command_capture_response(command, 2);
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -294,7 +304,7 @@ void SerialInterface::write_address(uint16_t address, uint8_t value) {
 
     }  catch (std::exception& e) {
         std::cerr << "Caught error: " << e.what() << std::endl;
-        throw e;
+        throw;
     }
 }
 
@@ -309,8 +319,7 @@ void SerialInterface::send_command(const std::string& command) {
     while(this->port->waitForBytesWritten(SERIAL_TIMEOUT)){}
 
     // capture command response
-    this->wait_for_response(8);
-    auto response = this->port->readAll();
+    auto response = this->wait_for_response(8);
 
     // check that response is identifical to command,
     // else throw an error
@@ -332,10 +341,7 @@ QByteArray SerialInterface::send_command_capture_response(const std::string& com
     while(this->port->waitForBytesWritten(SERIAL_TIMEOUT)){}
 
     // capture command response
-    this->wait_for_response(8 + nrbytes);
-
-    // read bytes from port
-    auto response = this->port->readAll();
+    auto response = this->wait_for_response(8 + nrbytes);
 
     // separate command and response
     auto cmdres = response.mid(0,8);
@@ -359,7 +365,9 @@ void SerialInterface::flush_buffer() {
     QByteArray response;
 
     if(this->port->waitForReadyRead(100)) {
-        response += this->port->readAll(); //discard bytes
+        do {
+            response += this->port->readAll(); // discard bytes
+        } while(this->port->waitForReadyRead(10));
     }
 
     if(response.size() > 0) {
@@ -368,25 +376,39 @@ void SerialInterface::flush_buffer() {
 }
 
 /**
- * @brief Convenience function waiting for response
+ * @brief Wait for and collect a complete response
+ *
+ * Incoming data is drained on every iteration so large transfers cannot fill
+ * the host-side serial buffer while the application is waiting for the final
+ * byte.
+ *
+ * @param nrbytes minimum number of bytes to receive
+ * @return buffered response bytes
  */
-void SerialInterface::wait_for_response(int nrbytes) {
-    size_t ctr = 0;
-    int bytes_available = 0;
-    while(this->port->waitForReadyRead(10) || this->port->bytesAvailable() < nrbytes){
-        // check if number of bytes available is increasing, if not, increment counter
-        if(this->port->bytesAvailable() == bytes_available) {
-            ctr++;
-        }
-        bytes_available = this->port->bytesAvailable();
+QByteArray SerialInterface::wait_for_response(int nrbytes) {
+    QByteArray response;
+    size_t stalled_tries = 0;
 
-        // if counter reaches a maximum number of tries, terminate the procedure
-        if(ctr > 100) {
+    while(response.size() < nrbytes) {
+        this->port->waitForReadyRead(10);
+        const QByteArray chunk = this->port->readAll();
+
+        if(chunk.isEmpty()) {
+            stalled_tries++;
+        } else {
+            response += chunk;
+            stalled_tries = 0;
+        }
+
+        // If no data arrives for roughly one second, terminate the procedure.
+        if(stalled_tries > 100) {
             qDebug() << "Failed to capture response, outputting buffer:";
-            qDebug() << this->port->readAll();
+            qDebug() << response;
             throw std::runtime_error("Too many tries waiting for response to command, terminating.");
         }
     }
+
+    return response;
 }
 
 bool SerialInterface::firmware_version_greater_than(int major, int minor, int patch) {

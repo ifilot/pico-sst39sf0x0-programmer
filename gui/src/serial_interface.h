@@ -21,11 +21,12 @@
 #ifndef SERIAL_INTERFACE_H
 #define SERIAL_INTERFACE_H
 
-#include <QSerialPort>
 #include <QSerialPortInfo>
 #include <QDateTime>
 #include <QDebug>
 #include <QString>
+
+#include "serial_transport.h"
 
 #include <string>
 #include <iostream>
@@ -34,18 +35,22 @@
 #include <unordered_map>
 #include <chrono>
 #include <memory>
+#include <functional>
 
 /**
  * @brief Interface class handling serial communication
  */
 class SerialInterface {
+public:
+    using TransportFactory = std::function<std::unique_ptr<SerialTransport>(const std::string&)>;
 
 private:
     static const unsigned int SERIAL_TIMEOUT = 100;             // timeout for regular serial communication
     static const unsigned int SERIAL_TIMEOUT_SECTOR = 0;        // timeout when reading sector data (0x1000 bytes)
     static const unsigned int SERIAL_TIMEOUT_BLOCK = 3000;      // timeout when reading sector data (0x1000 bytes)
     std::string portname;                                       // communication port address
-    std::unique_ptr<QSerialPort> port;                          // pointer to QSerialPort object
+    std::unique_ptr<SerialTransport> port;                      // pointer to serial transport object
+    TransportFactory transport_factory;                         // transport constructor
 
     // variables to store cartridge firmware version
     int firmware_major = 0;
@@ -61,8 +66,10 @@ public:
     /**
      * @brief SerialInterface
      * @param _portname address of the com port
+     * @param _transport_factory optional transport factory for tests
      */
-    SerialInterface(const std::string& _portname);
+    SerialInterface(const std::string& _portname,
+                    TransportFactory _transport_factory = nullptr);
 
     /**
      * @brief get_port
@@ -174,9 +181,11 @@ private:
     void flush_buffer();
 
     /**
-     * @brief Convenience function waiting for response
+     * @brief Wait for and collect a complete response
+     * @param nrbytes minimum number of bytes to receive
+     * @return buffered response bytes
      */
-    void wait_for_response(int nrbytes);
+    QByteArray wait_for_response(int nrbytes);
 
     /**
      * @brief Convenience function for comparing two version numbers

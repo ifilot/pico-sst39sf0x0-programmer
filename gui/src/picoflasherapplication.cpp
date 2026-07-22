@@ -29,10 +29,10 @@ PicoFlasherApplication::PicoFlasherApplication(int& argc, char** argv) :
 QApplication(argc, argv) {}
 
 /**
- * @brief notify
- * @param receiver
- * @param event
- * @return
+ * @brief Deliver an event while catching uncaught exceptions.
+ * @param receiver object receiving the event
+ * @param event event to deliver
+ * @return true when the event was handled
  */
 bool PicoFlasherApplication::notify(QObject* receiver, QEvent* event) {
     bool done = true;
@@ -48,7 +48,11 @@ bool PicoFlasherApplication::notify(QObject* receiver, QEvent* event) {
     return done;
 }
 
-
+/**
+ * @brief Show a critical error window.
+ * @param title message window title
+ * @param message detailed error message
+ */
 void PicoFlasherApplication::throw_message_window(const QString& title, const QString& message) {
     QMessageBox message_box;
     message_box.setText(message);

@@ -35,8 +35,15 @@ class CartridgeReadThread : public IOWorker {
     Q_OBJECT
 
 public:
+    /**
+     * @brief Default constructor.
+     */
     CartridgeReadThread() {}
 
+    /**
+     * @brief Construct a cartridge reader thread.
+     * @param _serial_interface shared serial interface
+     */
     CartridgeReadThread(const std::shared_ptr<SerialInterface>& _serial_interface) :
         IOWorker(_serial_interface) {}
 

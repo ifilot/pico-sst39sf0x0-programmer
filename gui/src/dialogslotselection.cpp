@@ -20,6 +20,10 @@
 
 #include "dialogslotselection.h"
 
+/**
+ * @brief Construct the ROM slot selection dialog.
+ * @param _nr_banks total number of banks on the chip
+ */
 DialogSlotSelection::DialogSlotSelection(unsigned int _nr_banks) :
     nr_banks(_nr_banks)
 {
@@ -47,6 +51,9 @@ DialogSlotSelection::DialogSlotSelection(unsigned int _nr_banks) :
     }
 }
 
+/**
+ * @brief Store the selected slot and close the dialog.
+ */
 void DialogSlotSelection::slot_select_romslot() {
     QPushButton* btn = qobject_cast<QPushButton *>(sender());
     this->slot_id = btn->text().toInt();
