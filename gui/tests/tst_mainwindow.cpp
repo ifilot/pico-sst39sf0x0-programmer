@@ -120,6 +120,7 @@ private slots:
     void read_rom_populates_hex_view();
     void flash_rom_quick_runs_program_and_verify_workflow();
     void flash_rom_quick_worker_abort_is_reported();
+    void destruction_waits_for_active_read();
 };
 
 void MainWindowTest::select_com_port_updates_labels_and_enables_buttons() {
@@ -214,6 +215,27 @@ void MainWindowTest::flash_rom_quick_worker_abort_is_reported() {
     QVERIFY(QMetaObject::invokeMethod(&window, "flash_rom_quick", Qt::DirectConnection));
 
     QTRY_VERIFY(watcher.messages.join("\n").contains("Operation terminated unexpectedly"));
+}
+
+void MainWindowTest::destruction_waits_for_active_read() {
+    auto backend = std::make_shared<FirmwareEmulatorBackend>(
+        QByteArray(128 * 1024, static_cast<char>(0xA5)),
+        QByteArray("PICOSST39-V1.3.0"),
+        0xBFB5
+    );
+
+    {
+        auto logs = std::make_shared<QStringList>();
+        MainWindow window(logs, nullptr, buildFactory(backend));
+
+        addEmulatedPort(window);
+        QVERIFY(QMetaObject::invokeMethod(&window, "select_com_port", Qt::DirectConnection));
+        QVERIFY(QMetaObject::invokeMethod(&window, "read_chip_id", Qt::DirectConnection));
+        QVERIFY(QMetaObject::invokeMethod(&window, "read_rom", Qt::DirectConnection));
+    }
+
+    const auto history = backend->commandHistory();
+    QCOMPARE(QString::fromStdString(history.back()), QString("RDBANK07"));
 }
 
 QTEST_MAIN(MainWindowTest)

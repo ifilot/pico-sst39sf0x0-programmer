@@ -135,6 +135,15 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages,
  * @brief Default destructor method
  */
 MainWindow::~MainWindow() {
+    if(this->readerthread) {
+        this->readerthread->wait();
+    }
+    if(this->flashthread) {
+        this->flashthread->wait();
+    }
+    if(this->cartridgereaderthread) {
+        this->cartridgereaderthread->wait();
+    }
 }
 
 /**
@@ -765,9 +774,11 @@ void MainWindow::parse_chip_read_results() {
 
     QByteArray data;
     if(this->readerthread) {
+        this->readerthread->wait();
         data = this->readerthread->get_data();
         this->readerthread.reset(); // delete object
     } else if(this->cartridgereaderthread) {
+        this->cartridgereaderthread->wait();
         data = this->cartridgereaderthread->get_data();
         this->cartridgereaderthread.reset(); // delete object
     } else {
@@ -1357,6 +1368,7 @@ void MainWindow::verify_block_done(unsigned int block_id, unsigned int nr_blocks
  */
 void MainWindow::verify_result_ready() {
     this->progress_bar_load->setValue(this->num_blocks);
+    this->readerthread->wait();
     QByteArray verify_data = this->readerthread->get_data();
     this->readerthread.reset(); // delete object
 
@@ -1385,17 +1397,17 @@ void MainWindow::verify_result_ready() {
 void MainWindow::thread_abort(const QString& error) {
     // clean up threads
     if(this->readerthread) {
-        while(!this->readerthread->isFinished()) {}
+        this->readerthread->wait();
         this->readerthread.reset(); // delete object
     }
 
     if(this->flashthread) {
-        while(!this->flashthread->isFinished()) {}
+        this->flashthread->wait();
         this->flashthread.reset(); // delete object
     }
 
     if(this->cartridgereaderthread) {
-        while(!this->cartridgereaderthread->isFinished()) {}
+        this->cartridgereaderthread->wait();
         this->cartridgereaderthread.reset(); // delete object
     }
 
