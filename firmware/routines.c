@@ -22,14 +22,21 @@
 
 /*
  * Write a full buffer over CDC, looping until every byte is actually queued/sent.
+ * Return false if the host disconnects before the transfer completes.
  */
-static void write_all(const uint8_t *data, uint32_t len) {
+static bool write_all(const uint8_t *data, uint32_t len) {
     uint32_t written = 0;
     while (written < len) {
+        if(!tud_cdc_connected()) {
+            return false;
+        }
+
         written += tud_cdc_write(data + written, len - written);
         tud_cdc_write_flush();
         tud_task();
     }
+
+    return true;
 }
 
 /*
@@ -144,7 +151,9 @@ void read_p2k_cartridge_block(uint8_t block_id) {
             data[i] = gpio_get_all();
         }
 
-        write_all(data, 0x100);
+        if(!write_all(data, 0x100)) {
+            break;
+        }
     }
 
     gpio_put(CE, true);
@@ -180,7 +189,9 @@ void read_bank(uint8_t bank_id) {
             data[i] = gpio_get_all();
         }
 
-        write_all(data, 0x100);
+        if(!write_all(data, 0x100)) {
+            break;
+        }
     }
 
     gpio_put(CE, true);
@@ -216,7 +227,9 @@ void read_sector(uint8_t sector_id) {
             data[i] = gpio_get_all();
         }
 
-        write_all(data, 0x100);
+        if(!write_all(data, 0x100)) {
+            break;
+        }
     }
 
     gpio_put(CE, true);

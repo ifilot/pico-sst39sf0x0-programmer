@@ -27,9 +27,12 @@ uint32_t parse_hex(const QByteArray& input) {
 /**
  * @brief Construct a new emulated transport.
  * @param _backend shared flash backend
+ * @param _read_chunk_size maximum bytes exposed by one readAll() call
  */
-EmulatedSerialTransport::EmulatedSerialTransport(const std::shared_ptr<FirmwareEmulatorBackend>& _backend) :
-    backend(_backend) {}
+EmulatedSerialTransport::EmulatedSerialTransport(const std::shared_ptr<FirmwareEmulatorBackend>& _backend,
+                                                 int _read_chunk_size) :
+    backend(_backend),
+    read_chunk_size(_read_chunk_size) {}
 
 /**
  * @brief Open the in-memory transport.
@@ -129,8 +132,16 @@ bool EmulatedSerialTransport::waitForReadyRead(int) {
  * @return buffered response bytes
  */
 QByteArray EmulatedSerialTransport::readAll() {
-    const QByteArray data = this->read_buffer;
-    this->read_buffer.clear();
+    int bytes_to_read = this->read_buffer.size();
+    if(this->read_chunk_size > 0) {
+        bytes_to_read = std::min(bytes_to_read, this->read_chunk_size);
+    }
+
+    const QByteArray data = this->read_buffer.left(bytes_to_read);
+    this->read_buffer.remove(0, bytes_to_read);
+    if(!this->read_buffer.isEmpty()) {
+        this->ready_read_pending = true;
+    }
     return data;
 }
 
@@ -139,6 +150,10 @@ QByteArray EmulatedSerialTransport::readAll() {
  * @return available byte count
  */
 qint64 EmulatedSerialTransport::bytesAvailable() const {
+    if(this->read_chunk_size > 0) {
+        return std::min(this->read_buffer.size(), this->read_chunk_size);
+    }
+
     return this->read_buffer.size();
 }
 
@@ -259,10 +274,11 @@ FirmwareEmulatorBackend::FirmwareEmulatorBackend(const QByteArray& initial_flash
 
 /**
  * @brief Create a transport wired to this backend.
+ * @param read_chunk_size maximum bytes exposed per read; zero for unlimited
  * @return transport instance
  */
-std::unique_ptr<SerialTransport> FirmwareEmulatorBackend::create_transport() {
-    return std::make_unique<EmulatedSerialTransport>(shared_from_this());
+std::unique_ptr<SerialTransport> FirmwareEmulatorBackend::create_transport(int read_chunk_size) {
+    return std::make_unique<EmulatedSerialTransport>(shared_from_this(), read_chunk_size);
 }
 
 /**

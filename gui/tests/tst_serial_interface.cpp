@@ -17,6 +17,13 @@ private:
         };
     }
 
+    static SerialInterface::TransportFactory buildFragmentedFactory(const std::shared_ptr<FirmwareEmulatorBackend>& backend,
+                                                                    int readChunkSize) {
+        return [backend, readChunkSize](const std::string&) {
+            return backend->create_transport(readChunkSize);
+        };
+    }
+
     static SerialInterface::TransportFactory buildFaultFactory(const std::shared_ptr<FirmwareEmulatorBackend>& backend,
                                                                const std::string& targetCommand,
                                                                FaultInjectingTransport::FaultMode mode) {
@@ -33,6 +40,7 @@ private slots:
     void reads_board_info();
     void reads_chip_id();
     void reads_bank_payload();
+    void reads_fragmented_bank_payload();
     void reads_cartridge_segment();
     void writes_sector_and_updates_emulated_flash();
     void erases_chip_clears_flash();
@@ -84,6 +92,23 @@ void SerialInterfaceTest::reads_bank_payload() {
 
     QCOMPARE(payload.size(), 0x4000);
     QCOMPARE(payload.left(32), flash.left(32));
+    QVERIFY(backend->commandHistory() == std::vector<std::string>{"RDBANK00"});
+}
+
+void SerialInterfaceTest::reads_fragmented_bank_payload() {
+    QByteArray flash(0x80000, static_cast<char>(0xFF));
+    for(int i=0; i<0x4000; i++) {
+        flash[i] = static_cast<char>((i * 13) & 0xFF);
+    }
+
+    auto backend = std::make_shared<FirmwareEmulatorBackend>(flash);
+    SerialInterface serial("emu", buildFragmentedFactory(backend, 64));
+
+    serial.open_port();
+    const QByteArray payload = serial.read_bank(0);
+    serial.close_port();
+
+    QCOMPARE(payload, flash.left(0x4000));
     QVERIFY(backend->commandHistory() == std::vector<std::string>{"RDBANK00"});
 }
 

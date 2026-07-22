@@ -181,9 +181,11 @@ private:
     void flush_buffer();
 
     /**
-     * @brief Convenience function waiting for response
+     * @brief Wait for and collect a complete response
+     * @param nrbytes minimum number of bytes to receive
+     * @return buffered response bytes
      */
-    void wait_for_response(int nrbytes);
+    QByteArray wait_for_response(int nrbytes);
 
     /**
      * @brief Convenience function for comparing two version numbers

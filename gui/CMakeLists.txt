@@ -117,4 +117,10 @@ if(BUILD_TESTING)
     )
     target_link_libraries(tst_mainwindow PRIVATE pico_flasher_ui Qt5::Test)
     add_test(NAME tst_mainwindow COMMAND tst_mainwindow)
+
+    if(UNIX AND NOT APPLE)
+        set_tests_properties(tst_mainwindow PROPERTIES
+            ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        )
+    endif()
 endif()

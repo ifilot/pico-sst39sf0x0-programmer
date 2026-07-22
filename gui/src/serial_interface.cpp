@@ -194,8 +194,7 @@ void SerialInterface::burn_block(unsigned int sector_addr, const QByteArray& dat
         this->port->write(data);
         while(this->port->waitForBytesWritten(SERIAL_TIMEOUT_BLOCK)){}
 
-        this->wait_for_response(1);
-        auto response = this->port->readAll();
+        auto response = this->wait_for_response(1);
 
         if((uint8_t)response.data()[0] != checksum) {
             qCritical() << "Invalid checksum received: " << checksum << " versus " << response[0];
@@ -236,8 +235,7 @@ void SerialInterface::burn_sector(unsigned int sector_id, const QByteArray& data
         this->port->write(data);
         while(this->port->waitForBytesWritten(SERIAL_TIMEOUT_BLOCK)){}
 
-        this->wait_for_response(2); // wait for CRC16 checksum
-        auto response = this->port->readAll();
+        auto response = this->wait_for_response(2); // wait for CRC16 checksum
 
         uint16_t checksum_response = 0x0000;
         memcpy((void*)&checksum_response, (void*)&response.data()[0], 2);
@@ -321,8 +319,7 @@ void SerialInterface::send_command(const std::string& command) {
     while(this->port->waitForBytesWritten(SERIAL_TIMEOUT)){}
 
     // capture command response
-    this->wait_for_response(8);
-    auto response = this->port->readAll();
+    auto response = this->wait_for_response(8);
 
     // check that response is identifical to command,
     // else throw an error
@@ -344,10 +341,7 @@ QByteArray SerialInterface::send_command_capture_response(const std::string& com
     while(this->port->waitForBytesWritten(SERIAL_TIMEOUT)){}
 
     // capture command response
-    this->wait_for_response(8 + nrbytes);
-
-    // read bytes from port
-    auto response = this->port->readAll();
+    auto response = this->wait_for_response(8 + nrbytes);
 
     // separate command and response
     auto cmdres = response.mid(0,8);
@@ -371,7 +365,9 @@ void SerialInterface::flush_buffer() {
     QByteArray response;
 
     if(this->port->waitForReadyRead(100)) {
-        response += this->port->readAll(); //discard bytes
+        do {
+            response += this->port->readAll(); // discard bytes
+        } while(this->port->waitForReadyRead(10));
     }
 
     if(response.size() > 0) {
@@ -380,25 +376,39 @@ void SerialInterface::flush_buffer() {
 }
 
 /**
- * @brief Convenience function waiting for response
+ * @brief Wait for and collect a complete response
+ *
+ * Incoming data is drained on every iteration so large transfers cannot fill
+ * the host-side serial buffer while the application is waiting for the final
+ * byte.
+ *
+ * @param nrbytes minimum number of bytes to receive
+ * @return buffered response bytes
  */
-void SerialInterface::wait_for_response(int nrbytes) {
-    size_t ctr = 0;
-    int bytes_available = 0;
-    while(this->port->waitForReadyRead(10) || this->port->bytesAvailable() < nrbytes){
-        // check if number of bytes available is increasing, if not, increment counter
-        if(this->port->bytesAvailable() == bytes_available) {
-            ctr++;
-        }
-        bytes_available = this->port->bytesAvailable();
+QByteArray SerialInterface::wait_for_response(int nrbytes) {
+    QByteArray response;
+    size_t stalled_tries = 0;
 
-        // if counter reaches a maximum number of tries, terminate the procedure
-        if(ctr > 100) {
+    while(response.size() < nrbytes) {
+        this->port->waitForReadyRead(10);
+        const QByteArray chunk = this->port->readAll();
+
+        if(chunk.isEmpty()) {
+            stalled_tries++;
+        } else {
+            response += chunk;
+            stalled_tries = 0;
+        }
+
+        // If no data arrives for roughly one second, terminate the procedure.
+        if(stalled_tries > 100) {
             qDebug() << "Failed to capture response, outputting buffer:";
-            qDebug() << this->port->readAll();
+            qDebug() << response;
             throw std::runtime_error("Too many tries waiting for response to command, terminating.");
         }
     }
+
+    return response;
 }
 
 bool SerialInterface::firmware_version_greater_than(int major, int minor, int patch) {

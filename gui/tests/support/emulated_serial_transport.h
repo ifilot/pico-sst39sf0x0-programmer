@@ -30,6 +30,7 @@ private:
     QByteArray write_buffer;
     QByteArray read_buffer;
     bool ready_read_pending = false;
+    int read_chunk_size = 0;
 
     /**
      * @brief Type of write payload the transport is currently collecting.
@@ -59,8 +60,11 @@ public:
     /**
      * @brief Construct a new emulated transport.
      * @param _backend shared flash backend
+     * @param _read_chunk_size maximum bytes exposed by one readAll() call;
+     *        zero exposes the complete buffered response
      */
-    explicit EmulatedSerialTransport(const std::shared_ptr<FirmwareEmulatorBackend>& _backend);
+    explicit EmulatedSerialTransport(const std::shared_ptr<FirmwareEmulatorBackend>& _backend,
+                                     int _read_chunk_size = 0);
 
     /**
      * @brief Open the emulated transport.
@@ -189,9 +193,10 @@ public:
 
     /**
      * @brief Create a new transport connected to this backend.
+     * @param read_chunk_size maximum bytes exposed per read; zero for unlimited
      * @return transport instance
      */
-    std::unique_ptr<SerialTransport> create_transport();
+    std::unique_ptr<SerialTransport> create_transport(int read_chunk_size = 0);
 
     /**
      * @brief Get the 16-byte board identification string.

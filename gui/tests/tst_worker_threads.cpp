@@ -24,6 +24,7 @@ private slots:
     void cartridge_read_thread_reads_all_segments();
     void flash_thread_quickflash_writes_only_non_empty_sectors();
     void flash_thread_regular_mode_erases_and_writes_each_sector();
+    void worker_threads_surface_serial_errors();
 };
 
 void WorkerThreadTest::read_thread_reads_all_banks_for_detected_chip() {
@@ -129,6 +130,47 @@ void WorkerThreadTest::flash_thread_regular_mode_erases_and_writes_each_sector()
     QVERIFY(history == std::vector<std::string>({
         "DEVIDSST", "ESST0000", "WRSECT00", "ESST0010", "WRSECT01"
     }));
+}
+
+void WorkerThreadTest::worker_threads_surface_serial_errors() {
+    {
+        auto serial = std::make_shared<SerialInterface>("");
+        ReadThread thread(serial);
+        QSignalSpy readySpy(&thread, SIGNAL(read_result_ready()));
+        QSignalSpy abortSpy(&thread, SIGNAL(thread_abort(const QString&)));
+
+        thread.start();
+        QVERIFY(thread.wait(2000));
+        QCOMPARE(readySpy.count(), 0);
+        QCOMPARE(abortSpy.count(), 1);
+        QVERIFY(abortSpy.takeFirst().at(0).toString().contains("No port has been set"));
+    }
+
+    {
+        auto serial = std::make_shared<SerialInterface>("");
+        CartridgeReadThread thread(serial);
+        QSignalSpy readySpy(&thread, SIGNAL(read_result_ready()));
+        QSignalSpy abortSpy(&thread, SIGNAL(thread_abort(const QString&)));
+
+        thread.start();
+        QVERIFY(thread.wait(2000));
+        QCOMPARE(readySpy.count(), 0);
+        QCOMPARE(abortSpy.count(), 1);
+        QVERIFY(abortSpy.takeFirst().at(0).toString().contains("No port has been set"));
+    }
+
+    {
+        auto serial = std::make_shared<SerialInterface>("");
+        FlashThread thread(serial, 0, true);
+        QSignalSpy readySpy(&thread, SIGNAL(flash_result_ready()));
+        QSignalSpy abortSpy(&thread, SIGNAL(thread_abort(const QString&)));
+
+        thread.start();
+        QVERIFY(thread.wait(2000));
+        QCOMPARE(readySpy.count(), 0);
+        QCOMPARE(abortSpy.count(), 1);
+        QVERIFY(abortSpy.takeFirst().at(0).toString().contains("No port has been set"));
+    }
 }
 
 QTEST_MAIN(WorkerThreadTest)
