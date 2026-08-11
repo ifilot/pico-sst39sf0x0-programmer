@@ -5,6 +5,7 @@
 #include "support/fault_injecting_transport.h"
 
 #include <QComboBox>
+#include <QFile>
 #include <QLabel>
 #include <QMessageBox>
 #include <QProgressBar>
@@ -121,7 +122,75 @@ private slots:
     void flash_rom_quick_runs_program_and_verify_workflow();
     void flash_rom_quick_worker_abort_is_reported();
     void destruction_waits_for_active_read();
+    void menu_actions_have_visible_icons();
 };
+
+void MainWindowTest::menu_actions_have_visible_icons() {
+    auto logs = std::make_shared<QStringList>();
+    MainWindow window(logs);
+
+    const auto menuBarActions = window.menuBar()->actions();
+    QCOMPARE(menuBarActions.size(), 3);
+    for(QAction* menuBarAction : menuBarActions) {
+        QMenu* menu = menuBarAction->menu();
+        QVERIFY(menu != nullptr);
+        for(QAction* action : menu->actions()) {
+            QVERIFY2(!action->icon().isNull(), qPrintable(action->text()));
+            QVERIFY2(action->isIconVisibleInMenu(), qPrintable(action->text()));
+        }
+    }
+
+    QPushButton* romButton = nullptr;
+    for(QPushButton* candidate : window.findChildren<QPushButton*>()) {
+        if(candidate->text() == QStringLiteral("Select other ROM")) {
+            romButton = candidate;
+            break;
+        }
+    }
+
+    QVERIFY(romButton != nullptr);
+    QVERIFY(romButton->menu() != nullptr);
+    QCOMPARE(romButton->menu()->actions().size(), 2);
+
+    for(QAction* action : romButton->menu()->actions()) {
+        QVERIFY2(!action->icon().isNull(), qPrintable(action->text()));
+        QVERIFY2(action->isIconVisibleInMenu(), qPrintable(action->text()));
+        QVERIFY2(action->menu() != nullptr, qPrintable(action->text()));
+    }
+
+    QMenu* p2000tMenu = romButton->menu()->actions().at(0)->menu();
+    QMenu* p2000mMenu = romButton->menu()->actions().at(1)->menu();
+    QCOMPARE(p2000tMenu->title(), QStringLiteral("Philips P2000T"));
+    QCOMPARE(p2000mMenu->title(), QStringLiteral("Philips P2000M"));
+    QCOMPARE(p2000tMenu->actions().size(), 14);
+    QCOMPARE(p2000mMenu->actions().size(), 2);
+    QVERIFY(p2000tMenu->menuAction()->icon().cacheKey()
+            != p2000tMenu->actions().constFirst()->icon().cacheKey());
+    QVERIFY(p2000mMenu->menuAction()->icon().cacheKey()
+            != p2000mMenu->actions().constFirst()->icon().cacheKey());
+
+    for(QAction* action : p2000tMenu->actions()) {
+        QVERIFY2(!action->icon().isNull(), qPrintable(action->text()));
+        QVERIFY2(action->isIconVisibleInMenu(), qPrintable(action->text()));
+        QVERIFY2(action->property("image_name").isValid(), qPrintable(action->text()));
+    }
+
+    QCOMPARE(p2000mMenu->actions().at(0)->text(), QStringLiteral("MCPM"));
+    QCOMPARE(p2000mMenu->actions().at(1)->text(), QStringLiteral("UCSD Pascal"));
+    for(QAction* action : p2000mMenu->actions()) {
+        QVERIFY2(!action->icon().isNull(), qPrintable(action->text()));
+        QVERIFY2(action->isIconVisibleInMenu(), qPrintable(action->text()));
+
+        QFile file(QStringLiteral(":/assets/roms/") + action->property("image_name").toString());
+        QVERIFY2(file.open(QIODevice::ReadOnly), qPrintable(file.fileName()));
+        QCOMPARE(file.size(), qint64(16 * 1024));
+
+        const QByteArray data = file.readAll();
+        if(action->text() == QStringLiteral("MCPM")) {
+            QCOMPARE(data.right(8 * 1024), QByteArray(8 * 1024, static_cast<char>(0xFF)));
+        }
+    }
+}
 
 void MainWindowTest::select_com_port_updates_labels_and_enables_buttons() {
     auto backend = std::make_shared<FirmwareEmulatorBackend>();

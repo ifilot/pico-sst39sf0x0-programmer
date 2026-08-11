@@ -1,7 +1,17 @@
 <RCC>
     <qresource prefix="/">
         <file>assets/icon/eeprom_icon.ico</file>
+        <file>assets/icon/bluecurve/application-exit.png</file>
+        <file>assets/icon/bluecurve/debug-log.png</file>
+        <file>assets/icon/bluecurve/document-open.png</file>
+        <file>assets/icon/bluecurve/document-save.png</file>
+        <file>assets/icon/bluecurve/help-about.png</file>
+        <file>assets/icon/bluecurve/folder.png</file>
+        <file>assets/icon/bluecurve/preferences-system.png</file>
+        <file>assets/icon/bluecurve/rom-file.png</file>
         <file>assets/roms/c64-megacart.bin</file>
+        <file>assets/roms/p2000m-cpm.bin</file>
+        <file>assets/roms/p2000m-pascal.bin</file>
         <file>assets/fonts/Consolas.ttf</file>
         <file>assets/icon/clipboard.png</file>
     </qresource>

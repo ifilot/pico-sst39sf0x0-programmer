@@ -33,6 +33,10 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages,
       log_messages(_log_messages),
       serial_interface_factory(_serial_interface_factory) {
 
+    // resources.qrc is part of the static UI library, so reference its
+    // initializer explicitly to prevent the linker from discarding it.
+    Q_INIT_RESOURCE(resources);
+
     if(!this->serial_interface_factory) {
         this->serial_interface_factory = [](const std::string& portname) {
             return std::make_shared<SerialInterface>(portname);
@@ -161,10 +165,16 @@ void MainWindow::create_dropdown_menu() {
     QAction *action_open = new QAction(menu_file);
     QAction *action_save = new QAction(menu_file);
     QAction *action_quit = new QAction(menu_file);
+    action_open->setIcon(QIcon(":/assets/icon/bluecurve/document-open.png"));
+    action_open->setIconVisibleInMenu(true);
     action_open->setText(tr("Open"));
     action_open->setShortcuts(QKeySequence::Open);
+    action_save->setIcon(QIcon(":/assets/icon/bluecurve/document-save.png"));
+    action_save->setIconVisibleInMenu(true);
     action_save->setText(tr("Save"));
     action_save->setShortcuts(QKeySequence::Save);
+    action_quit->setIcon(QIcon(":/assets/icon/bluecurve/application-exit.png"));
+    action_quit->setIconVisibleInMenu(true);
     action_quit->setText(tr("Quit"));
     action_quit->setShortcuts(QKeySequence::Quit);
     menu_file->addAction(action_open);
@@ -173,17 +183,23 @@ void MainWindow::create_dropdown_menu() {
 
     // actions for edit menu
     QAction *action_settings = new QAction(menu_edit);
+    action_settings->setIcon(QIcon(":/assets/icon/bluecurve/preferences-system.png"));
+    action_settings->setIconVisibleInMenu(true);
     action_settings->setText(tr("Settings"));
     menu_edit->addAction(action_settings);
     connect(action_settings, &QAction::triggered, this, &MainWindow::slot_settings_widget);
 
     // actions for help menu
     QAction *action_about = new QAction(menu_help);
+    action_about->setIcon(QIcon(":/assets/icon/bluecurve/help-about.png"));
+    action_about->setIconVisibleInMenu(true);
     action_about->setText(tr("About"));
     menu_help->addAction(action_about);
 
     // debug log
     QAction *action_debug_log = new QAction(menu_help);
+    action_debug_log->setIcon(QIcon(":/assets/icon/bluecurve/debug-log.png"));
+    action_debug_log->setIconVisibleInMenu(true);
     action_debug_log->setText(tr("Debug Log"));
     action_debug_log ->setShortcut(Qt::Key_F2);
     menu_help->addAction(action_debug_log);
@@ -268,8 +284,8 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
     QPushButton* btn3 = new QPushButton("Select other ROM");
     layout->addWidget(btn3);
 
-    // list of ROM images
-    QList<QPair<QString, QString>> rom_images = {
+    // ROM images grouped by target system
+    const QList<QPair<QString, QString>> p2000t_rom_images = {
         {"P2000T BASICNL v1.1", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/BASICNL1.1.bin"},
         {"P2000T Games Bundle (8-pack; 128 KiB; Space Fight)", "https://github.com/ifilot/p2000t-rompacks/releases/download/nightly/GAMES-128KiB.BIN"},
         {"P2000T Games Bundle (8-pack; 128 KiB; Fraxxon)", "https://github.com/ifilot/p2000t-rompacks/releases/download/nightly/GAMES-128KiB-ALT.BIN"},
@@ -285,15 +301,32 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
         {"Word Processor v2", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/WordProcessor%202.bin"},
         {"Zemon assembler v1.4", "https://github.com/p2000t/software/raw/refs/heads/main/cartridges/Zemon%201.4.bin"}
     };
+    const QList<QPair<QString, QString>> p2000m_rom_images = {
+        {"MCPM", "p2000m-cpm.bin"},
+        {"UCSD Pascal", "p2000m-pascal.bin"}
+    };
 
     QMenu* rommenu = new QMenu();
-    for(int i=0; i<rom_images.size(); i++) {
-        QAction* action = new QAction();
-        action->setText(rom_images[i].first);
-        action->setProperty("image_name", QVariant(rom_images[i].second));
-        connect(action, &QAction::triggered, this, &MainWindow::load_default_image);
-        rommenu->addAction(action);
-    }
+    const QIcon rom_icon(":/assets/icon/bluecurve/rom-file.png");
+    const QIcon folder_icon(":/assets/icon/bluecurve/folder.png");
+    auto add_rom_submenu = [this, rommenu, &rom_icon, &folder_icon](
+        const QString& title,
+        const QList<QPair<QString, QString>>& rom_images
+    ) {
+        QMenu* submenu = rommenu->addMenu(title);
+        submenu->menuAction()->setIcon(folder_icon);
+        submenu->menuAction()->setIconVisibleInMenu(true);
+
+        for(const auto& rom_image : rom_images) {
+            QAction* action = submenu->addAction(rom_icon, rom_image.first);
+            action->setIconVisibleInMenu(true);
+            action->setProperty("image_name", QVariant(rom_image.second));
+            connect(action, &QAction::triggered, this, &MainWindow::load_default_image);
+        }
+    };
+
+    add_rom_submenu(tr("Philips P2000T"), p2000t_rom_images);
+    add_rom_submenu(tr("Philips P2000M"), p2000m_rom_images);
     btn3->setMenu(rommenu);
 
     target_layout->addWidget(this->rom_container);
