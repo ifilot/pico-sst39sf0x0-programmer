@@ -19,6 +19,7 @@
  ****************************************************************************/
 
 #include "mainwindow.h"
+#include "aboutdialog.h"
 
 /**
  * @brief MainWindow
@@ -92,13 +93,6 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages,
     this->build_serial_interface_menu(right_layout);
     this->build_rom_selection_menu(right_layout);
     this->build_operations_menu(right_layout);
-
-    // add compile information
-    this->label_compile_data = new QLabel(tr("<b>Build:</b><br>Compile time: %1<br>Git id: %2<br>Version: %3")
-                                          .arg(__DATE__)
-                                          .arg(GIT_HASH)
-                                          .arg(PROGRAM_VERSION));
-    right_layout->addWidget(this->label_compile_data);
 
     // add padding frame on RHS
     QSpacerItem *spacer = new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -760,18 +754,8 @@ void MainWindow::slot_save() {
  * @brief Show an about window
  */
 void MainWindow::slot_about() {
-    QMessageBox message_box;
-    //message_box.setStyleSheet("QLabel{min-width: 250px; font-weight: normal;}");
-    message_box.setText(PROGRAM_NAME
-                        " version "
-                        PROGRAM_VERSION
-                        ".\n\nAuthor:\nIvo Filot <ivo@ivofilot.nl>\n\n"
-                        PROGRAM_NAME " is licensed under the GPLv3 license.\n\n"
-                        PROGRAM_NAME " is dynamically linked to Qt, which is licensed under LGPLv3.\n");
-    message_box.setIcon(QMessageBox::Information);
-    message_box.setWindowTitle("About " + tr(PROGRAM_NAME));
-    message_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
-    message_box.exec();
+    AboutDialog dialog(this);
+    dialog.exec();
 }
 
 /**

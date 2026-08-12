@@ -21,41 +21,62 @@
 #ifndef LOGWINDOW_H
 #define LOGWINDOW_H
 
-#include <QObject>
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QScrollArea>
+#include <QCheckBox>
+#include <QLabel>
 #include <QPlainTextEdit>
-#include <QDebug>
-#include <QTimer>
-#include <QIcon>
+#include <QPushButton>
+#include <QWidget>
+
+#include <memory>
 
 class LogWindow : public QWidget {
-
-Q_OBJECT
+    Q_OBJECT
 
 private:
+    enum class Severity {
+        Debug,
+        Info,
+        Warning,
+        Error,
+        Unknown
+    };
+
     std::shared_ptr<QStringList> log_messages;
-    QPlainTextEdit* text_box;
+    QPlainTextEdit* text_box = nullptr;
+    QLabel* status_label = nullptr;
+    QLabel* live_badge = nullptr;
+    QCheckBox* filter_debug = nullptr;
+    QCheckBox* filter_info = nullptr;
+    QCheckBox* filter_warning = nullptr;
+    QCheckBox* filter_error = nullptr;
+    QCheckBox* auto_scroll = nullptr;
+    QPushButton* pause_button = nullptr;
     int linesread = 0;
+    int first_visible_line = 0;
 
 public:
-    /**
-     * @brief Default constructor.
-     */
-    LogWindow(){}
+    LogWindow() = default;
 
     /**
-     * @brief Construct the debug log window.
+     * @brief Construct a live, filterable view of the captured log messages.
      * @param _log_messages shared list with captured log lines
      */
-    LogWindow(const std::shared_ptr<QStringList>& _log_messages);
+    explicit LogWindow(const std::shared_ptr<QStringList>& _log_messages);
+
+private:
+    Severity severity_of(const QString& line) const;
+    bool severity_is_visible(Severity severity) const;
+    void append_line(const QString& line);
+    void rebuild_log();
+    void update_status();
+    void update_live_badge();
 
 private slots:
-    /**
-     * @brief Append new log messages to the text box.
-     */
     void update_log();
+    void clear_log();
+    void copy_log();
+    void save_log();
+    void toggle_pause(bool paused);
 };
 
 #endif // LOGWINDOW_H

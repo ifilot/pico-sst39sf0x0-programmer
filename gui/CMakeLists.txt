@@ -41,6 +41,7 @@ target_include_directories(pico_flasher_core PUBLIC
 target_link_libraries(pico_flasher_core PUBLIC Qt5::Core Qt5::SerialPort)
 
 add_library(pico_flasher_ui STATIC
+    src/aboutdialog.cpp
     src/bankviewer.cpp
     src/dialogslotselection.cpp
     src/filedownloader.cpp

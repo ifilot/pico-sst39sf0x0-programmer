@@ -39,6 +39,7 @@
 #include <QFrame>
 #include <QFileDialog>
 #include <QProgressDialog>
+#include <QScrollArea>
 #include <QCryptographicHash>
 #include <QSettings>
 #include <QStandardPaths>
@@ -114,7 +115,6 @@ private:
     QByteArray flash_data;
     QByteArray save_data;
 
-    QLabel* label_compile_data;
     QSettings settings;
 
     QGroupBox *rom_container;
