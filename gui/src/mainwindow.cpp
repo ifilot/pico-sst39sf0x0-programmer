@@ -172,6 +172,11 @@ void MainWindow::create_dropdown_menu() {
     action_quit->setText(tr("Quit"));
     action_quit->setShortcuts(QKeySequence::Quit);
     menu_file->addAction(action_open);
+    this->recent_files_menu = menu_file->addMenu(
+        QIcon(":/assets/icon/bluecurve/folder.png"), tr("Recent files"));
+    this->recent_files_menu->setObjectName("menuRecentFiles");
+    this->recent_files_menu->menuAction()->setIconVisibleInMenu(true);
+    this->update_recent_files_menu();
     menu_file->addAction(action_save);
     menu_file->addAction(action_quit);
 
@@ -615,13 +620,28 @@ void MainWindow::slot_open() {
         return;
     }
 
-    // store entry of last opened folder
-    QDir storepath = QFileInfo(filename).dir();
-    qDebug() << storepath;
-    settings.setValue("last_open_dir", storepath.path());
+    if(this->open_file(filename)) {
+        const QDir storepath = QFileInfo(filename).dir();
+        qDebug() << storepath;
+        settings.setValue("last_open_dir", storepath.path());
+        this->add_recent_file(filename);
+    }
+}
 
-    // load file
+/**
+ * @brief Load a ROM image from disk.
+ * @param filename file to load
+ * @return true when the file was loaded successfully
+ */
+bool MainWindow::open_file(const QString& filename) {
     QFile file(filename);
+
+    if(!file.exists()) {
+        QMessageBox::warning(this,
+                             tr("File not found"),
+                             tr("The file no longer exists:\n%1").arg(QDir::toNativeSeparators(filename)));
+        return false;
+    }
 
     // provide a warning to the user if the file is larger than half a megabyte
     if(file.size() > (512 * 1024)) {
@@ -630,49 +650,143 @@ void MainWindow::slot_open() {
         msg_box.setText(tr("This file is larger than 512kb. It is most likely not a Z80 binary file."));
         msg_box.setWindowIcon(QIcon(":/assets/icon/eeprom_icon.ico"));
         msg_box.exec();
+        return false;
+    }
+
+    if(!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this,
+                             tr("Could not open file"),
+                             tr("The file could not be read:\n%1").arg(QDir::toNativeSeparators(filename)));
+        return false;
+    }
+
+    QByteArray data = file.readAll();
+    this->current_filename = QFileInfo(file).absoluteFilePath();
+    int filesize = data.size();
+
+    // ask the user whether they want to expand the image
+    if(data.size() < 0x4000) {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Expand this file to cartridge size?",
+                                            "This file is less than 16kb. If this file is intended to "
+                                            "be used as a cartridge, would you like to to expand it "
+                                            "to 16kb by padding the data with 0x00?", QMessageBox::Yes|QMessageBox::No);
+        if (reply == QMessageBox::Yes) {
+            this->current_file_expanded = true;
+            resize_qbytearray(&data, 0x4000);
+        } else {
+            this->current_file_expanded = false;
+        }
+    } else {
+        this->current_file_expanded = false;
+    }
+
+    this->hex_widget->set_data(data);
+    this->button_reload_file->setEnabled(true);
+
+    QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
+    QFileInfo finfo(file);
+
+    QString usage;
+    if(data.size() == 0x4000) {
+        usage = QString(" | %1 kb / %2 kb (%3 %)")
+                .arg(QString::number((float)filesize/(float)1024, 'f', 1))
+                .arg(QString::number(16, 'f', 1))
+                .arg((float)filesize/(float)(16 * 1024) * 100, 0, 'f', 1);
+    }
+
+    this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3" + usage)
+          .arg(finfo.fileName())
+          .arg(data.size() / 1024)
+          .arg(QString(hash.toHex()))
+    );
+    statusBar()->showMessage(tr("Opened %1.").arg(QDir::toNativeSeparators(this->current_filename)));
+    return true;
+}
+
+/**
+ * @brief Add a successfully opened file to the persistent MRU list.
+ */
+void MainWindow::add_recent_file(const QString& filename) {
+    const QString path = QDir::cleanPath(QFileInfo(filename).absoluteFilePath());
+    QStringList recent_files = settings.value("recent_files").toStringList();
+
+#ifdef Q_OS_WIN
+    constexpr Qt::CaseSensitivity path_case = Qt::CaseInsensitive;
+#else
+    constexpr Qt::CaseSensitivity path_case = Qt::CaseSensitive;
+#endif
+
+    for(int i = recent_files.size() - 1; i >= 0; --i) {
+        if(QDir::cleanPath(recent_files.at(i)).compare(path, path_case) == 0) {
+            recent_files.removeAt(i);
+        }
+    }
+    recent_files.prepend(path);
+    while(recent_files.size() > 5) {
+        recent_files.removeLast();
+    }
+    settings.setValue("recent_files", recent_files);
+    settings.sync();
+    this->update_recent_files_menu();
+}
+
+/**
+ * @brief Rebuild the Recent files submenu from persistent settings.
+ */
+void MainWindow::update_recent_files_menu() {
+    if(!this->recent_files_menu) {
         return;
     }
 
-    if(file.exists()) {
-        file.open(QIODevice::ReadOnly);
-        QByteArray data = file.readAll();
-        this->current_filename = file.fileName();
-        int filesize = data.size();
+    this->recent_files_menu->clear();
+    const QStringList recent_files = settings.value("recent_files").toStringList();
+    if(recent_files.isEmpty()) {
+        QAction* empty_action = this->recent_files_menu->addAction(
+            QIcon(":/assets/icon/bluecurve/rom-file.png"), tr("No recent files"));
+        empty_action->setEnabled(false);
+        return;
+    }
 
-        // ask the user whether they want to expand the image
-        if(data.size() < 0x4000) {
-            QMessageBox::StandardButton reply;
-            reply = QMessageBox::question(this, "Expand this file to cartridge size?",
-                                                "This file is less than 16kb. If this file is intended to "
-                                                "be used as a cartridge, would you like to to expand it "
-                                                "to 16kb by padding the data with 0x00?", QMessageBox::Yes|QMessageBox::No);
-            if (reply == QMessageBox::Yes) {
-                this->current_file_expanded = true;
-                resize_qbytearray(&data, 0x4000);
-            } else {
-                this->current_file_expanded = false;
-            }
+    for(const QString& path : recent_files) {
+        const QFileInfo file_info(path);
+        QString label = file_info.fileName();
+        if(label.isEmpty()) {
+            label = path;
         }
+        label.replace('&', "&&");
 
-        this->hex_widget->set_data(data);
-        this->button_reload_file->setEnabled(true);
+        QAction* action = this->recent_files_menu->addAction(
+            QIcon(":/assets/icon/bluecurve/rom-file.png"), label);
+        action->setData(path);
+        action->setToolTip(QDir::toNativeSeparators(path));
+        action->setIconVisibleInMenu(true);
+        connect(action, &QAction::triggered, this, &MainWindow::slot_open_recent_file);
+    }
+}
 
-        QByteArray hash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
-        QFileInfo finfo(file);
+/**
+ * @brief Open a file selected from the Recent files submenu.
+ */
+void MainWindow::slot_open_recent_file() {
+    const QAction* action = qobject_cast<QAction*>(sender());
+    if(!action) {
+        return;
+    }
 
-        QString usage;
-        if(data.size() == 0x4000) {
-            usage = QString(" | %1 kb / %2 kb (%3 %)")
-                    .arg(QString::number((float)filesize/(float)1024, 'f', 1))
-                    .arg(QString::number(16, 'f', 1))
-                    .arg((float)filesize/(float)(16 * 1024) * 100, 0, 'f', 1);
-        }
+    const QString filename = action->data().toString();
+    if(this->open_file(filename)) {
+        settings.setValue("last_open_dir", QFileInfo(filename).absolutePath());
+        this->add_recent_file(filename);
+        return;
+    }
 
-        this->label_data_descriptor->setText(QString("<b>%1</b> | Size: %2 kb | MD5: %3" + usage)
-              .arg(finfo.fileName())
-              .arg(data.size() / 1024)
-              .arg(QString(hash.toHex()))
-        );
+    if(!QFileInfo::exists(filename)) {
+        QStringList recent_files = settings.value("recent_files").toStringList();
+        recent_files.removeAll(filename);
+        settings.setValue("recent_files", recent_files);
+        settings.sync();
+        this->update_recent_files_menu();
     }
 }
 

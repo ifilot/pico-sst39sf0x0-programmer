@@ -25,6 +25,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QMenuBar>
+#include <QMenu>
 #include <QApplication>
 #include <QPushButton>
 #include <QComboBox>
@@ -100,6 +101,7 @@ private:
     QPushButton* button_flash_bank;
     QPushButton* button_scan_slots;
     QPushButton* button_reload_file;
+    QMenu* recent_files_menu = nullptr;
 
     // file data
     QString current_filename;
@@ -141,6 +143,23 @@ private:
      * @brief Create drop-down menus
      */
     void create_dropdown_menu();
+
+    /**
+     * @brief Load a ROM image from disk.
+     * @param filename file to load
+     * @return true when the file was loaded successfully
+     */
+    bool open_file(const QString& filename);
+
+    /**
+     * @brief Add a successfully opened file to the persistent MRU list.
+     */
+    void add_recent_file(const QString& filename);
+
+    /**
+     * @brief Rebuild the Recent files submenu from persistent settings.
+     */
+    void update_recent_files_menu();
 
     /**
      * @brief Build GUI showing serial port interface
@@ -188,6 +207,11 @@ private slots:
      * @brief Open a binary file
      */
     void slot_open();
+
+    /**
+     * @brief Open the file stored on a Recent files action.
+     */
+    void slot_open_recent_file();
 
     /**
      * @brief Reload a file
