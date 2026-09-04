@@ -67,9 +67,10 @@ jobs:
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-cmake
             mingw-w64-x86_64-ninja
-            mingw-w64-x86_64-qt5-base
-            mingw-w64-x86_64-qt5-tools
-            mingw-w64-x86_64-qt5-serialport
+            mingw-w64-x86_64-qt6-base
+            mingw-w64-x86_64-qt6-tools
+            mingw-w64-x86_64-qt6-serialport
+            mingw-w64-x86_64-openssl
             mingw-w64-x86_64-boost
             mingw-w64-x86_64-eigen3
             mingw-w64-x86_64-glm
@@ -137,7 +138,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install packages
-      run: sudo apt update && sudo apt install -y qtbase5-dev cmake libqt5serialport5-dev qttools5-dev-tools
+      run: sudo apt update && sudo apt install -y qt6-base-dev cmake libqt6serialport6-dev qt6-tools-dev-tools
     - name: Configure CMake
       run: mkdir ${{github.workspace}}/build && cd ${{github.workspace}}/build && cmake ../gui
     - name: Build

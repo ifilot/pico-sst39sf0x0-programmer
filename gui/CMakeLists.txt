@@ -22,8 +22,8 @@ execute_process(
 )
 add_compile_definitions(GIT_HASH="${GIT_HASH}")
 
-# Find Qt5 packages
-find_package(Qt5 REQUIRED COMPONENTS Widgets SerialPort Network Test)
+# Find Qt6 packages
+find_package(Qt6 REQUIRED COMPONENTS Widgets SerialPort Network Test)
 
 add_library(pico_flasher_core STATIC
     src/cartridgereadthread.cpp
@@ -38,7 +38,7 @@ target_include_directories(pico_flasher_core PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/src
 )
 
-target_link_libraries(pico_flasher_core PUBLIC Qt5::Core Qt5::SerialPort)
+target_link_libraries(pico_flasher_core PUBLIC Qt6::Core Qt6::SerialPort)
 
 add_library(pico_flasher_ui STATIC
     src/aboutdialog.cpp
@@ -57,7 +57,7 @@ target_include_directories(pico_flasher_ui PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/src
 )
 
-target_link_libraries(pico_flasher_ui PUBLIC pico_flasher_core Qt5::Widgets Qt5::Network)
+target_link_libraries(pico_flasher_ui PUBLIC pico_flasher_core Qt6::Widgets Qt6::Network)
 
 add_executable(pico-sst39sf0x0-programmer
     src/main.cpp
@@ -67,6 +67,13 @@ if(WIN32)
     target_sources(pico-sst39sf0x0-programmer PRIVATE
         appicon.rc
     )
+
+    # Used by the packaging script to verify the deployed Qt/OpenSSL runtime
+    # without relying on DLLs from the MSYS2 build environment.
+    add_executable(deployment_ssl_smoke_test
+        tests/deployment_ssl_smoke_test.cpp
+    )
+    target_link_libraries(deployment_ssl_smoke_test PRIVATE Qt6::Core Qt6::Network)
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -93,7 +100,7 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_LIST_DIR}/src
         ${CMAKE_CURRENT_LIST_DIR}/tests
     )
-    target_link_libraries(tst_serial_interface PRIVATE pico_flasher_core Qt5::Test)
+    target_link_libraries(tst_serial_interface PRIVATE pico_flasher_core Qt6::Test)
     add_test(NAME tst_serial_interface COMMAND tst_serial_interface)
 
     add_executable(tst_worker_threads
@@ -104,7 +111,7 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_LIST_DIR}/src
         ${CMAKE_CURRENT_LIST_DIR}/tests
     )
-    target_link_libraries(tst_worker_threads PRIVATE pico_flasher_core Qt5::Test)
+    target_link_libraries(tst_worker_threads PRIVATE pico_flasher_core Qt6::Test)
     add_test(NAME tst_worker_threads COMMAND tst_worker_threads)
 
     add_executable(tst_mainwindow
@@ -116,7 +123,7 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_LIST_DIR}/src
         ${CMAKE_CURRENT_LIST_DIR}/tests
     )
-    target_link_libraries(tst_mainwindow PRIVATE pico_flasher_ui Qt5::Test)
+    target_link_libraries(tst_mainwindow PRIVATE pico_flasher_ui Qt6::Test)
     add_test(NAME tst_mainwindow COMMAND tst_mainwindow)
 
     if(UNIX AND NOT APPLE)

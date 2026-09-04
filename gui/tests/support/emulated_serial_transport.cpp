@@ -151,7 +151,7 @@ QByteArray EmulatedSerialTransport::readAll() {
  */
 qint64 EmulatedSerialTransport::bytesAvailable() const {
     if(this->read_chunk_size > 0) {
-        return std::min(this->read_buffer.size(), this->read_chunk_size);
+        return std::min(this->read_buffer.size(), static_cast<qsizetype>(this->read_chunk_size));
     }
 
     return this->read_buffer.size();
@@ -322,7 +322,10 @@ QByteArray FirmwareEmulatorBackend::readRange(uint32_t offset, int length) const
         return response;
     }
 
-    const int readable = std::min(length, this->flash.size() - static_cast<int>(offset));
+    const qsizetype readable = std::min(
+        static_cast<qsizetype>(length),
+        this->flash.size() - static_cast<qsizetype>(offset)
+    );
     std::copy_n(this->flash.constData() + offset, readable, response.data());
     return response;
 }
@@ -381,7 +384,10 @@ void FirmwareEmulatorBackend::writeRange(uint32_t offset, const QByteArray& data
         return;
     }
 
-    const int writable = std::min(data.size(), this->flash.size() - static_cast<int>(offset));
+    const qsizetype writable = std::min(
+        data.size(),
+        this->flash.size() - static_cast<qsizetype>(offset)
+    );
     for(int i=0; i<writable; i++) {
         this->flash[static_cast<int>(offset) + i] = static_cast<char>(
             static_cast<uint8_t>(this->flash[static_cast<int>(offset) + i]) &
@@ -401,8 +407,11 @@ void FirmwareEmulatorBackend::eraseRange(uint32_t offset, int length) {
         return;
     }
 
-    const int erasable = std::min(length, this->flash.size() - static_cast<int>(offset));
-    std::fill_n(this->flash.begin() + static_cast<int>(offset), erasable, static_cast<char>(0xFF));
+    const qsizetype erasable = std::min(
+        static_cast<qsizetype>(length),
+        this->flash.size() - static_cast<qsizetype>(offset)
+    );
+    std::fill_n(this->flash.begin() + static_cast<qsizetype>(offset), erasable, static_cast<char>(0xFF));
 }
 
 /**

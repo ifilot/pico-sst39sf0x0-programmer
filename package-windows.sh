@@ -10,7 +10,7 @@ DIST_DIR="${DIST_DIR:-dist}"
 INSTALLER_DIR="${INSTALLER_DIR:-installer}"
 BUILD_TYPE="${BUILD_TYPE:-Release}"
 
-echo "==> Packaging ${APP_NAME} (Windows / MinGW / Qt5)"
+echo "==> Packaging ${APP_NAME} (Windows / MinGW / Qt6)"
 
 # ------------------------------------------------------------
 # Validate existing build
@@ -30,24 +30,16 @@ mkdir -p "${BUILD_DIR}" "${DIST_DIR}"
 echo "==> Copying executable"
 cp "${BUILD_DIR}/${APP_NAME}.exe" "${DIST_DIR}/"
 
-# Provide qmake.exe for windeployqt (MSYS2 requirement)
-QMAKE_QT5="$MINGW_PREFIX/bin/qmake-qt5.exe"
-QMAKE_SHIM="$MINGW_PREFIX/bin/qmake.exe"
-if [[ ! -x "$QMAKE_SHIM" ]]; then
-  echo "[INFO] Creating qmake.exe shim"
-  ln -s qmake-qt5.exe "$QMAKE_SHIM" 2>/dev/null || cp "$QMAKE_QT5" "$QMAKE_SHIM"
-fi
-
 # ------------------------------------------------------------
 # Deploy Qt runtime
 # ------------------------------------------------------------
 echo "==> Running windeployqt"
-windeployqt-qt5 \
+windeployqt6 \
   --release \
-  --no-angle \
   --no-opengl-sw \
   --no-translations \
   --no-compiler-runtime \
+  --openssl-root "$MINGW_PREFIX" \
   "${DIST_DIR}/${APP_NAME}.exe"
 
 # ------------------------------------------------------------
@@ -55,7 +47,7 @@ windeployqt-qt5 \
 # ------------------------------------------------------------
 strip "${DIST_DIR}/${APP_NAME}.exe" || true
 
-ldd "${DIST_DIR}/${APP_NAME}" | awk '{print $3}' | while read -r path; do
+ldd "${DIST_DIR}/${APP_NAME}.exe" | awk '{print $3}' | while read -r path; do
   case "$path" in
     /mingw64/bin/*.dll)
       dll="$(basename "$path")"
@@ -65,15 +57,57 @@ ldd "${DIST_DIR}/${APP_NAME}" | awk '{print $3}' | while read -r path; do
   esac
 done
 
+# Qt loads OpenSSL dynamically, so neither windeployqt nor ldd necessarily
+# sees these DLLs in the normal import table. Deploy both parts of the matching
+# MSYS2 OpenSSL runtime explicitly.
+echo "==> Deploying OpenSSL runtime"
+shopt -s nullglob
+ssl_dlls=("$MINGW_PREFIX"/bin/libssl-*.dll)
+crypto_dlls=("$MINGW_PREFIX"/bin/libcrypto-*.dll)
+shopt -u nullglob
+
+if [[ ${#ssl_dlls[@]} -eq 0 || ${#crypto_dlls[@]} -eq 0 ]]; then
+  echo "[ERROR] Could not find the OpenSSL runtime DLLs in $MINGW_PREFIX/bin"
+  exit 1
+fi
+
+cp "${ssl_dlls[@]}" "${crypto_dlls[@]}" "${DIST_DIR}/"
+
+# Exercise TLS from the actual deployment directory with the MinGW toolchain
+# removed from PATH. This catches missing or incompatible runtime DLLs before
+# an installer can be published.
+echo "==> Testing deployed TLS runtime"
+SMOKE_TEST="deployment_ssl_smoke_test.exe"
+if [[ ! -f "${BUILD_DIR}/${SMOKE_TEST}" ]]; then
+  echo "[ERROR] Expected deployment smoke test at ${BUILD_DIR}/${SMOKE_TEST}"
+  exit 1
+fi
+cp "${BUILD_DIR}/${SMOKE_TEST}" "${DIST_DIR}/"
+if ! PATH="/c/Windows/System32:/c/Windows" "${DIST_DIR}/${SMOKE_TEST}"; then
+  rm -f "${DIST_DIR}/${SMOKE_TEST}"
+  echo "[ERROR] The packaged application cannot initialize TLS without the build environment."
+  exit 1
+fi
+rm -f "${DIST_DIR}/${SMOKE_TEST}"
+
 # ------------------------------------------------------------
 # Build NSIS installer
 # ------------------------------------------------------------
 echo "==> Building NSIS installer"
 
-# Detect version from git tag (if present)
-VERSION="dev"
+# Read the application version and reject a mismatched release tag.
+VERSION="$(sed -nE 's/^#define PROGRAM_VERSION "([0-9]+\.[0-9]+\.[0-9]+)"$/\1/p' gui/src/config.h)"
+if [[ -z "$VERSION" ]]; then
+  echo "[ERROR] Could not read PROGRAM_VERSION from gui/src/config.h"
+  exit 1
+fi
+
 if git describe --tags --exact-match >/dev/null 2>&1; then
-  VERSION="$(git describe --tags --exact-match | sed 's/^v//')"
+  TAG_VERSION="$(git describe --tags --exact-match | sed 's/^v//')"
+  if [[ "$TAG_VERSION" != "$VERSION" ]]; then
+    echo "[ERROR] Release tag v${TAG_VERSION} does not match PROGRAM_VERSION ${VERSION}"
+    exit 1
+  fi
 fi
 
 makensis \
