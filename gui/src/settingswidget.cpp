@@ -48,6 +48,7 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
     layout->addWidget(new QLabel("<b>Hexviewer theme</b>"));
 
     this->theme_combobox = new QComboBox();
+    this->theme_combobox->setObjectName(QStringLiteral("hexViewerThemeComboBox"));
     this->theme_combobox->setPlaceholderText("Select color scheme");
     this->theme_combobox->addItem("Default scheme", QVariant(
         {BACKGROUND_COLOR_DEFAULT,
@@ -56,7 +57,7 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
          COLUMN_COLOR_DEFAULT,
          ALT_COLUMN_COLOR_DEFAULT,
          ASCII_COLOR_DEFAULT}));
-    this->theme_combobox->addItem("Autum scheme", QVariant(
+    this->theme_combobox->addItem("Autumn scheme", QVariant(
         {0xFFFFFFFF,
          0xFFFF0000,
          0xFFFF0000,
@@ -98,6 +99,41 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
          0xFFFFFFFF,
          0xFF00FF00,
          0xFF00FFFF}));
+    this->theme_combobox->addItem("Dracula", QVariant(
+        {0xFF282A36,
+         0xFF8BE9FD,
+         0xFFFF79C6,
+         0xFFF8F8F2,
+         0xFF50FA7B,
+         0xFFF1FA8C}));
+    this->theme_combobox->addItem("Dracula Alucard (Light)", QVariant(
+        {0xFFFFFBEB,
+         0xFF036A96,
+         0xFFA3144D,
+         0xFF1F1F1F,
+         0xFF14710A,
+         0xFF644AC9}));
+    this->theme_combobox->addItem("Nord", QVariant(
+        {0xFF2E3440,
+         0xFF88C0D0,
+         0xFFEBCB8B,
+         0xFFECEFF4,
+         0xFFA3BE8C,
+         0xFF81A1C1}));
+    this->theme_combobox->addItem("Gruvbox Dark", QVariant(
+        {0xFF282828,
+         0xFF83A598,
+         0xFFFABD2F,
+         0xFFEBDBB2,
+         0xFFB8BB26,
+         0xFF8EC07C}));
+    this->theme_combobox->addItem("Catppuccin Mocha", QVariant(
+        {0xFF1E1E2E,
+         0xFF89B4FA,
+         0xFFCBA6F7,
+         0xFFCDD6F4,
+         0xFFA6E3A1,
+         0xFF89DCEB}));
 
     layout->addWidget(this->theme_combobox);
     connect(this->theme_combobox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_theme_change(int)));
@@ -111,11 +147,11 @@ void SettingsWidget::build_hexviewer_settings(QVBoxLayout* layout) {
     for(unsigned int i=0; i<this->label_names.size(); i++) {
         QString keyword = this->label_names[i].toLower().replace(" ", "_");
         this->buttonpointers[i] = new QPushButton();
-        this->buttonpointers[i]->setMinimumSize(QSize(55, 25));
-        this->buttonpointers[i]->setMaximumSize(QSize(55, 25));
+        this->buttonpointers[i]->setObjectName(QStringLiteral("colorSwatch_") + keyword);
+        this->buttonpointers[i]->setMinimumSize(QSize(72, 25));
+        this->buttonpointers[i]->setMaximumHeight(25);
         color = QColor(settings.value(keyword, (uint32_t)this->default_colors[i]).toUInt());
-        this->buttonpointers[i]->setStyleSheet(this->sheet.arg(color.name()));
-        this->buttonpointers[i]->setText(color.name());
+        update_color_button(this->buttonpointers[i], color);
         gridlayout->addWidget(this->buttonpointers[i], i, 0);
         gridlayout->addWidget(new QLabel(this->label_names[i]), i, 1);
     }
@@ -143,15 +179,18 @@ void SettingsWidget::slot_change_color(const QString& name) {
         QString keyword = this->label_names[i].toLower().replace(" ", "_");
         if(keyword == name) {
             btn = this->buttonpointers[i];
-            QColor defcol = QColor(btn->text());
+            QColor defcol = btn->property("swatchColor").value<QColor>();
             qDebug() << defcol.name();
             QColor color = QColorDialog::getColor(defcol);
+
+            if(!color.isValid()) {
+                return;
+            }
 
             uint32_t value = (0xFF << 24) | (color.red() << 16) | (color.green() << 8) | (color.blue());
             qDebug() << "Changing color for " << name << " to " << color.name();
 
-            btn->setStyleSheet(this->sheet.arg(color.name()));
-            btn->setText(color.name());
+            update_color_button(btn, color);
 
             settings.setValue(name, value);
             settings.sync();
@@ -173,10 +212,16 @@ void SettingsWidget::slot_theme_change(int idx) {
         QString keyword = this->label_names[i].toLower().replace(" ", "_");
         uint32_t value = colors[i].toUInt();
         QColor color(value);
-        this->buttonpointers[i]->setStyleSheet(this->sheet.arg(color.name()));
+        update_color_button(this->buttonpointers[i], color);
         settings.setValue(keyword, value);
     }
 
     settings.sync();
     emit signal_settings_update();
+}
+
+void SettingsWidget::update_color_button(QPushButton* button, const QColor& color) {
+    button->setProperty("swatchColor", color);
+    button->setText(color.name(QColor::HexRgb));
+    button->setStyleSheet(colorSwatchStyleSheet(color));
 }

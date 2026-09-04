@@ -73,7 +73,15 @@ if(WIN32)
     add_executable(deployment_ssl_smoke_test
         tests/deployment_ssl_smoke_test.cpp
     )
-    target_link_libraries(deployment_ssl_smoke_test PRIVATE Qt6::Core Qt6::Network)
+    target_include_directories(deployment_ssl_smoke_test PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/src
+    )
+    target_link_libraries(deployment_ssl_smoke_test PRIVATE
+        Qt6::Core
+        Qt6::Network
+        Qt6::SerialPort
+        Qt6::Widgets
+    )
 endif()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

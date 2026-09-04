@@ -79,11 +79,30 @@ MainWindow::MainWindow(const std::shared_ptr<QStringList> _log_messages,
 
     // create central widget for writing data
     QScrollArea *scroll_area = new QScrollArea();
+    scroll_area->setObjectName("rightControlScrollArea");
+    scroll_area->setWidgetResizable(true);
+    scroll_area->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     layout->addWidget(scroll_area);
     scroll_area->setMinimumWidth(360);
     scroll_area->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     QWidget* right_container = new QWidget(scroll_area);
+    right_container->setObjectName("rightControlContainer");
+    right_container->setStyleSheet(QStringLiteral(
+        "QGroupBox {"
+        "  border: 1px solid palette(mid);"
+        "  border-radius: 3px;"
+        "  margin-top: 0.7em;"
+        "  padding-top: 0.4em;"
+        "}"
+        "QGroupBox::title {"
+        "  subcontrol-origin: margin;"
+        "  subcontrol-position: top left;"
+        "  left: 8px;"
+        "  padding: 0 4px;"
+        "  background-color: palette(window);"
+        "}"
+    ));
     QVBoxLayout* right_layout = new QVBoxLayout();
     right_layout->setSizeConstraint(QLayout::SetMinimumSize);
     right_container->setLayout(right_layout);
@@ -220,6 +239,7 @@ void MainWindow::create_dropdown_menu() {
 void MainWindow::build_serial_interface_menu(QVBoxLayout* target_layout) {
     // create interface for serial ports
     QGroupBox* serial_container = new QGroupBox("Serial interface");
+    serial_container->setObjectName("serialInterfaceGroup");
     serial_container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     QVBoxLayout *layout_serial_vertical = new QVBoxLayout();
     serial_container->setLayout(layout_serial_vertical);
@@ -264,6 +284,7 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
      */
     // create toplevel interface
     this->rom_container = new QGroupBox("ROM images");
+    this->rom_container->setObjectName("romImagesGroup");
     this->rom_container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     QVBoxLayout *layout = new QVBoxLayout();
     this->rom_container->setLayout(layout);
@@ -338,6 +359,7 @@ void MainWindow::build_rom_selection_menu(QVBoxLayout* target_layout) {
 void MainWindow::build_operations_menu(QVBoxLayout* target_layout) {
     // create toplevel interface
     QGroupBox* container = new QGroupBox("Operations");
+    container->setObjectName("operationsGroup");
     container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     QVBoxLayout *layout = new QVBoxLayout();
     container->setLayout(layout);

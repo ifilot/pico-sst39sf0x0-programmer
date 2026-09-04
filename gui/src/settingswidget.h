@@ -16,6 +16,7 @@
 #include <array>
 
 #include "config.h"
+#include "colorcontrast.h"
 #include "colors.h"
 
 class SettingsWidget : public QWidget
@@ -45,14 +46,12 @@ private:
         ASCII_COLOR_DEFAULT,
     };
 
-    const QString sheet = R"(
-        QPushButton {
-            background-color: %1;
-            color: #FFFFFF;
-        }
-    )";
-
     std::vector<QPushButton*> buttonpointers;
+
+    /**
+     * @brief Update a swatch without using its visible label as color storage.
+     */
+    static void update_color_button(QPushButton* button, const QColor& color);
 
 public:
     /**

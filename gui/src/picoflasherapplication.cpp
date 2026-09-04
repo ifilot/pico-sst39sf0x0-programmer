@@ -19,6 +19,7 @@
  ****************************************************************************/
 
 #include "picoflasherapplication.h"
+#include "applicationstyle.h"
 
 /**
  * @brief Default constructor
@@ -26,7 +27,9 @@
  * @param argv command line arguments
  */
 PicoFlasherApplication::PicoFlasherApplication(int& argc, char** argv) :
-QApplication(argc, argv) {}
+QApplication(argc, argv) {
+    configureApplicationStyle(*this);
+}
 
 /**
  * @brief Deliver an event while catching uncaught exceptions.

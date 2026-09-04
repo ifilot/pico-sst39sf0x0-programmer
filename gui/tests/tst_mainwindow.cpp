@@ -1,15 +1,20 @@
 #include <QtTest/QtTest>
 
 #include "mainwindow.h"
+#include "colorcontrast.h"
 #include "support/emulated_serial_transport.h"
 #include "support/fault_injecting_transport.h"
 
 #include <QComboBox>
 #include <QFile>
+#include <QGroupBox>
 #include <QLabel>
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QRegularExpression>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QSet>
 #include <QTimer>
 
@@ -123,7 +128,81 @@ private slots:
     void flash_rom_quick_worker_abort_is_reported();
     void destruction_waits_for_active_read();
     void menu_actions_have_visible_icons();
+    void right_control_panel_fits_scroll_viewport();
+    void hex_viewer_color_presets_and_swatches_are_accessible();
 };
+
+void MainWindowTest::hex_viewer_color_presets_and_swatches_are_accessible() {
+    QCOMPARE(contrastingTextColor(QColor(Qt::white)), QColor(Qt::black));
+    QCOMPARE(contrastingTextColor(QColor(Qt::black)), QColor(Qt::white));
+    QCOMPARE(contrastingTextColor(QColor(QStringLiteral("#fdf6e3"))), QColor(Qt::black));
+    QCOMPARE(contrastingTextColor(QColor(QStringLiteral("#282a36"))), QColor(Qt::white));
+
+    SettingsWidget widget;
+    auto* themes = widget.findChild<QComboBox*>("hexViewerThemeComboBox");
+    QVERIFY(themes != nullptr);
+    const QStringList accessibleThemes = {
+        QStringLiteral("Dracula"),
+        QStringLiteral("Dracula Alucard (Light)"),
+        QStringLiteral("Nord"),
+        QStringLiteral("Gruvbox Dark"),
+        QStringLiteral("Catppuccin Mocha")
+    };
+    for(const QString& themeName : accessibleThemes) {
+        const int index = themes->findText(themeName);
+        QVERIFY2(index >= 0, qPrintable(themeName));
+        const QVariantList colors = themes->itemData(index).toList();
+        QCOMPARE(colors.size(), 6);
+        const QColor background(colors.constFirst().toUInt());
+        for(int i = 1; i < colors.size(); ++i) {
+            const QColor foreground(colors.at(i).toUInt());
+            QVERIFY2(colorContrastRatio(background, foreground) >= 4.5,
+                     qPrintable(themeName + QStringLiteral(" color ") + foreground.name()));
+        }
+    }
+
+    const int saa5050Index = themes->findText(QStringLiteral("SAA5050"));
+    QVERIFY(saa5050Index >= 0);
+    const QVariantList saa5050 = themes->itemData(saa5050Index).toList();
+    QCOMPARE(saa5050.size(), 6);
+    QCOMPARE(saa5050.at(3).toUInt(), 0xFFFFFFFFu);
+
+    const auto swatches = widget.findChildren<QPushButton*>(
+        QRegularExpression(QStringLiteral("^colorSwatch_")));
+    QCOMPARE(swatches.size(), 6);
+    for(QPushButton* swatch : swatches) {
+        const QColor color = swatch->property("swatchColor").value<QColor>();
+        QVERIFY(color.isValid());
+        QCOMPARE(swatch->text(), color.name(QColor::HexRgb));
+        QVERIFY(swatch->styleSheet().contains(contrastingTextColor(color).name()));
+    }
+}
+
+void MainWindowTest::right_control_panel_fits_scroll_viewport() {
+    auto logs = std::make_shared<QStringList>();
+    MainWindow window(logs);
+    window.resize(1000, 800);
+    window.show();
+    QApplication::processEvents();
+
+    auto* scrollArea = window.findChild<QScrollArea*>("rightControlScrollArea");
+    auto* controls = window.findChild<QWidget*>("rightControlContainer");
+    QVERIFY(scrollArea != nullptr);
+    QVERIFY(controls != nullptr);
+    QCOMPARE(scrollArea->horizontalScrollBar()->maximum(), 0);
+    QCOMPARE(controls->width(), scrollArea->viewport()->width());
+
+    const QStringList groupNames = {
+        QStringLiteral("serialInterfaceGroup"),
+        QStringLiteral("romImagesGroup"),
+        QStringLiteral("operationsGroup")
+    };
+    for(const QString& name : groupNames) {
+        auto* group = controls->findChild<QGroupBox*>(name);
+        QVERIFY2(group != nullptr, qPrintable(name));
+        QVERIFY2(group->geometry().right() < controls->width(), qPrintable(name));
+    }
+}
 
 void MainWindowTest::menu_actions_have_visible_icons() {
     auto logs = std::make_shared<QStringList>();
